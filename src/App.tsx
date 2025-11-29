@@ -1,8 +1,12 @@
-function App() {
+import { ToastContainer } from 'react-toastify'
+import AppRouters from './routers'
+
+const App = () => {
   return (
-    <>
-      <div className="text-red-500 font-bold">Hello Client</div>
-    </>
+    <div className="main-app">
+      <ToastContainer />
+      <AppRouters />
+    </div>
   )
 }
 
