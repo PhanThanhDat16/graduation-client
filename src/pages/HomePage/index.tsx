@@ -1,5 +1,3 @@
-const HomePage = () => {
-  return <div className="text-red-500">hello admin</div>
-}
+import HomePage from './HomePage'
 
 export default HomePage

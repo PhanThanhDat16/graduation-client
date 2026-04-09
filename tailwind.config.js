@@ -11,11 +11,21 @@ export default {
     },
     extend: {
       colors: {
-        primaryColor: 'var(--Oxford-Blue)'
+        primaryColor: 'var(--Oxford-Blue)',
+        // Thêm màu chủ đạo và accent cho FreelanceVN
+        indigo: {
+          950: '#1B2A6B' // Deep Indigo
+        },
+        amber: {
+          500: '#F59E0B' // Amber Accent
+        }
       },
       fontFamily: {
         rubik: ['rubik', 'sans-serif'],
-        publish: ['Public Sans', 'sans-serif']
+        publish: ['Public Sans', 'sans-serif'],
+        // Thêm font chữ cho giao diện FreelanceVN
+        heading: ['"Be Vietnam Pro"', 'sans-serif'],
+        body: ['Inter', 'sans-serif']
       }
     }
   },
