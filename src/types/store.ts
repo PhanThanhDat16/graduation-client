@@ -22,4 +22,6 @@ export interface AuthState {
   register: (body: BodyRegister) => Promise<boolean>
   verifyOTP: (body: BodyVerifyOtpRegister) => Promise<boolean>
   resendOTP: (body: BodyResendOTP) => Promise<boolean>
+  forgotPassword: (email: string) => Promise<boolean>
+  verifyOTPPassword: (email: string, otp: string) => Promise<boolean>
 }

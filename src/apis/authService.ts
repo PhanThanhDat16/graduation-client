@@ -18,6 +18,14 @@ export const authService = {
     const res = await axiosInstance.post('auth/login', { email, password })
     return res
   },
+  forgotPassword: async (email: string) => {
+    const res = await axiosInstance.post('auth/password/forgot', { email })
+    return res
+  },
+  verifyOTPPassword: async (email: string, otp: string) => {
+    const res = await axiosInstance.post('auth/password/verify-otp', { email, otp })
+    return res
+  },
 
   logOut: async () => {
     const res = await axiosInstance.post('/auth/logout', {}, { withCredentials: true })

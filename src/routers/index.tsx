@@ -9,6 +9,8 @@ import path from '@/constants/path'
 import RegisterPage from '@/pages/RegisterLayout'
 import HomePage from '@/pages/HomePage'
 import VerifyOtpPage from '@/pages/VerifyOtpPage'
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
+import PasswordSentPage from '@/pages/PasswordSentPage'
 
 const AppRouters = () => {
   return (
@@ -27,6 +29,8 @@ const AppRouters = () => {
             <Route path={path.REGISTER} element={<RegisterPage />} />
             <Route path={path.LOGIN} element={<LoginPage />} />
             <Route path={path.VERIFY_OTP} element={<VerifyOtpPage />} />
+            <Route path={path.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+            <Route path={path.PASSWORK_SEND} element={<PasswordSentPage />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />}></Route>

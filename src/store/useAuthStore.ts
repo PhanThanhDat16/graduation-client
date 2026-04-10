@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false })
     }
   },
-  logIn: async (email, password) => {
+  logIn: async (email: string, password: string) => {
     try {
       set({ loading: true })
       const res = await authService.logIn(email, password)
@@ -74,7 +74,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false })
     }
   },
-
+  forgotPassword: async (email: string) => {
+    try {
+      set({ loading: true })
+      const res = await authService.forgotPassword(email)
+      console.log(res)
+      message.success('Mã xác thực đã được gửi đến email của bạn!')
+      return true
+    } catch (error) {
+      console.error(error)
+      message.error('Email không tồn tại trong hệ thống.')
+      return false
+    } finally {
+      set({ loading: false })
+    }
+  },
+  verifyOTPPassword: async (email: string, password: string) => {
+    try {
+      set({ loading: true })
+      const res = await authService.verifyOTPPassword(email, password)
+      message.success('Xác thực OTP thành công.')
+      console.log(res)
+      return true
+    } catch (error) {
+      console.log(error)
+      message.error('Mã OTP không chính xác.')
+      return false
+    } finally {
+      set({ loading: false })
+    }
+  },
   logOut: async () => {
     try {
       await authService.logOut()

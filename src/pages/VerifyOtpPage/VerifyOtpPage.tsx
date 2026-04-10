@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { message } from 'antd'
+import path from '@/constants/path'
 
 export default function VerifyOtpPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const emailFromState = location.state?.email || ''
-
-  const { loading, verifyOTP, resendOTP } = useAuthStore()
+  const purpose = location.state.purpose || 'register'
+  console.log(purpose)
+  const { loading, verifyOTP, resendOTP, verifyOTPPassword } = useAuthStore()
 
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -66,16 +68,20 @@ export default function VerifyOtpPage() {
     if (otpCode.length < 6) {
       return message.warning('Vui lòng nhập đủ 6 số xác thực!')
     }
-
-    // 2. Bắn data lên Store
-    const isSuccess = await verifyOTP({
-      email: emailFromState,
-      otp: otpCode,
-      purpose: 'register'
-    })
-    if (isSuccess) {
-      // Có thể truyền email sang trang login để điền sẵn vào ô email cho tiện
-      navigate('/login', { state: { email: emailFromState } })
+    if (purpose === 'register') {
+      const isSuccess = await verifyOTP({
+        email: emailFromState,
+        otp: otpCode,
+        purpose: 'register'
+      })
+      if (isSuccess) {
+        navigate(path.LOGIN, { state: { email: emailFromState } })
+      }
+    } else {
+      const isSuccess = await verifyOTPPassword(emailFromState, otpCode)
+      if (isSuccess) {
+        navigate(path.PASSWORK_SEND, { state: { email: emailFromState } })
+      }
     }
   }
 
