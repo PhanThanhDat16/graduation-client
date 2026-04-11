@@ -12,8 +12,10 @@ import VerifyOtpPage from '@/pages/VerifyOtpPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import PasswordSentPage from '@/pages/PasswordSentPage'
 import ProjectDetailPage from '@/pages/ProjectDetailPage'
-import ProjectListPage from '@/pages/ProjectListPage'
+import ProjectListPage from '@/pages/ProjectsPage'
 import PostProjectPage from '@/pages/PostProjectPage'
+import ProfilePage from '@/pages/ProfilePage'
+import FreelancersPage from '@/pages/FreelancersPage'
 
 const AppRouters = () => {
   return (
@@ -21,13 +23,15 @@ const AppRouters = () => {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path={path.HOME_PAGE} element={<HomePage />} />
-          <Route path={path.PROJECT} element={<ProjectListPage />} />
+          <Route path={path.PROJECTS} element={<ProjectListPage />} />
           <Route path={path.PROJECT_DETAIL} element={<ProjectDetailPage />} />
+          <Route path={path.FREELANCERS} element={<FreelancersPage />} />
         </Route>
 
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout />}>
             <Route path={path.POST_PROJECT} element={<PostProjectPage />} />
+            <Route path={path.PROFILE} element={<ProfilePage />} />
           </Route>
         </Route>
 
