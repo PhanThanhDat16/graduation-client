@@ -140,12 +140,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!user) {
         await fetchMe()
       }
-    } catch (error) {
-      if (error === 401) {
+    } catch (error: any) {
+      const status = error.status
+      console.log(error.status)
+      if (status === 401) {
         get().clearState()
         return
       }
-      if (error === 403) {
+      if (status === 403) {
         message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!')
         get().clearState()
         return

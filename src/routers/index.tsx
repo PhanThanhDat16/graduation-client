@@ -11,6 +11,9 @@ import HomePage from '@/pages/HomePage'
 import VerifyOtpPage from '@/pages/VerifyOtpPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import PasswordSentPage from '@/pages/PasswordSentPage'
+import ProjectDetailPage from '@/pages/ProjectDetailPage'
+import ProjectListPage from '@/pages/ProjectListPage'
+import PostProjectPage from '@/pages/PostProjectPage'
 
 const AppRouters = () => {
   return (
@@ -18,10 +21,14 @@ const AppRouters = () => {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path={path.HOME_PAGE} element={<HomePage />} />
+          <Route path={path.PROJECT} element={<ProjectListPage />} />
+          <Route path={path.PROJECT_DETAIL} element={<ProjectDetailPage />} />
         </Route>
 
         <Route element={<PrivateRoute />}>
-          <Route element={<MainLayout />}>{/* <Route path={path.HOME_PAGE} element={<HomePage />} /> */}</Route>
+          <Route element={<MainLayout />}>
+            <Route path={path.POST_PROJECT} element={<PostProjectPage />} />
+          </Route>
         </Route>
 
         <Route element={<PrivateRouteLogin />}>

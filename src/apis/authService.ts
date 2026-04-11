@@ -28,7 +28,7 @@ export const authService = {
   },
 
   logOut: async () => {
-    const res = await axiosInstance.post('/auth/logout', {}, { withCredentials: true })
+    const res = await axiosInstance.post('/auth/logout', { withCredentials: true })
     return res
   },
 
@@ -38,7 +38,7 @@ export const authService = {
   },
 
   refresh: async () => {
-    const res = await axiosInstance.post('/auth/refresh-token', {}, { withCredentials: true })
+    const res = await axiosInstance.post('/auth/refresh-token', { withCredentials: true })
     return res
   }
 }
