@@ -1,14 +1,37 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Outlet } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 
 export default function MainLayout() {
-  const { refresh } = useAuthStore()
+  const { accessToken, user, refresh, fetchMe } = useAuthStore()
+  const [starting, setStarting] = useState(true)
+
+  const hasInit = useRef(false)
+
   useEffect(() => {
-    refresh()
+    if (hasInit.current) return
+    hasInit.current = true
+
+    const run = async () => {
+      try {
+        if (!accessToken) {
+          await refresh()
+        } else if (!user) {
+          await fetchMe()
+        }
+      } finally {
+        setStarting(false)
+      }
+    }
+
+    run()
   }, [])
+
+  if (starting) {
+    return <div className="flex h-screen items-center justify-center">Đang tải trang...</div>
+  }
   return (
     <>
       <Header />

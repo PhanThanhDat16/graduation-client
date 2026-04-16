@@ -18,7 +18,8 @@ import {
   MoreHorizontal,
   Search,
   MessageSquare,
-  Briefcase
+  Briefcase,
+  LayoutDashboard
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 
@@ -35,7 +36,7 @@ export default function Header() {
 
   const { user, accessToken, logOut } = useAuthStore()
 
-  // Tạm mock data
+  // Tạm mock data (Nếu user chưa có role, mặc định là freelancer)
   const userRole = user?.role || 'freelancer'
   const userBalance = 2500000
   const unreadCount = 2
@@ -167,31 +168,38 @@ export default function Header() {
               </div>
             ) : (
               <>
-                <div className="hidden sm:block mr-1">
-                  <Link
-                    to="/post-project"
-                    className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-primary border border-indigo-100 text-sm font-bold rounded-lg hover:bg-primary hover:text-white transition-colors shadow-sm"
-                    title="Đăng dự án mới"
-                  >
-                    <Briefcase className="w-4 h-4" />
-                    <span className="hidden lg:block">Đăng dự án</span>
-                  </Link>
+                {/* === NÚT ĐỘNG DỰA VÀO ROLE === */}
+                <div className="hidden sm:block mr-2">
+                  {userRole === 'contractor' ? (
+                    <Link
+                      to="/post-project"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-primary border border-indigo-100 text-sm font-bold rounded-lg hover:bg-primary hover:text-white transition-colors shadow-sm"
+                      title="Đăng dự án mới"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      <span className="hidden lg:block">Đăng dự án</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/projects"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 text-sm font-bold rounded-lg hover:bg-emerald-600 hover:text-white transition-colors shadow-sm"
+                      title="Tìm việc ngay"
+                    >
+                      <Search className="w-4 h-4" />
+                      <span className="hidden lg:block">Tìm việc ngay</span>
+                    </Link>
+                  )}
                 </div>
 
-                <div className="hidden md:block">
-                  <button className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-text-sub hover:bg-gray-100 transition-colors">
-                    <Search className="h-4 w-4" />
-                    <span className="text-sm hidden xl:inline">Tìm kiếm...</span>
-                    <kbd className="hidden xl:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-page px-1.5 text-[10px] font-medium text-text-muted">
-                      ⌘K
-                    </kbd>
-                  </button>
-                </div>
+                {/* ĐÃ XÓA KHỐI TÌM KIẾM Ở ĐÂY */}
 
-                <button className="relative p-2 rounded-lg text-text-sub hover:bg-gray-100 hover:text-primary transition-colors hidden sm:flex">
+                <Link
+                  to="/messages"
+                  className="relative p-2 rounded-lg text-text-sub hover:bg-gray-100 hover:text-primary transition-colors hidden sm:flex"
+                >
                   <MessageSquare className="h-5 w-5" />
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent border-2 border-white"></span>
-                </button>
+                </Link>
 
                 <button className="relative p-2 rounded-lg text-text-sub hover:bg-gray-100 hover:text-primary transition-colors">
                   <Bell className="h-5 w-5" />
@@ -238,12 +246,40 @@ export default function Header() {
                       </div>
 
                       <Link
+                        to="/dashboard"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-primary bg-indigo-50/50 hover:bg-page transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-primary" /> Bảng điều khiển
+                      </Link>
+
+                      <Link
                         to="/profile"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <User className="w-4 h-4 text-text-sub" /> Hồ sơ cá nhân
                       </Link>
+
+                      {/* Thay đổi link quản lý tùy theo Role */}
+                      {userRole === 'contractor' ? (
+                        <Link
+                          to="/manage-projects"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                        >
+                          <Briefcase className="w-4 h-4 text-text-sub" /> Quản lý dự án
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/my-proposals"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-text-sub" /> Việc đã nộp
+                        </Link>
+                      )}
+
                       <Link
                         to="/contracts"
                         onClick={() => setIsDropdownOpen(false)}
@@ -335,21 +371,40 @@ export default function Header() {
 
             {accessToken && (
               <>
+                <div className="h-px bg-border my-2 mx-3"></div>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary bg-indigo-50 mt-2"
+                >
+                  <LayoutDashboard className="h-4 w-4 text-primary" /> Bảng điều khiển
+                </Link>
+
                 <Link
                   to="/wallet"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-main hover:bg-gray-50 mt-2"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-main hover:bg-gray-50 mt-1"
                 >
                   <Wallet className="h-4 w-4 text-text-sub" /> Ví Escrow
                   <span className="ml-auto text-xs font-bold text-primary bg-indigo-50 px-2 py-1 rounded-md">
                     {userBalance.toLocaleString('vi-VN')} ₫
                   </span>
                 </Link>
-                <Link
-                  to="/post-project"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary bg-indigo-50 hover:bg-indigo-100 mt-2"
-                >
-                  <Briefcase className="w-4 h-4" /> Đăng dự án mới
-                </Link>
+
+                {/* NÚT MOBILE ĐỘNG THEO ROLE */}
+                {userRole === 'contractor' ? (
+                  <Link
+                    to="/post-project"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary hover:bg-indigo-50 mt-1"
+                  >
+                    <Briefcase className="w-4 h-4" /> Đăng dự án mới
+                  </Link>
+                ) : (
+                  <Link
+                    to="/projects"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-emerald-600 hover:bg-emerald-50 mt-1"
+                  >
+                    <Search className="w-4 h-4" /> Tìm việc ngay
+                  </Link>
+                )}
               </>
             )}
 
