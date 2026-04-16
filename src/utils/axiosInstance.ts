@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/useAuthStore'
+import { message } from 'antd'
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
   }
 })
 
-axiosInstance.defaults.withCredentials = true
+// axiosInstance.defaults.withCredentials = true
 
 // gắn access vào header req
 axiosInstance.interceptors.request.use((config) => {
@@ -28,9 +29,10 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config
-
+    console.log(originalRequest)
     // những api không cần check
     if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh-token')) {
+      console.log('chạy vào đây')
       return Promise.reject(error)
     }
 
@@ -41,13 +43,15 @@ axiosInstance.interceptors.response.use(
 
       try {
         const res = await axiosInstance.post('/auth/refresh-token')
-        const newAccessToken = res.data.accessToken
+        console.log(res)
+        const newAccessToken = res.data.data.accessToken
 
         useAuthStore.getState().setAccessToken(newAccessToken)
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return axiosInstance(originalRequest)
       } catch (refreshError) {
+        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!')
         useAuthStore.getState().clearState()
         return Promise.reject(refreshError)
       }

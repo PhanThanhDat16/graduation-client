@@ -1,19 +1,18 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
+  Briefcase,
   Clock,
   DollarSign,
-  MapPin,
-  CheckCircle2,
+  ArrowLeft,
   Star,
-  Heart,
+  CheckCircle2,
   Share2,
-  Briefcase,
-  FileText,
+  Heart,
+  MapPin,
+  ShieldAlert,
   AlertCircle,
   ChevronRight,
-  ShieldAlert
+  FileText
 } from 'lucide-react'
 
 // --- MOCK DATA (Lấy từ API: GET /projects/:id) ---
@@ -56,18 +55,21 @@ Dự án cần hoàn thành trong vòng 3 tháng. Vui lòng gửi kèm portfolio
     total_projects_posted: 15
   },
 
-  // Dữ liệu tổng hợp từ bảng Applications
   applications_count: 5
 }
 
 export default function ProjectDetailPage() {
+  const navigate = useNavigate()
   // const { id } = useParams()
   const project = MOCK_PROJECT_DETAIL
 
-  // State cho form báo giá nhanh (Giả lập)
-  const [isApplying, setIsApplying] = useState(false)
-  const [proposal, setProposal] = useState('')
-  const [proposedBudget, setProposedBudget] = useState('')
+  // --- GIẢ LẬP AUTH STATE (Thực tế lấy từ useAuthStore) ---
+  const currentUserRole = 'freelancer' // 'freelancer' | 'contractor'
+  const currentUserId = 'u2' // ID của người đang đăng nhập
+
+  const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractor._id
+  const isOtherContractor = currentUserRole === 'contractor' && !isOwner
+  const isFreelancer = currentUserRole === 'freelancer'
 
   // Format tiền
   const formatMoney = (amount: number) => {
@@ -80,12 +82,15 @@ export default function ProjectDetailPage() {
       <div className="bg-white border-b border-border pt-6 pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-4 text-sm font-medium text-text-sub mb-4">
-            <Link to="/projects" className="flex items-center gap-1 hover:text-primary transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Quay lại tìm kiếm
-            </Link>
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1 hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Quay lại
+            </button>
             <span className="w-1 h-1 bg-border rounded-full"></span>
             <Link to="/projects" className="hover:text-primary transition-colors">
-              Dự án
+              Khám phá Dự án
             </Link>
             <ChevronRight className="w-4 h-4 text-text-muted" />
             <span className="text-text-main">{project.category}</span>
@@ -114,12 +119,14 @@ export default function ProjectDetailPage() {
               <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-xl text-sm font-bold text-text-main hover:bg-gray-50 transition-colors shadow-sm">
                 <Share2 className="w-4 h-4" /> Chia sẻ
               </button>
-              <button
-                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-colors shadow-sm ${project.is_liked_by_me ? 'bg-red-50 border-red-200 text-danger' : 'bg-white border-border text-text-main hover:bg-gray-50'}`}
-              >
-                <Heart className={`w-4 h-4 ${project.is_liked_by_me ? 'fill-danger text-danger' : ''}`} />
-                {project.is_liked_by_me ? 'Đã lưu' : 'Lưu dự án'}
-              </button>
+              {isFreelancer && (
+                <button
+                  className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-colors shadow-sm ${project.is_liked_by_me ? 'bg-red-50 border-red-200 text-danger' : 'bg-white border-border text-text-main hover:bg-gray-50'}`}
+                >
+                  <Heart className={`w-4 h-4 ${project.is_liked_by_me ? 'fill-danger text-danger' : ''}`} />
+                  {project.is_liked_by_me ? 'Đã lưu' : 'Lưu dự án'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -132,6 +139,17 @@ export default function ProjectDetailPage() {
               CỘT TRÁI: CHI TIẾT DỰ ÁN (70%)
           ========================================== */}
           <div className="w-full lg:w-[65%] space-y-6">
+            {/* Cảnh báo dành cho Contractor đi lướt dạo */}
+            {isOtherContractor && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <p className="text-sm text-amber-800 font-medium">
+                  Bạn đang xem dự án này dưới góc độ là một Khách Hàng (Contractor). Bạn không thể ứng tuyển vào dự án
+                  của người khác. Hãy chuyển sang tài khoản Freelancer nếu bạn muốn nhận việc.
+                </p>
+              </div>
+            )}
+
             {/* Box 1: Mô tả chi tiết */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">Mô tả công việc</h2>
@@ -204,51 +222,32 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
 
-              {!isApplying ? (
+              {/* RENDER NÚT DỰA VÀO ROLE */}
+              {isOwner && (
                 <button
-                  onClick={() => setIsApplying(true)}
+                  onClick={() => navigate('/manage-projects')}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                >
+                  <Briefcase className="w-5 h-5" /> Quản lý dự án này
+                </button>
+              )}
+
+              {isFreelancer && (
+                <button
+                  onClick={() => navigate(`/submit-proposal/${project._id}`)}
                   className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
                   <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
                 </button>
-              ) : (
-                /* FORM NỘP BÁO GIÁ NHANH (Mô phỏng bảng Applications) */
-                <div className="animate-in fade-in slide-in-from-top-2">
-                  <h3 className="font-bold text-text-main mb-3">Thông tin báo giá của bạn</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-text-sub mb-1.5">Giá thầu đề xuất (VND)</label>
-                      <input
-                        type="number"
-                        value={proposedBudget}
-                        onChange={(e) => setProposedBudget(e.target.value)}
-                        placeholder="VD: 20000000"
-                        className="w-full bg-page border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-text-main outline-none focus:border-primary transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-text-sub mb-1.5">Thư chào hàng (Proposal)</label>
-                      <textarea
-                        rows={4}
-                        value={proposal}
-                        onChange={(e) => setProposal(e.target.value)}
-                        placeholder="Giới thiệu kinh nghiệm của bạn và lý do bạn phù hợp..."
-                        className="w-full bg-page border border-border rounded-xl px-4 py-2.5 text-sm text-text-main outline-none focus:border-primary transition-colors resize-none"
-                      ></textarea>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setIsApplying(false)}
-                        className="flex-1 py-2.5 bg-page border border-border text-text-main font-bold rounded-xl hover:bg-gray-100 transition-colors"
-                      >
-                        Hủy
-                      </button>
-                      <button className="flex-1 py-2.5 bg-accent text-white font-bold rounded-xl shadow-sm hover:bg-amber-600 transition-colors">
-                        Xác nhận Gửi
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              )}
+
+              {isOtherContractor && (
+                <button
+                  disabled
+                  className="w-full bg-slate-100 text-slate-400 font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <AlertCircle className="w-5 h-5" /> Không thể ứng tuyển
+                </button>
               )}
             </div>
 
@@ -315,9 +314,11 @@ export default function ProjectDetailPage() {
             </div>
 
             {/* Box Report */}
-            <button className="w-full text-center text-sm font-semibold text-text-muted hover:text-danger transition-colors flex items-center justify-center gap-1">
-              <AlertCircle className="w-4 h-4" /> Báo cáo bài đăng vi phạm
-            </button>
+            {!isOwner && (
+              <button className="w-full text-center text-sm font-semibold text-text-muted hover:text-danger transition-colors flex items-center justify-center gap-1">
+                <AlertCircle className="w-4 h-4" /> Báo cáo bài đăng vi phạm
+              </button>
+            )}
           </div>
         </div>
       </div>
