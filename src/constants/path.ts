@@ -18,10 +18,16 @@ const path = {
 
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
+  FREELANCERS: '/freelancers',
+  WALLET: '/wallet',
+  ADD_FUNDS: '/wallet/add-funds',
+  WITHDRAW: '/wallet/withdraw',
+  WITHDRAW_REQUESTS: '/wallet/withdraw-requests',
+  BANK_ACCOUNTS: '/wallet/bank-accounts',
+  PAYMENT_RESULT: '/payment-result'
   POST_PROJECT: '/post-project',
   MANAGE_PROJECTS: '/manage-projects',
   MY_PROPOSALS: '/my-proposals',
-  WALLET: '/wallet',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
 
