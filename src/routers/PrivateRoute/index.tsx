@@ -15,12 +15,9 @@ const PrivateRoute = () => {
     const run = async () => {
       if (!accessToken) {
         await refresh()
-      }
-
-      if (!user) {
+      } else if (!user) {
         await fetchMe()
       }
-
       setStarting(false)
     }
 
