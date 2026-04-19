@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
   Wallet,
@@ -19,15 +19,27 @@ import {
   Search,
   MessageSquare,
   Briefcase,
+  Newspaper,
+  Building2,
+  Mail,
+  Headset,
   LayoutDashboard
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
+import path from '@/constants/path'
+import { useWalletStore } from '@/store/useWalletStore'
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+  const navigate = useNavigate()
+  const { balance, fetchBalance } = useWalletStore()
+
+  useEffect(() => {
+    fetchBalance()
+  }, [fetchBalance])
 
   const location = useLocation()
 
@@ -38,8 +50,12 @@ export default function Header() {
 
   // Tạm mock data (Nếu user chưa có role, mặc định là freelancer)
   const userRole = user?.role || 'freelancer'
-  const userBalance = 2500000
   const unreadCount = 2
+
+  const handleLogout = async () => {
+    await logOut()
+    navigate(path.LOGIN)
+  }
 
   // Hiệu ứng đổ bóng
   useEffect(() => {
@@ -113,35 +129,35 @@ export default function Header() {
                 </button>
 
                 {isMoreMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                     <Link
                       to="/blog"
                       onClick={() => setIsMoreMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
-                      Blog & Tin tức
+                      <Newspaper className="h-4 w-4" /> Blog & Tin tức
                     </Link>
                     <Link
                       to="/about"
                       onClick={() => setIsMoreMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
-                      Về FreelanceVN
+                      <Building2 className="h-4 w-4" /> Về FreelanceVN
                     </Link>
                     <Link
                       to="/contact"
                       onClick={() => setIsMoreMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
-                      Liên hệ với chúng tôi
+                      <Mail className="h-4 w-4" /> Liên hệ với chúng tôi
                     </Link>
                     <div className="h-px bg-border my-1"></div>
                     <Link
                       to="/faq"
                       onClick={() => setIsMoreMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
-                      Trung tâm hỗ trợ (FAQ)
+                      <Headset className="h-4 w-4" /> Trung tâm hỗ trợ (FAQ)
                     </Link>
                   </div>
                 )}
@@ -216,7 +232,7 @@ export default function Header() {
                   className="hidden md:flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-indigo-50 text-primary border border-indigo-100 hover:bg-indigo-100 transition-colors"
                 >
                   <Wallet className="h-4 w-4 text-accent" />
-                  <span className="text-sm font-bold">{userBalance.toLocaleString('vi-VN')} ₫</span>
+                  <span className="text-sm font-bold">{balance.toLocaleString('vi-VN')} ₫</span>
                 </Link>
 
                 {/* Avatar Dropdown */}
@@ -315,7 +331,7 @@ export default function Header() {
                       <div className="my-1 border-t border-border"></div>
                       <button
                         onClick={() => {
-                          logOut()
+                          handleLogout()
                           setIsDropdownOpen(false)
                         }}
                         className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-danger hover:bg-red-50 transition-colors"
@@ -385,7 +401,7 @@ export default function Header() {
                 >
                   <Wallet className="h-4 w-4 text-text-sub" /> Ví Escrow
                   <span className="ml-auto text-xs font-bold text-primary bg-indigo-50 px-2 py-1 rounded-md">
-                    {userBalance.toLocaleString('vi-VN')} ₫
+                    {balance.toLocaleString('vi-VN')} ₫
                   </span>
                 </Link>
 
