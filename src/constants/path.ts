@@ -24,7 +24,7 @@ const path = {
   WITHDRAW: '/wallet/withdraw',
   WITHDRAW_REQUESTS: '/wallet/withdraw-requests',
   BANK_ACCOUNTS: '/wallet/bank-accounts',
-  PAYMENT_RESULT: '/payment-result'
+  PAYMENT_RESULT: '/payment-result',
   POST_PROJECT: '/post-project',
   MANAGE_PROJECTS: '/manage-projects',
   MY_PROPOSALS: '/my-proposals',

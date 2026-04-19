@@ -22,7 +22,7 @@ import {
   Newspaper,
   Building2,
   Mail,
-  Headset
+  Headset,
   LayoutDashboard
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
