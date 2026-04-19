@@ -41,4 +41,24 @@ export const authSchema = yup.object({
   avatar: yup.string().default('').max(1000, 'Độ dài tối đa là 1000 ký tự')
 })
 
+function testPriceMinMax(this: yup.TestContext<yup.AnyObject>) {
+  const { budgetMin, budgetMax } = this.parent
+  if (budgetMin === '' || budgetMax === '') {
+    return true
+  }
+  return Number(budgetMax) >= Number(budgetMin)
+}
+export const schema = yup.object({
+  budgetMin: yup.string().default('').test({
+    name: 'price-not-allowed',
+    message: 'Giá cả không phù hợp',
+    test: testPriceMinMax
+  }),
+  budgetMax: yup.string().default('').test({
+    name: 'price-not-allowed',
+    message: 'Giá cả không phù hợp',
+    test: testPriceMinMax
+  })
+})
 export type AuthSchema = yup.InferType<typeof authSchema>
+export type Schema = yup.InferType<typeof schema>
