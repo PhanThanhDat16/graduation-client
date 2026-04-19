@@ -17,6 +17,8 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@oorts/read-vn-number": "^0.3.0",
+    "@tanstack/react-query": "^5.99.0",
+    "@tanstack/react-query-devtools": "^5.99.0",
     "@types/lodash": "^4.17.21",
     "antd": "^6.3.5",
     "axios": "^1.13.2",

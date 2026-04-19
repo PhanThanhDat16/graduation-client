@@ -29,10 +29,8 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config
-    console.log(originalRequest)
     // những api không cần check
     if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh-token')) {
-      console.log('chạy vào đây')
       return Promise.reject(error)
     }
 

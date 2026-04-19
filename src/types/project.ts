@@ -1,82 +1,42 @@
-// ─── Enums ────────────────────────────────────────────────────────────────────
-export type ProjectStatus = 'draft' | 'open' | 'closed'
-
-// ─── Core Entity ──────────────────────────────────────────────────────────────
-export interface IProject {
+// --- CẤU TRÚC DỰ ÁN (Dựa trên Schema Backend) ---
+export interface Project {
   _id: string
-  contractorId: string | IContractorPopulated
+  contractorId: string
   title: string
   description: string
   category: string
   skills: string[]
   budgetMin: number
-  budgetMax: number
-  status: ProjectStatus
+  budgetMax?: number // Backend trả về có thể thiếu nếu không set
+  status: 'draft' | 'open' | 'closed'
   likes: number
   listLike: string[]
   createdAt: string
   updatedAt: string
 }
 
-/** Populated contractor info when API joins User */
-export interface IContractorPopulated {
-  _id: string
-  fullName: string
-  email: string
-  avatar?: string
-}
-
-// ─── Request Bodies ────────────────────────────────────────────────────────────
-export interface ICreateProjectBody {
+// --- REQUEST BODY KHI TẠO DỰ ÁN ---
+export interface ProjectCreateParams {
   title: string
   description: string
   category: string
   skills?: string[]
   budgetMin: number
-  budgetMax: number
-  status?: ProjectStatus
-}
-
-export interface IUpdateProjectBody {
-  title?: string
-  description?: string
-  category?: string
-  skills?: string[]
-  budgetMin?: number
   budgetMax?: number
-  status?: ProjectStatus
+  status?: 'draft' | 'open' | 'closed'
 }
 
-// ─── Query / Filter ───────────────────────────────────────────────────────────
-export interface IProjectQuery {
-  page?: number
-  limit?: number
+// --- QUERY PARAMS KHI TÌM KIẾM/LỌC DỰ ÁN ---
+export interface ProjectQueryParams {
+  page?: number | string
+  limit?: number | string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   contractorId?: string
   category?: string
-  status?: ProjectStatus
+  status?: 'draft' | 'open' | 'closed'
   keyword?: string
-  likes?: number
-  budgetMin?: number
-  budgetMax?: number
-}
-
-// ─── API Response Shapes ──────────────────────────────────────────────────────
-export interface IProjectPagination {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
-
-export interface IProjectListResponse {
-  message: string
-  data: IProject[]
-  pagination: IProjectPagination
-}
-
-export interface IProjectResponse {
-  message: string
-  data: IProject
+  budgetMin?: number | string
+  budgetMax?: number | string
+  likes?: number | string
 }
