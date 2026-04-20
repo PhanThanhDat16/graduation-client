@@ -15,10 +15,10 @@ import {
   CheckCircle2 // Thêm icon Check
 } from 'lucide-react'
 import { projectService } from '@/apis/projectService'
+import { applicationService } from '@/apis/applicationService' // Thêm API application
+import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 import { formatBudget, timeAgo } from '@/utils/fomatters'
 import { useAuthStore } from '@/store/useAuthStore'
-import { applicationService } from '@/apis/applicationService'
-import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate()

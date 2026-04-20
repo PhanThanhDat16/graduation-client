@@ -16,7 +16,7 @@ import ProjectListPage from '@/pages/ProjectsPage'
 import PostProjectPage from '@/pages/PostProjectPage'
 import ProfilePage from '@/pages/ProfilePage'
 import FreelancersPage from '@/pages/FreelancersPage'
-import WalletDashboard from '@/pages/WalletPage/walletPage'
+import WalletDashboard from '@/pages/WalletPage/WalletPage'
 import AddFundsPage from '@/pages/WalletPage/addFundsPage'
 import WithdrawPage from '@/pages/WalletPage/withdrawsPage'
 import RequestWithdrawPage from '@/pages/WalletPage/requestWithdrawPage'
@@ -32,12 +32,6 @@ import DashboardPage from '@/pages/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
 import MyProposalsPage from '@/pages/MyProposalsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
-// import WalletLayout from '@/layouts/WalletLayout/WalletLayout'
-// import WalletDashboard from '@/pages/WalletPage/walletPage'
-// import AddFundsPage from '@/pages/WalletPage/addFundsPage'
-// import WithdrawPage from '@/pages/WalletPage/withdrawsPage'
-// import RequestWithdrawPage from '@/pages/WalletPage/requestWithdrawPage'
-// import BankAccountPage from '@/pages/WalletPage/bankAccountPage'
 
 const AppRouters = () => {
   return (
@@ -49,15 +43,6 @@ const AppRouters = () => {
           <Route path={path.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={path.FREELANCERS} element={<FreelancersPage />} />
           <Route path={path.PAYMENT_RESULT} element={<PaymentResultPage />} />
-
-          {/* Wallet sub-pages share the WalletLayout sidebar */}
-          {/* <Route element={<WalletLayout />}>
-            <Route path={path.WALLET} element={<WalletDashboard />} />
-            <Route path={path.ADD_FUNDS} element={<AddFundsPage />} />
-            <Route path={path.WITHDRAW} element={<WithdrawPage />} />
-            <Route path={path.WITHDRAW_REQUESTS} element={<RequestWithdrawPage />} />
-            <Route path={path.BANK_ACCOUNTS} element={<BankAccountPage />} />
-          </Route> */}
         </Route>
 
         <Route element={<PrivateRoute />}>
