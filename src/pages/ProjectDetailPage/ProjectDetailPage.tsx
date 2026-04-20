@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   Briefcase,
@@ -10,18 +10,23 @@ import {
   ShieldAlert,
   AlertCircle,
   ChevronRight,
-  FileText
+  FileText,
+  LogIn
 } from 'lucide-react'
 import { projectService } from '@/apis/projectService'
 import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 import { formatBudget, timeAgo } from '@/utils/fomatters'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate()
-  // 1. LẤY ID TỪ URL (Ví dụ: /projects/123456 -> id = 123456)
+  const location = useLocation()
   const { id } = useParams<{ id: string }>()
 
-  // 2. GỌI API LẤY CHI TIẾT DỰ ÁN
+  // LẤY THÔNG TIN USER THẬT TỪ STORE
+  const { user } = useAuthStore()
+
+  // GỌI API LẤY CHI TIẾT DỰ ÁN
   const {
     data: axiosResponse,
     isLoading,
@@ -31,13 +36,7 @@ export default function ProjectDetailPage() {
     queryFn: () => projectService.getProjectById(id as string),
     enabled: !!id // Chỉ gọi API khi có id
   })
-
-  // Bóc tách data
   const project = axiosResponse?.data?.data
-
-  // --- GIẢ LẬP AUTH STATE (Thực tế lấy từ store/context) ---
-  const currentUserRole = 'freelancer'
-  const currentUserId = 'user_me_123'
 
   // --- XỬ LÝ TRẠNG THÁI LOADING & ERROR ---
   if (isLoading) {
@@ -60,7 +59,7 @@ export default function ProjectDetailPage() {
           <p className="text-text-sub mb-6">Dự án này có thể đã bị xóa hoặc bạn không có quyền truy cập.</p>
           <button
             onClick={() => navigate('/projects')}
-            className="px-6 py-2 bg-primary text-white font-bold rounded-lg"
+            className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors"
           >
             Quay lại danh sách
           </button>
@@ -69,11 +68,21 @@ export default function ProjectDetailPage() {
     )
   }
 
-  // --- TÍNH TOÁN QUYỀN (PERMISSIONS) ---
+  // --- TÍNH TOÁN QUYỀN (PERMISSIONS) ĐỘNG DỰA VÀO STORE ---
+  const isGuest = !user // Chưa đăng nhập
+  const currentUserRole = user?.role
+  const currentUserId = user?._id || user?.id
+
   const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractorId
   const isOtherContractor = currentUserRole === 'contractor' && !isOwner
   const isFreelancer = currentUserRole === 'freelancer'
-  const isLikedByMe = project.listLike?.includes(currentUserId)
+  const isLikedByMe = currentUserId ? project.listLike?.includes(currentUserId) : false
+
+  // Xử lý khi Khách vãng lai bấm vào các nút yêu cầu đăng nhập
+  const handleRequireLogin = () => {
+    // Đẩy sang trang login, kèm theo state chứa URL hiện tại để login xong quay lại đúng dự án này
+    navigate('/login', { state: { from: location.pathname } })
+  }
 
   return (
     <div className="bg-page min-h-screen font-body pb-20">
@@ -109,10 +118,6 @@ export default function ProjectDetailPage() {
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" /> Đã đăng {timeAgo(project.createdAt)}
                 </span>
-                {/* Lưu ý: API Get Project hiện tại của bạn không trả về địa chỉ của Contractor.
-                  Địa chỉ này nên được lấy từ component ContractorInfo ở cột phải.
-                  Tạm thời ẩn phần MapPin ở header để tránh lỗi.
-                */}
               </div>
             </div>
 
@@ -121,8 +126,17 @@ export default function ProjectDetailPage() {
               <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-xl text-sm font-bold text-text-main hover:bg-gray-50 transition-colors shadow-sm">
                 <Share2 className="w-4 h-4" /> Chia sẻ
               </button>
-              {isFreelancer && (
+
+              {/* Nếu là Khách hoặc Freelancer thì hiển thị nút Lưu */}
+              {(isGuest || isFreelancer) && (
                 <button
+                  onClick={
+                    isGuest
+                      ? handleRequireLogin
+                      : () => {
+                          console.log('Gọi API Like Project')
+                        }
+                  }
                   className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-colors shadow-sm ${isLikedByMe ? 'bg-red-50 border-red-200 text-danger' : 'bg-white border-border text-text-main hover:bg-gray-50'}`}
                 >
                   <Heart className={`w-4 h-4 ${isLikedByMe ? 'fill-danger text-danger' : ''}`} />
@@ -137,9 +151,11 @@ export default function ProjectDetailPage() {
       {/* ── MAIN CONTENT ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* CỘT TRÁI: CHI TIẾT DỰ ÁN (65%) */}
+          {/* ==========================================
+              CỘT TRÁI: CHI TIẾT DỰ ÁN (65%)
+          ========================================== */}
           <div className="w-full lg:w-[65%] space-y-6">
-            {/* Cảnh báo dành cho Contractor */}
+            {/* Cảnh báo dành cho Contractor đi lướt dạo */}
             {isOtherContractor && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
@@ -203,7 +219,9 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: SIDEBAR (35%) */}
+          {/* ==========================================
+              CỘT PHẢI: SIDEBAR (35%)
+          ========================================== */}
           <div className="w-full lg:w-[35%] space-y-6">
             {/* Box Action & Budget */}
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
@@ -230,6 +248,13 @@ export default function ProjectDetailPage() {
                   className="w-full bg-slate-100 text-slate-400 font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <AlertCircle className="w-5 h-5" /> Dự án đã đóng
+                </button>
+              ) : isGuest ? (
+                <button
+                  onClick={handleRequireLogin}
+                  className="w-full bg-indigo-50 hover:bg-indigo-100 text-primary border border-primary/20 font-bold py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-5 h-5" /> Đăng nhập để ứng tuyển
                 </button>
               ) : isOwner ? (
                 <button
@@ -259,12 +284,12 @@ export default function ProjectDetailPage() {
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-base text-text-main mb-5">Về khách hàng này</h3>
 
-              {/* SỨC MẠNH CỦA COMPONENT: 1 DÒNG THAY THẾ TOÀN BỘ CODE CŨ */}
+              {/* COMPONENT CONTRACTOR ĐƯỢC TÁI SỬ DỤNG */}
               <ContractorInfo contractorId={project.contractorId} />
             </div>
 
             {/* Box Report */}
-            {!isOwner && (
+            {!isOwner && !isGuest && (
               <button className="w-full text-center text-sm font-semibold text-text-muted hover:text-danger transition-colors flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" /> Báo cáo bài đăng vi phạm
               </button>
