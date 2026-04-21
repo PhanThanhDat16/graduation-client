@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Briefcase,
@@ -7,13 +7,52 @@ import {
   Settings,
   MessageCircle,
   Send, // Thêm icon Send cho Việc đã ứng tuyển
-  Bell
+  Bell,
+  BanknoteArrowDownIcon,
+  BanknoteArrowUp,
+  Banknote,
+  CreditCard
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
+import path from '@/constants/path'
 
 export default function DashboardSidebar() {
   const location = useLocation()
-  const isActive = (path: string) => location.pathname.includes(path)
+  const isActive = (pathStr: string, exact?: boolean) =>
+    exact ? location.pathname === pathStr : location.pathname.startsWith(pathStr)
+
+  const navItems = [
+    {
+      icon: <Wallet size={18} />,
+      label: 'Ví của tôi',
+      path: path.WALLET,
+      exact: true
+    },
+    {
+      icon: <BanknoteArrowDownIcon size={18} />,
+      label: 'Nạp tiền',
+      path: path.ADD_FUNDS,
+      exact: false
+    },
+    {
+      icon: <BanknoteArrowUp size={18} />,
+      label: 'Rút tiền',
+      path: path.WITHDRAW,
+      exact: true
+    },
+    {
+      icon: <Banknote size={18} />,
+      label: 'Yêu cầu rút tiền',
+      path: path.WITHDRAW_REQUESTS,
+      exact: false
+    },
+    {
+      icon: <CreditCard size={18} />,
+      label: 'Tài khoản ngân hàng',
+      path: path.BANK_ACCOUNTS,
+      exact: false
+    }
+  ]
 
   // Lấy thông tin user từ Store
   const { user } = useAuthStore()
@@ -28,65 +67,76 @@ export default function DashboardSidebar() {
       </div>
 
       <nav className="flex md:flex-col gap-1 p-3 overflow-x-auto md:overflow-visible hide-scrollbar">
-        <Link
+        <NavLink
           to="/dashboard"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/dashboard') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
         >
-          <LayoutDashboard className="w-4 h-4" /> Tổng quan
-        </Link>
+          <LayoutDashboard size={20} /> Tổng quan
+        </NavLink>
 
         {/* === MENU ĐỘNG THEO ROLE === */}
         {userRole === 'contractor' ? (
-          <Link
-            to="/manage-projects"
+          <NavLink
+            to={path.MANAGE_PROJECTS}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/manage-projects') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
           >
-            <Briefcase className="w-4 h-4" /> Quản lý dự án
-          </Link>
+            <Briefcase size={20} /> Quản lý dự án
+          </NavLink>
         ) : (
-          <Link
-            to="/my-proposals"
+          <NavLink
+            to={path.MY_PROPOSALS}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/my-proposals') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
           >
-            <Send className="w-4 h-4" /> Việc đã ứng tuyển
-          </Link>
+            <Send size={20} /> Việc đã ứng tuyển
+          </NavLink>
         )}
         {/* ============================ */}
 
-        <Link
-          to="/contracts"
+        <NavLink
+          to={path.CONTRACTS}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/contracts') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
         >
-          <FileText className="w-4 h-4" /> Hợp đồng
-        </Link>
-        <Link
-          to="/wallet"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/wallet') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-        >
-          <Wallet className="w-4 h-4" /> Ví Escrow
-        </Link>
+          <FileText size={20} /> Hợp đồng
+        </NavLink>
 
-        <Link
-          to="/messages"
+        <NavLink
+          to={path.MESSAGES}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/messages') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
         >
-          <MessageCircle className="w-4 h-4" /> Tin nhắn
-        </Link>
+          <MessageCircle size={20} /> Tin nhắn
+        </NavLink>
 
-        <Link
-          to="/notifications"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/notifications') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-        >
-          <Bell className="w-4 h-4" /> Thông báo
-        </Link>
+        <div className="h-px bg-slate-100 my-2 mb-4 hidden md:block mx-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+          {' '}
+          Ví của tôi
+        </div>
+
+        {navItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.exact}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive(item.path, item.exact) ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+          >
+            {item.icon} {item.label}
+          </NavLink>
+        ))}
+
         <div className="h-px bg-slate-100 my-2 hidden md:block mx-3"></div>
 
-        <Link
-          to="/settings"
+        <NavLink
+          to={path.SETTINGS}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/settings') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
         >
-          <Settings className="w-4 h-4" /> Cài đặt
-        </Link>
+          <Settings size={20} /> Cài đặt
+        </NavLink>
+
+        <NavLink
+          to={path.NOTIFICATIONS}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap ${isActive('/notifications') ? 'font-bold bg-indigo-50/70 text-indigo-700' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+        >
+          <Bell size={20} /> Thông báo
+        </NavLink>
       </nav>
     </aside>
   )

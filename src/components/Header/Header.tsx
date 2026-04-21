@@ -93,7 +93,7 @@ export default function Header() {
                 <Shield className="h-5 w-5 text-accent" />
               </div>
               <span className="font-heading text-xl font-extrabold text-primary hidden sm:block tracking-tight">
-                Freelance<span className="text-accent">VN</span>
+                Free<span className="text-accent">Work</span>
               </span>
             </Link>
 
@@ -142,7 +142,7 @@ export default function Header() {
                       onClick={() => setIsMoreMenuOpen(false)}
                       className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
-                      <Building2 className="h-4 w-4" /> Về FreelanceVN
+                      <Building2 className="h-4 w-4" /> Về FreeWork
                     </Link>
                     <Link
                       to="/contact"

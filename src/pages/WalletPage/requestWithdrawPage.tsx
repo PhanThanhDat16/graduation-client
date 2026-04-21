@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import { useWalletStore } from '@/store/useWalletStore'
 import type { WithdrawRequest, WithdrawStatus, PopulatedAccount } from '@/types/wallet'
-import { TopBar } from '../../components/components-wallet'
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount)
 
@@ -105,8 +104,6 @@ export default function RequestWithdrawPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 font-sans text-slate-900">
-      <TopBar crumbs={['Ví của tôi', 'Yêu cầu rút tiền']} />
-
       <div className="p-8 space-y-8">
         {/* ── Header ── */}
         <div>

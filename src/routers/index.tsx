@@ -16,6 +16,12 @@ import ProjectListPage from '@/pages/ProjectsPage'
 import PostProjectPage from '@/pages/PostProjectPage'
 import ProfilePage from '@/pages/ProfilePage'
 import FreelancersPage from '@/pages/FreelancersPage'
+import WalletDashboard from '@/pages/WalletPage/walletPage'
+import AddFundsPage from '@/pages/WalletPage/addFundsPage'
+import WithdrawPage from '@/pages/WalletPage/withdrawsPage'
+import RequestWithdrawPage from '@/pages/WalletPage/requestWithdrawPage'
+import BankAccountPage from '@/pages/WalletPage/bankAccountPage'
+import PaymentResultPage from '@/components/components-wallet/notification-payment'
 import ManageProjectsPage from '@/pages/ManageProjectsPage'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import ContractsPage from '@/pages/ContractsPage'
@@ -32,7 +38,6 @@ import NotificationsPage from '@/pages/NotificationsPage'
 // import WithdrawPage from '@/pages/WalletPage/withdrawsPage'
 // import RequestWithdrawPage from '@/pages/WalletPage/requestWithdrawPage'
 // import BankAccountPage from '@/pages/WalletPage/bankAccountPage'
-import PaymentResultPage from '@/components/components-wallet/notification-payment'
 
 const AppRouters = () => {
   return (
@@ -71,6 +76,11 @@ const AppRouters = () => {
             <Route path={path.MESSAGES} element={<MessagesPage />} />
             <Route path={path.MY_PROPOSALS} element={<MyProposalsPage />} />
             <Route path={path.NOTIFICATIONS} element={<NotificationsPage />} />
+            <Route path={path.WALLET} element={<WalletDashboard />} />
+            <Route path={path.ADD_FUNDS} element={<AddFundsPage />} />
+            <Route path={path.WITHDRAW} element={<WithdrawPage />} />
+            <Route path={path.WITHDRAW_REQUESTS} element={<RequestWithdrawPage />} />
+            <Route path={path.BANK_ACCOUNTS} element={<BankAccountPage />} />
           </Route>
         </Route>
 
