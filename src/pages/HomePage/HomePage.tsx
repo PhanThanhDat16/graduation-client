@@ -334,7 +334,7 @@ export default function HomePage() {
             </h2>
             <p className="relative z-10 text-[#93A5E6] text-lg mb-8 max-w-2xl mx-auto font-medium">
               Tham gia ngay hôm nay để kết nối, làm việc và thanh toán an toàn. Dù bạn muốn thuê chuyên gia hay tìm
-              việc, FreelanceVN đều dành cho bạn.
+              việc, FreeWork đều dành cho bạn.
             </p>
 
             <div className="relative z-10 flex flex-col sm:flex-row justify-center gap-4">

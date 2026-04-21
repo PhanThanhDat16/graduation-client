@@ -22,7 +22,7 @@ export default function SubmitProposalPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Logic tính phí sàn (Giả sử nền tảng thu phí 10%)
-  const platformFeeRate = 0.1
+  const platformFeeRate = 0.05
   const platformFee = typeof bidAmount === 'number' ? bidAmount * platformFeeRate : 0
   const receiveAmount = typeof bidAmount === 'number' ? bidAmount - platformFee : 0
 
@@ -119,7 +119,7 @@ export default function SubmitProposalPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
                 <div className="flex-1">
                   <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
-                    Phí nền tảng (10%) <AlertCircle className="w-4 h-4 text-slate-400" />
+                    Phí nền tảng (5%) <AlertCircle className="w-4 h-4 text-slate-400" />
                   </h4>
                   <p className="text-sm text-slate-500">Phí duy trì hệ thống và bảo lãnh hợp đồng.</p>
                 </div>

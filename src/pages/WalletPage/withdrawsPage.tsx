@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TopBar, AmountInput } from '../../components/components-wallet'
+import { AmountInput } from '../../components/components-wallet'
 import { ArrowUpRight, CheckCircle2Icon, Loader2Icon, DollarSign, X, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import path from '@/constants/path'
@@ -60,8 +60,6 @@ function WithdrawPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50">
-      <TopBar crumbs={['Tổng quan', 'Ví của tôi', 'Rút tiền']} />
-
       <div className="p-8 max-w-xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
           {/* Header */}
@@ -177,7 +175,7 @@ function WithdrawPage() {
 
             <button
               onClick={handleWithdraw}
-              disabled={walletLoading || !amount || !bank}
+              disabled={walletLoading || !amount || !bank || parsedAmount < 100000 || parsedAmount > balance}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all text-white font-bold py-3.5 rounded-xl shadow-md shadow-indigo-200 flex items-center justify-center gap-2"
             >
               {walletLoading ? (

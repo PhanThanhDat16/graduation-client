@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TopBar } from '../../components/components-wallet'
 import BankDropdown from '../../components/components-wallet/BankDropDownButton'
 import {
   Landmark,
@@ -456,8 +455,6 @@ export default function BankAccountPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50">
-      <TopBar crumbs={['Tổng quan', 'Ví của tôi', 'Tài khoản ngân hàng']} />
-
       <div className="p-8 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
