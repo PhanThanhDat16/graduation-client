@@ -17,12 +17,11 @@ const path = {
 
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
-  FREELANCERS: '/freelancers',
   WALLET: '/wallet',
-  ADD_FUNDS: '/wallet/add-funds',
-  WITHDRAW: '/wallet/withdraw',
-  WITHDRAW_REQUESTS: '/wallet/withdraw-requests',
-  BANK_ACCOUNTS: '/wallet/bank-accounts',
+  ADD_FUNDS: '/add-funds',
+  WITHDRAW: '/withdraw',
+  WITHDRAW_REQUESTS: '/withdraw-requests',
+  BANK_ACCOUNTS: '/bank-accounts',
   PAYMENT_RESULT: '/payment-result',
   POST_PROJECT: '/post-project',
   MANAGE_PROJECTS: '/manage-projects',
@@ -32,7 +31,8 @@ const path = {
 
   CONTRACTS: '/contracts', // Danh sách tất cả hợp đồng
   CONTRACT_AGREEMENT: '/contracts/agreement/:id', // Trang Thỏa thuận & Ký tên 24h
-  CONTRACT_WORKSPACE: '/contracts/workspace/:id' // Phòng làm việc & Bàn giao (Bước 9, 10)
+  CONTRACT_WORKSPACE: '/contracts/workspace/:id', // Phòng làm việc & Bàn giao (Bước 9, 10)
+  SETTINGS: '/settings'
 }
 
 export default path

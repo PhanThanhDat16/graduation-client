@@ -1,7 +1,5 @@
 export { default as StatusBadge } from './StatusBadge'
 export { default as TypeTag } from './TypeTag'
-export { default as TopBar } from './TopBar'
 export { default as StatCard } from './StatCard'
 export { default as AmountInput } from './AmountInput'
-export { default as NavItem } from './NavItem'
 export type { Page, Transaction } from '@/types/wallet'

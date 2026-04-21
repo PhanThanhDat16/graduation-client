@@ -1,3 +1,3 @@
-import WalletPage from './WalletPage'
+import WalletPage from './walletPage'
 
 export default WalletPage

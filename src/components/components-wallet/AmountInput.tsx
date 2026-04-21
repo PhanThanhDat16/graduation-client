@@ -46,7 +46,12 @@ export default function AmountInput({
           className={`w-full border-[1.5px] border-${color}-500 rounded-xl py-3.5 pl-8 pr-4 text-lg font-bold text-${color}-600 bg-slate-50 focus:ring-2 focus:ring-${color}-300`}
         />
       </div>
-      {numericValue < 100000 && <p className="text-red-500 text-sm mt-1 mb-2 ">Số tiền tối thiểu là 100.000đ</p>}
+      {numericValue < 100000 && (
+        <p className="text-red-500 text-sm mt-1 mb-2 ">Số tiền tối thiểu có thể {purpose} là 100.000đ</p>
+      )}
+      {numericValue > 10000000 && (
+        <p className="text-red-500 text-sm mt-1 mb-2 ">Số tiền tối đa có thể {purpose} là 10.000.000đ</p>
+      )}
 
       {/* PRESETS */}
       <div className="flex gap-2 flex-wrap">

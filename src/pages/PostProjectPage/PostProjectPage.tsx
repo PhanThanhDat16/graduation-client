@@ -1,27 +1,28 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom' // Đã thêm useNavigate
-import { Briefcase, AlignLeft, Tags, DollarSign, ArrowLeft, CheckCircle2, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Briefcase, AlignLeft, Tags, DollarSign, ArrowLeft, CheckCircle2, X, Loader2 } from 'lucide-react'
+import { useProjectStore } from '@/store/useProjectStore'
+import type { ICreateProjectBody, ProjectStatus } from '@/types/project'
 
 const CATEGORIES = ['Lập trình Web', 'Mobile App', 'UI/UX Design', 'Marketing', 'Viết lách & Dịch thuật', 'Data / AI']
+
 const SUGGESTED_SKILLS = ['ReactJS', 'NodeJS', 'Figma', 'SEO', 'Content Writing', 'Python', 'Flutter', 'MongoDB']
 
 export default function PostProjectPage() {
-  const navigate = useNavigate() // Dùng để chuyển trang
-  const [isSubmitting, setIsSubmitting] = useState(false) // Trạng thái loading
+  const navigate = useNavigate()
+  const { createProject, loading } = useProjectStore()
 
-  // State quản lý Form khớp với Database Schema
   const [formData, setFormData] = useState({
     title: '',
     category: '',
     description: '',
     skills: [] as string[],
-    budget_min: '',
-    budget_max: ''
+    budgetMin: '',
+    budgetMax: '',
+    status: 'open' as ProjectStatus
   })
-
   const [skillInput, setSkillInput] = useState('')
 
-  // Xử lý thêm kỹ năng
   const handleAddSkill = (skill: string) => {
     if (skill && !formData.skills.includes(skill)) {
       setFormData((prev) => ({ ...prev, skills: [...prev.skills, skill] }))
@@ -29,31 +30,32 @@ export default function PostProjectPage() {
     }
   }
 
-  // Xử lý xóa kỹ năng
   const handleRemoveSkill = (skillToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((s) => s !== skillToRemove)
-    }))
+    setFormData((prev) => ({ ...prev, skills: prev.skills.filter((s) => s !== skillToRemove) }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
 
-    console.log('Dữ liệu gửi lên API POST /projects:', formData)
+    const body: ICreateProjectBody = {
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      skills: formData.skills,
+      budgetMin: Number(formData.budgetMin),
+      budgetMax: Number(formData.budgetMax),
+      status: formData.status
+    }
 
-    // Giả lập gọi API thành công sau 1.5s
-    setTimeout(() => {
-      setIsSubmitting(false)
-      // Đăng thành công -> Chuyển hướng Khách hàng về trang Quản lý Dự án của họ
+    const created = await createProject(body)
+    if (created) {
       navigate('/manage-projects')
-    }, 1500)
+    }
   }
 
   return (
     <div className="bg-slate-50 min-h-screen font-body pb-24">
-      {/* ── HEADER TRANG CƠ BẢN ── */}
+      {/* ── HEADER ── */}
       <div className="bg-white border-b border-slate-200 py-4 sticky top-[64px] z-40 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -76,9 +78,9 @@ export default function PostProjectPage() {
         </div>
       </div>
 
-      {/* ── NỘI DUNG FORM ── */}
+      {/* ── FORM ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8">
-        {/* Banner Hướng dẫn */}
+        {/* Banner */}
         <div className="bg-gradient-to-r from-indigo-600 to-violet-800 rounded-2xl p-6 text-white shadow-md mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h2 className="font-bold text-lg mb-1">Mô tả rõ ràng, tìm người dễ dàng!</h2>
@@ -137,6 +139,35 @@ export default function PostProjectPage() {
                   ))}
                 </select>
               </div>
+
+              {/* Trạng thái đăng */}
+              <div>
+                <label className="block text-sm font-bold text-slate-900 mb-2">Trạng thái đăng tuyển</label>
+                <div className="flex gap-4">
+                  {(
+                    [
+                      { value: 'open', label: '🟢 Mở tuyển ngay', desc: 'Freelancer có thể gửi báo giá ngay' },
+                      { value: 'draft', label: '⚪ Lưu nháp', desc: 'Chưa công khai, bạn có thể chỉnh sửa sau' }
+                    ] as const
+                  ).map((opt) => (
+                    <label
+                      key={opt.value}
+                      className={`flex-1 border rounded-xl p-4 cursor-pointer transition-all ${formData.status === opt.value ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value={opt.value}
+                        checked={formData.status === opt.value}
+                        onChange={() => setFormData({ ...formData, status: opt.value })}
+                        className="sr-only"
+                      />
+                      <p className="text-sm font-bold text-slate-800 mb-1">{opt.label}</p>
+                      <p className="text-xs text-slate-500">{opt.desc}</p>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -151,7 +182,6 @@ export default function PostProjectPage() {
                 <p className="text-xs text-slate-500">Cung cấp đầy đủ thông tin để freelancer hiểu rõ yêu cầu</p>
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-bold text-slate-900 mb-2">
                 Chi tiết dự án <span className="text-red-500">*</span>
@@ -159,11 +189,14 @@ export default function PostProjectPage() {
               <textarea
                 required
                 rows={8}
-                placeholder="- Mục tiêu của dự án là gì?&#10;- Các tính năng cụ thể cần có?&#10;- Yêu cầu về thời gian hoàn thành?"
+                placeholder={
+                  '- Mục tiêu của dự án là gì?\n- Các tính năng cụ thể cần có?\n- Yêu cầu về thời gian hoàn thành?'
+                }
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-5 text-sm text-slate-900 focus:bg-white focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all shadow-inner resize-none leading-relaxed"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+              <p className="text-xs text-slate-400 mt-2 text-right">{formData.description.length} ký tự</p>
             </div>
           </div>
 
@@ -178,7 +211,6 @@ export default function PostProjectPage() {
                 <p className="text-xs text-slate-500">Các công cụ, ngôn ngữ hoặc chuyên môn cần thiết</p>
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-bold text-slate-900 mb-2">Tìm và thêm kỹ năng</label>
               <div className="flex gap-2 mb-4">
@@ -199,7 +231,6 @@ export default function PostProjectPage() {
                 </button>
               </div>
 
-              {/* Box hiển thị kỹ năng đã chọn */}
               <div className="min-h-[64px] p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-2 mb-4">
                 {formData.skills.length === 0 ? (
                   <span className="text-sm font-medium text-slate-400 flex items-center gap-2 m-auto italic">
@@ -209,7 +240,7 @@ export default function PostProjectPage() {
                   formData.skills.map((skill) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 animate-in zoom-in-95 duration-200"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200"
                     >
                       {skill}
                       <button
@@ -224,7 +255,6 @@ export default function PostProjectPage() {
                 )}
               </div>
 
-              {/* Gợi ý */}
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                   Gợi ý kỹ năng phổ biến:
@@ -257,7 +287,6 @@ export default function PostProjectPage() {
                 <p className="text-xs text-slate-500">Khoảng giá bạn sẵn sàng chi trả cho dự án này</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-bold text-slate-900 mb-2">
@@ -268,14 +297,14 @@ export default function PostProjectPage() {
                     type="number"
                     required
                     placeholder="VD: 5000000"
+                    min={0}
                     className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all shadow-sm"
-                    value={formData.budget_min}
-                    onChange={(e) => setFormData({ ...formData, budget_min: e.target.value })}
+                    value={formData.budgetMin}
+                    onChange={(e) => setFormData({ ...formData, budgetMin: e.target.value })}
                   />
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">₫</span>
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-bold text-slate-900 mb-2">
                   Ngân sách tối đa <span className="text-red-500">*</span>
@@ -285,9 +314,10 @@ export default function PostProjectPage() {
                     type="number"
                     required
                     placeholder="VD: 15000000"
+                    min={0}
                     className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all shadow-sm"
-                    value={formData.budget_max}
-                    onChange={(e) => setFormData({ ...formData, budget_max: e.target.value })}
+                    value={formData.budgetMax}
+                    onChange={(e) => setFormData({ ...formData, budgetMax: e.target.value })}
                   />
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">₫</span>
                 </div>
@@ -317,13 +347,12 @@ export default function PostProjectPage() {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={loading}
               className="px-10 py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
+              {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Đang đăng...
+                  <Loader2 className="w-5 h-5 animate-spin" /> Đang đăng...
                 </>
               ) : (
                 <>

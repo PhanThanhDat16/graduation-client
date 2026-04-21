@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { StatusBadge, TypeTag, TopBar } from '../../components/components-wallet'
+import { StatusBadge, TypeTag } from '../../components/components-wallet'
 import type { Transaction } from '@/types/wallet'
 import { useWalletStore } from '@/store/useWalletStore'
 import {
@@ -111,8 +111,6 @@ export default function WalletDashboard() {
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50">
-      <TopBar crumbs={['Tổng quan', 'Ví của tôi']} />
-
       <div className="p-8 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

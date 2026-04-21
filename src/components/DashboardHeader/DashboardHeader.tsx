@@ -2,13 +2,19 @@ import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Wallet, ChevronDown, User, Settings, LogOut, Shield, MessageSquare, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useWalletStore } from '@/store/useWalletStore'
 
 export default function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logOut } = useAuthStore()
 
-  const userBalance = 2500000
+  const { balance, fetchBalance } = useWalletStore()
+
+  useEffect(() => {
+    fetchBalance()
+  }, [fetchBalance])
+
   const unreadCount = 2
 
   useEffect(() => {
@@ -31,7 +37,7 @@ export default function DashboardHeader() {
             <Shield className="h-4 w-4 text-white" />
           </div>
           <span className="font-heading text-xl font-extrabold text-slate-900 hidden sm:block tracking-tight">
-            Freelance<span className="text-indigo-600">VN</span>
+            Free<span className="text-indigo-600">Work</span>
           </span>
         </Link>
       </div>
@@ -62,7 +68,7 @@ export default function DashboardHeader() {
           </button>
 
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-sm">
-            <Wallet className="w-4 h-4" /> {userBalance.toLocaleString('vi-VN')} ₫
+            <Wallet className="w-4 h-4" /> {balance.toLocaleString('vi-VN')} ₫
           </div>
 
           <div className="relative ml-1" ref={dropdownRef}>

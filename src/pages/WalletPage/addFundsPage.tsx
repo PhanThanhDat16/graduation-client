@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TopBar, AmountInput } from '../../components/components-wallet'
+import { AmountInput } from '../../components/components-wallet'
 import { Loader2Icon, Wallet, X } from 'lucide-react'
 import { usePaymentStore } from '@/store/usePaymentStore'
 
@@ -16,9 +16,10 @@ function AddFundsPage() {
     clearError()
   }, [clearError])
 
+  const parsedAmount = parseFloat(amount || '0')
+
   const handleDeposit = async () => {
-    const parsedAmount = parseFloat(amount)
-    if (!parsedAmount || parsedAmount <= 0) return
+    if (!parsedAmount || parsedAmount < 100000 || parsedAmount > 10000000) return
 
     clearError()
 
@@ -47,8 +48,6 @@ function AddFundsPage() {
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50">
-      <TopBar crumbs={['Tổng quan', 'Ví của tôi', 'Nạp tiền vào ví']} />
-
       <div className="p-8 max-w-xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
           {/* Icon */}
@@ -160,7 +159,7 @@ function AddFundsPage() {
 
             <button
               onClick={handleDeposit}
-              disabled={loading || !amount}
+              disabled={loading || !amount || parsedAmount < 100000 || parsedAmount > 10000000}
               className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all text-white font-bold py-3.5 rounded-xl shadow-md shadow-indigo-200 flex items-center justify-center gap-2"
             >
               {loading ? (
