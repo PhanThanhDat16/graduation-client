@@ -32,6 +32,7 @@ import DashboardPage from '@/pages/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
 import MyProposalsPage from '@/pages/MyProposalsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
+import WalletPage from '@/pages/WalletPage'
 
 const AppRouters = () => {
   return (

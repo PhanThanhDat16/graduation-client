@@ -12,7 +12,6 @@ const path = {
 
   PROJECTS: '/projects',
   PROJECT_DETAIL: '/projects/:id',
-  FREELANCERS: '/freelancers',
   FREELANCER_DETAIL: '/freelancers/:id',
   SUBMIT_PROPOSAL: '/submit-proposal/:id',
 

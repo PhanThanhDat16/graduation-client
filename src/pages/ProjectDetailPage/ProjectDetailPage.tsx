@@ -97,19 +97,19 @@ export default function ProjectDetailPage() {
       {/* ── BREADCRUMB & BACK NAV ── */}
       <div className="bg-white border-b border-border pt-6 pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-4 text-sm font-medium text-text-sub mb-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm font-medium text-text-sub mb-4">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 hover:text-primary transition-colors"
+              className="flex items-center gap-1 hover:text-primary transition-colors shrink-0"
             >
               <ArrowLeft className="w-4 h-4" /> Quay lại
             </button>
-            <span className="w-1 h-1 bg-border rounded-full"></span>
-            <Link to="/projects" className="hover:text-primary transition-colors">
+            <span className="hidden sm:block w-1 h-1 bg-border rounded-full shrink-0"></span>
+            <Link to="/projects" className="hover:text-primary transition-colors whitespace-nowrap">
               Khám phá Dự án
             </Link>
-            <ChevronRight className="w-4 h-4 text-text-muted" />
-            <span className="text-text-main">{project.category}</span>
+            <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+            <span className="text-text-main line-clamp-1">{project.category || 'Tất cả'}</span>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
@@ -176,7 +176,7 @@ export default function ProjectDetailPage() {
             {/* Mô tả */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">Mô tả công việc</h2>
-              <div className="text-text-main text-[15px] leading-relaxed whitespace-pre-line">
+              <div className="text-text-main text-[15px] leading-relaxed whitespace-pre-line break-words">
                 {project.description}
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function ProjectDetailPage() {
                   <p className="text-sm text-text-muted italic">Không yêu cầu kỹ năng cụ thể</p>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Hoạt động */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
@@ -246,7 +246,7 @@ export default function ProjectDetailPage() {
               {isOwner && (
                 <button
                   onClick={() => navigate('/manage-projects')}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <Briefcase className="w-5 h-5" /> Quản lý dự án này
                 </button>
@@ -255,7 +255,7 @@ export default function ProjectDetailPage() {
               {isFreelancer && isOpen && (
                 <button
                   onClick={() => navigate(`/submit-proposal/${project._id}`)}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
                 </button>

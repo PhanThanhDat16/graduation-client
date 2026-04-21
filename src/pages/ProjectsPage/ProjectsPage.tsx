@@ -178,17 +178,14 @@ export default function ProjectsPage() {
             {pagination.total}+ dự án đang mở
           </div>
           <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white mb-3">
-            Tìm dự án freelance <span className="text-[#89CCF5]">phù hợp kỹ năng của bạn</span>
+            Tìm dự án freelance <span className="text-[#89CCF5]">phù hợp</span>
           </h1>
-          <p className="text-[#93A5E6] text-sm sm:text-base max-w-xl mx-auto">
-            Kết nối trực tiếp với nhà tuyển dụng uy tín trên toàn quốc
-          </p>
         </div>
       </div>
 
       {/* ── SEARCH BAR ── */}
       <div className="max-w-5xl mx-auto px-4 -mt-7 relative z-20">
-        <div className="bg-white p-2 rounded-2xl shadow-lg border border-border flex items-center gap-2 transition-all focus-within:ring-2 focus-within:ring-primary/20">
+        <div className="bg-white p-2 rounded-2xl shadow-lg border border-border flex items-center gap-2">
           <Search className="w-5 h-5 text-text-muted ml-3" />
           <input
             type="text"
@@ -200,8 +197,8 @@ export default function ProjectsPage() {
             placeholder="Tìm theo tên dự án, kỹ năng... (VD: ReactJS, Figma, SEO...)"
             className="flex-1 bg-transparent border-none outline-none text-sm text-text-main py-2"
           />
-          {searchValue && (
-            <button onClick={() => setSearchValue('')} className="p-1 text-text-muted hover:text-danger">
+          {searchInput && (
+            <button onClick={handleClearSearch} className="p-1 text-text-muted hover:text-danger">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -360,7 +357,7 @@ export default function ProjectsPage() {
                 return (
                   <div
                     key={project._id}
-                    className="bg-white border border-border rounded-2xl p-6 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
+                    className="bg-white border border-border rounded-2xl p-6 relative flex flex-col shadow-sm group hover:shadow-md transition-shadow"
                   >
                     <div
                       className={`absolute left-0 top-0 bottom-0 w-1 transition-colors ${hot ? 'bg-amber-400' : 'bg-transparent group-hover:bg-primary'}`}
@@ -384,7 +381,7 @@ export default function ProjectsPage() {
 
                       <div className="flex items-center gap-2">
                         {hot && (
-                          <span className="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                          <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-bold">
                             🔥 Nổi bật
                           </span>
                         )}
@@ -398,9 +395,8 @@ export default function ProjectsPage() {
                       </div>
                     </div>
 
-                    {/* Title */}
-                    <Link to={`/projects/${project._id}`} className="block mb-3">
-                      <h2 className="font-heading font-extrabold text-lg text-primary hover:text-accent transition-colors line-clamp-1">
+                    <Link to={`/projects/${project._id}`} className="mb-3 block">
+                      <h2 className="font-extrabold text-lg text-primary line-clamp-1 hover:text-accent">
                         {project.title}
                       </h2>
                     </Link>
@@ -461,8 +457,8 @@ export default function ProjectsPage() {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-xl text-sm font-bold border transition-colors ${currentPage === page ? 'bg-primary text-white border-primary' : 'bg-white text-text-sub border-border hover:bg-page'}`}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-10 h-10 rounded-xl text-sm font-bold border ${Number(queryConfig.page) === page ? 'bg-primary text-white border-primary' : 'bg-white text-text-sub hover:bg-page'}`}
                 >
                   {page}
                 </button>
