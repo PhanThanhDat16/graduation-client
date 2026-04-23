@@ -1,6 +1,5 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   Briefcase,
   Clock,
@@ -12,84 +11,90 @@ import {
   AlertCircle,
   ChevronRight,
   FileText,
-  Loader2,
-  Tag,
-  CheckCircle2,
-  MapPin
+  LogIn,
+  CheckCircle2 // Thêm icon Check
 } from 'lucide-react'
-import { useProjectStore } from '@/store/useProjectStore'
+import { projectService } from '@/apis/projectService'
+import { applicationService } from '@/apis/applicationService' // Thêm API application
+import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
+import { formatBudget, timeAgo } from '@/utils/fomatters'
 import { useAuthStore } from '@/store/useAuthStore'
 
 export default function ProjectDetailPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams<{ id: string }>()
 
-  const { selectedProject, detailLoading, fetchProjectById, likeProject, clearSelectedProject } = useProjectStore()
+  // LẤY THÔNG TIN USER TỪ STORE
   const { user } = useAuthStore()
+  const isGuest = !user
+  const currentUserRole = user?.role
+  const currentUserId = user?._id || user?.id
 
-  const currentUserId = (user as any)?._id || (user as any)?.id || ''
-  const currentUserRole = (user as any)?.role || 'freelancer'
+  // GỌI API LẤY CHI TIẾT DỰ ÁN
+  const {
+    data: axiosResponse,
+    isLoading: isLoadingProject,
+    isError
+  } = useQuery({
+    queryKey: ['project', id],
+    queryFn: () => projectService.getProjectById(id as string),
+    enabled: !!id
+  })
+  const project = axiosResponse?.data?.data
 
-  const [copied, setCopied] = useState(false)
+  // KIỂM TRA ĐÃ ỨNG TUYỂN CHƯA (Chỉ chạy khi user đã đăng nhập là Freelancer)
+  const { data: myAppsRes, isLoading: isLoadingApps } = useQuery({
+    queryKey: ['my-applications'],
+    queryFn: () => applicationService.getMyApplications(),
+    enabled: !isGuest && currentUserRole === 'freelancer'
+  })
 
-  useEffect(() => {
-    if (id) fetchProjectById(id)
-    return () => clearSelectedProject()
-  }, [id])
+  // Kiểm tra xem trong mảng applications của tôi có chứa id project này không
+  const existingApplication = myAppsRes?.data?.data?.find((app) => app.projectId._id === id)
+  console.log(myAppsRes)
+  const hasApplied = !!existingApplication
 
-  const formatMoney = (amount: number) => amount.toLocaleString('vi-VN')
+  // --- XỬ LÝ LOADING CHUNG ---
+  const isLoading = isLoadingProject || (currentUserRole === 'freelancer' && isLoadingApps)
 
-  const handleShare = async () => {
-    await navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  // ── Loading ──────────────────────────────────────────────────────────────────
-  if (detailLoading) {
+  if (isLoading) {
     return (
-      <div className="bg-page min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-text-sub">Đang tải dự án...</p>
+      <div className="bg-page min-h-screen pt-12 pb-20 px-4 flex justify-center">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-text-sub font-medium">Đang tải thông tin dự án...</p>
         </div>
       </div>
     )
   }
 
-  if (!selectedProject) {
+  if (isError || !project) {
     return (
-      <div className="bg-page min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl font-bold text-text-main mb-2">Không tìm thấy dự án</p>
-          <Link to="/projects" className="text-primary font-semibold hover:underline">
-            ← Quay lại danh sách
-          </Link>
+      <div className="bg-page min-h-screen pt-20 px-4 text-center">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-2xl border border-border">
+          <AlertCircle className="w-12 h-12 text-danger mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-text-main mb-2">Không tìm thấy dự án</h2>
+          <p className="text-text-sub mb-6">Dự án này có thể đã bị xóa hoặc bạn không có quyền truy cập.</p>
+          <button
+            onClick={() => navigate('/projects')}
+            className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Quay lại danh sách
+          </button>
         </div>
       </div>
     )
   }
 
-  const project = selectedProject
-  const contractorData = project.contractorId as any
-  const contractorId = typeof project.contractorId === 'string' ? project.contractorId : contractorData?._id
-
-  const isOwner = currentUserRole === 'contractor' && currentUserId === contractorId
+  // --- TÍNH TOÁN QUYỀN ---
+  const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractorId
   const isOtherContractor = currentUserRole === 'contractor' && !isOwner
-  const isFreelancer = currentUserRole === 'freelancer' || !currentUserRole
+  const isFreelancer = currentUserRole === 'freelancer'
+  const isLikedByMe = currentUserId ? project.listLike?.includes(currentUserId) : false
 
-  const isLiked = project.listLike.includes(currentUserId)
-  const isOpen = project.status === 'open'
-
-  const timeAgo = (iso: string) => {
-    const diff = new Date().getTime() - new Date(iso).getTime()
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
-
-    if (minutes < 60) return `${minutes} phút trước`
-    if (hours < 24) return `${hours} giờ trước`
-    return `${days} ngày trước`
+  const handleRequireLogin = () => {
+    navigate('/login', { state: { from: location.pathname } })
   }
 
   return (
@@ -113,44 +118,41 @@ export default function ProjectDetailPage() {
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold ${isOpen ? 'bg-green-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
-                >
-                  {isOpen ? 'Đang mở nhận báo giá' : 'Đã đóng'}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">
-                  <Tag className="w-3 h-3" /> {project.category}
-                </span>
-              </div>
-              <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary mb-4 leading-tight">
+            <div className="flex-1 min-w-0">
+              <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary mb-4 leading-tight break-words">
                 {project.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-text-sub">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" /> Đã đăng {timeAgo(project.createdAt)}
+                <span
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-bold ${project.status === 'open' ? 'bg-green-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}
+                >
+                  {project.status === 'open' ? 'Đang mở nhận báo giá' : 'Đã đóng'}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Heart className="w-4 h-4" /> {project.likes} lượt lưu
+                  <Clock className="w-4 h-4" /> Đã đăng {timeAgo(project.createdAt)}
                 </span>
               </div>
             </div>
 
+            {/* Nút thao tác nhanh trên Header */}
             <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-xl text-sm font-bold text-text-main hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                <Share2 className="w-4 h-4" /> {copied ? 'Đã sao chép!' : 'Chia sẻ'}
+              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-xl text-sm font-bold text-text-main hover:bg-gray-50 transition-colors shadow-sm">
+                <Share2 className="w-4 h-4" /> Chia sẻ
               </button>
-              {isFreelancer && currentUserId && (
+
+              {(isGuest || isFreelancer) && (
                 <button
-                  onClick={() => likeProject(project._id, currentUserId)}
-                  className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-colors shadow-sm ${isLiked ? 'bg-red-50 border-red-200 text-danger' : 'bg-white border-border text-text-main hover:bg-gray-50'}`}
+                  onClick={
+                    isGuest
+                      ? handleRequireLogin
+                      : () => {
+                          console.log('Gọi API Like Project')
+                        }
+                  }
+                  className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-colors shadow-sm ${isLikedByMe ? 'bg-red-50 border-red-200 text-danger' : 'bg-white border-border text-text-main hover:bg-gray-50'}`}
                 >
-                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-danger text-danger' : ''}`} />
-                  {isLiked ? 'Đã lưu' : 'Lưu dự án'}
+                  <Heart className={`w-4 h-4 ${isLikedByMe ? 'fill-danger text-danger' : ''}`} />
+                  {isLikedByMe ? 'Đã lưu' : 'Lưu dự án'}
                 </button>
               )}
             </div>
@@ -158,11 +160,24 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* ── MAIN ── */}
+      {/* ── MAIN CONTENT ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* ── LEFT COLUMN ── */}
           <div className="w-full lg:w-[65%] space-y-6">
+            {/* Nếu đã nộp đơn, hiện một khung nhắc nhở nhẹ ở trên cùng */}
+            {hasApplied && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-emerald-800 text-sm">Bạn đã nộp báo giá cho dự án này</h3>
+                  <p className="text-sm text-emerald-700 mt-1">
+                    Đề xuất của bạn đã được gửi đi vào ngày{' '}
+                    {new Date(existingApplication.appliedAt).toLocaleDateString('vi-VN')}. Khách hàng sẽ sớm phản hồi.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {isOtherContractor && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
@@ -173,7 +188,6 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Mô tả */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">Mô tả công việc</h2>
               <div className="text-text-main text-[15px] leading-relaxed whitespace-pre-line break-words">
@@ -181,52 +195,50 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Kỹ năng */}
-            <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
-              <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
-                Kỹ năng chuyên môn yêu cầu
-              </h2>
-              <div className="flex flex-wrap gap-2.5">
-                {project.skills.length > 0 ? (
-                  project.skills.map((skill) => (
+            {project.skills && project.skills.length > 0 && (
+              <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
+                  Kỹ năng chuyên môn yêu cầu
+                </h2>
+                <div className="flex flex-wrap gap-2.5">
+                  {project.skills.map((skill: string) => (
                     <span
                       key={skill}
                       className="px-4 py-2 bg-page border border-border rounded-xl text-sm font-bold text-text-sub hover:border-primary hover:text-primary transition-colors cursor-default"
                     >
                       {skill}
                     </span>
-                  ))
-                ) : (
-                  <p className="text-sm text-text-muted italic">Không yêu cầu kỹ năng cụ thể</p>
-                )}
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Hoạt động */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
                 Hoạt động trên dự án này
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-page rounded-xl p-4 text-center border border-border">
-                  <div className="text-2xl font-extrabold text-primary mb-1">{project.likes}</div>
+                  <div className="text-2xl font-extrabold text-primary mb-1">0</div>
+                  <div className="text-xs font-bold text-text-muted uppercase">Báo giá đã gửi</div>
+                </div>
+                <div className="bg-page rounded-xl p-4 text-center border border-border">
+                  <div className="text-2xl font-extrabold text-primary mb-1">0</div>
+                  <div className="text-xs font-bold text-text-muted uppercase">Đang phỏng vấn</div>
+                </div>
+                <div className="bg-page rounded-xl p-4 text-center border border-border">
+                  <div className="text-2xl font-extrabold text-primary mb-1">0</div>
+                  <div className="text-xs font-bold text-text-muted uppercase">Thư mời gửi đi</div>
+                </div>
+                <div className="bg-page rounded-xl p-4 text-center border border-border">
+                  <div className="text-2xl font-extrabold text-primary mb-1">{project.likes || 0}</div>
                   <div className="text-xs font-bold text-text-muted uppercase">Lượt lưu</div>
-                </div>
-                <div className="bg-page rounded-xl p-4 text-center border border-border">
-                  <div className="text-2xl font-extrabold text-emerald-600 mb-1 capitalize">{project.status}</div>
-                  <div className="text-xs font-bold text-text-muted uppercase">Trạng thái</div>
-                </div>
-                <div className="bg-page rounded-xl p-4 text-center border border-border">
-                  <div className="text-2xl font-extrabold text-indigo-600 mb-1">{project.category}</div>
-                  <div className="text-xs font-bold text-text-muted uppercase">Danh mục</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── RIGHT COLUMN ── */}
           <div className="w-full lg:w-[35%] space-y-6">
-            {/* Budget + Action */}
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <div className="flex items-start gap-4 mb-6 pb-6 border-b border-border">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-primary shrink-0">
@@ -234,8 +246,9 @@ export default function ProjectDetailPage() {
                 </div>
                 <div>
                   <div className="text-sm font-bold text-text-muted uppercase mb-1">Ngân sách dự kiến</div>
-                  <div className="text-xl font-extrabold text-emerald-600">
-                    {formatMoney(project.budgetMin)} – {formatMoney(project.budgetMax)} ₫
+                  <div className="text-xl font-extrabold text-emerald-600 break-words">
+                    {formatBudget(project.budgetMin)} {project.budgetMax ? `- ${formatBudget(project.budgetMax)}` : ''}{' '}
+                    ₫
                   </div>
                   <div className="flex items-center gap-1.5 mt-2 text-xs font-bold text-text-sub bg-page w-fit px-2 py-1 rounded">
                     <ShieldAlert className="w-3.5 h-3.5 text-accent" /> Thanh toán Escrow
@@ -243,31 +256,50 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
 
-              {isOwner && (
+              {/* --- RENDER NÚT DỰA VÀO QUYỀN VÀ TRẠNG THÁI --- */}
+              {project.status !== 'open' ? (
+                <button
+                  disabled
+                  className="w-full bg-slate-100 text-slate-400 font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <AlertCircle className="w-5 h-5" /> Dự án đã đóng
+                </button>
+              ) : isGuest ? (
+                <button
+                  onClick={handleRequireLogin}
+                  className="w-full bg-indigo-50 hover:bg-indigo-100 text-primary border border-primary/20 font-bold py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-5 h-5" /> Đăng nhập để ứng tuyển
+                </button>
+              ) : isOwner ? (
                 <button
                   onClick={() => navigate('/manage-projects')}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <Briefcase className="w-5 h-5" /> Quản lý dự án này
                 </button>
-              )}
-
-              {isFreelancer && isOpen && (
+              ) : isFreelancer ? (
                 <button
-                  onClick={() => navigate(`/submit-proposal/${project._id}`)}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  onClick={() =>
+                    hasApplied ? navigate('/applications/my') : navigate(`/submit-proposal/${project._id}`)
+                  }
+                  className={`w-full font-bold py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 ${
+                    hasApplied
+                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200'
+                      : 'bg-primary hover:bg-primary/90 text-white shadow-md'
+                  }`}
                 >
-                  <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
+                  {hasApplied ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" /> Xem Báo Giá Của Bạn
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
+                    </>
+                  )}
                 </button>
-              )}
-
-              {isFreelancer && !isOpen && (
-                <div className="w-full bg-slate-100 text-slate-400 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2">
-                  <AlertCircle className="w-5 h-5" /> Dự án đã đóng
-                </div>
-              )}
-
-              {isOtherContractor && (
+              ) : (
                 <button
                   disabled
                   className="w-full bg-slate-100 text-slate-400 font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
@@ -277,41 +309,12 @@ export default function ProjectDetailPage() {
               )}
             </div>
 
-            {/* Thông tin nhà tuyển dụng */}
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-base text-text-main mb-5">Về khách hàng này</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="font-extrabold text-primary text-lg mb-1">
-                    {contractorData?.name || contractorData?.email || 'Ẩn danh'}
-                  </div>
-                  {contractorData?.email && (
-                    <div className="flex items-center gap-1.5 text-sm font-bold text-emerald-700">
-                      <CheckCircle2 className="w-4 h-4" /> {contractorData.email}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-start gap-3 text-sm">
-                  <MapPin className="w-5 h-5 text-text-muted shrink-0" />
-                  <div>
-                    <div className="font-bold text-text-main">Việt Nam</div>
-                    <div className="text-text-muted text-xs">Múi giờ: GMT+7</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 text-sm">
-                  <Clock className="w-5 h-5 text-text-muted shrink-0" />
-                  <div>
-                    <div className="font-bold text-text-main">
-                      Thành viên từ{' '}
-                      {new Date(project.createdAt).toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ContractorInfo contractorId={project.contractorId} />
             </div>
 
-            {/* Report */}
-            {!isOwner && (
+            {!isOwner && !isGuest && (
               <button className="w-full text-center text-sm font-semibold text-text-muted hover:text-danger transition-colors flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" /> Báo cáo bài đăng vi phạm
               </button>
