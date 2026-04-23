@@ -32,9 +32,11 @@ import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
 import MessagesPage from '@/pages/MessagesPage'
 import DashboardPage from '@/pages/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
-import MyProposalsPage from '@/pages/MyProposalsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
 import WalletPage from '@/pages/WalletPage'
+import MyApplicationsPage from '@/pages/MyApplicationsPage/MyApplicationsPage'
+import ProjectApplicationsPage from '@/pages/ProjectApplicationsPage/ProjectApplicationsPage'
+import EditProjectPage from '@/pages/EditProjectPage'
 
 const AppRouters = () => {
   return (
@@ -60,6 +62,7 @@ const AppRouters = () => {
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout />}>
             <Route path={path.POST_PROJECT} element={<PostProjectPage />} />
+            <Route path={path.EDIT_PROJECT} element={<EditProjectPage />} />
             <Route path={path.PROFILE} element={<ProfilePage />} />
             <Route path={path.FREELANCER_DETAIL} element={<ProfilePage />} />
             <Route path={path.SUBMIT_PROPOSAL} element={<SubmitProposalPage />} />
@@ -72,8 +75,9 @@ const AppRouters = () => {
             <Route path={path.CONTRACT_AGREEMENT} element={<ContractAgreementPage />} />
             <Route path={path.CONTRACT_WORKSPACE} element={<ContractWorkspacePage />} />
             <Route path={path.MESSAGES} element={<MessagesPage />} />
-            <Route path={path.MY_PROPOSALS} element={<MyProposalsPage />} />
+            <Route path={path.MY_APPLYCATIONS} element={<MyApplicationsPage />} />
             <Route path={path.NOTIFICATIONS} element={<NotificationsPage />} />
+            <Route path={path.PROJECT_APPLICATIONS} element={<ProjectApplicationsPage />} />
           </Route>
         </Route>
 

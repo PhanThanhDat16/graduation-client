@@ -1,23 +1,27 @@
 import { useState, useCallback } from 'react'
-import { Link, createSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Search, Clock, DollarSign, Heart, ChevronDown, X } from 'lucide-react'
+import { createSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { Search, X } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { omit } from 'lodash'
+
 import { projectService } from '@/apis/projectService'
-import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
-import { formatBudget, isHot, timeAgo } from '@/utils/fomatters'
+import useProjectQueryConfig from '@/hooks/useProjectQueryConfig'
+
+// Components
+import FilterSidebar from './components/FilterSidebar/FilterSidebar'
 import ProjectCardSkeleton from '@/components/ProjectCardSkeleton'
 import { EmptyState } from '@/components/EmptyState/EmptyState'
-import FilterSidebar from './components/FilterSidebar/FilterSidebar'
-import useProjectQueryConfig from '@/hooks/useProjectQueryConfig'
-import { omit } from 'lodash'
+import ProjectCard from '@/components/ProjectCard/ProjectCard'
+import Pagination from '@/components/Pagination/Pagination'
+
+// IMPORT COMPONENT SORT MỚI
+import SortDropdown from '@/components/SortDropdown/SortDropdown'
 
 const SORT_OPTIONS = [
   { label: 'Mới nhất', value: 'createdAt_desc' },
   { label: 'Ngân sách: Cao → Thấp', value: 'budgetMax_desc' },
   { label: 'Nhiều lượt thích', value: 'likes_desc' }
 ]
-
-const CURRENT_USER = { _id: 'user_me_123' }
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
@@ -26,7 +30,7 @@ export default function ProjectsPage() {
 
   const [searchInput, setSearchInput] = useState(queryConfig.keyword || '')
 
-  // --- GỌI API ---
+  // --- API CALL ---
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['projects', queryConfig],
     queryFn: () => projectService.getProjects(queryConfig),
@@ -55,8 +59,8 @@ export default function ProjectsPage() {
     })
   }
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value
+  // ĐÃ SỬA: Nhận trực tiếp chuỗi value từ SortDropdown
+  const handleSortChange = (value: string) => {
     const [sortField, sortOrder] = value.split('_')
     navigate({
       pathname: location.pathname,
@@ -73,11 +77,12 @@ export default function ProjectsPage() {
 
   const handleToggleLike = useCallback((projectId: string) => {
     console.log('Toggle like for project:', projectId)
+    // Implement your mutation here
   }, [])
 
   return (
     <div className="bg-page min-h-screen font-body pb-20">
-      {/* ... BANNER GIỮ NGUYÊN ... */}
+      {/* HERO SECTION */}
       <div className="bg-primary pt-12 pb-16 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white mb-3">
@@ -86,7 +91,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* ── SEARCH BAR ── */}
+      {/* SEARCH BAR */}
       <div className="max-w-5xl mx-auto px-4 -mt-7 relative z-20">
         <div className="bg-white p-2 rounded-2xl shadow-lg border border-border flex items-center gap-2">
           <Search className="w-5 h-5 text-text-muted ml-3" />
@@ -99,136 +104,61 @@ export default function ProjectsPage() {
             className="flex-1 bg-transparent border-none outline-none text-sm text-text-main py-2"
           />
           {searchInput && (
-            <button onClick={handleClearSearch} className="p-1 text-text-muted hover:text-danger">
+            <button onClick={handleClearSearch} className="p-1 text-text-muted hover:text-danger transition-colors">
               <X className="w-5 h-5" />
             </button>
           )}
           <button
             onClick={handleSearchSubmit}
-            className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hidden sm:block"
+            className="bg-primary hover:bg-primary/90 transition-colors text-white px-6 py-2.5 rounded-xl text-sm font-bold hidden sm:block"
           >
             Tìm kiếm
           </button>
         </div>
       </div>
 
-      {/* ── MAIN CONTENT ── */}
+      {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 flex flex-col lg:flex-row gap-8 items-start">
-        {/* ── SIDEBAR FILTERS ── */}
+        {/* SIDEBAR */}
         <div className="w-full lg:w-[280px] shrink-0 sticky top-24">
           <FilterSidebar queryConfig={queryConfig} />
         </div>
 
-        {/* ── PROJECT LIST ── */}
-        <div className="flex-1">
-          {/* Toolbar */}
-          <div className="flex justify-between items-center mb-6">
+        {/* LISTING */}
+        <div className="flex-1 w-full min-w-0">
+          {/* TOOLBAR */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <span className="text-sm text-text-sub font-medium">
               Tìm thấy <strong className="text-text-main">{totalItems}</strong> dự án
             </span>
-            <div className="relative">
-              <select
-                value={`${queryConfig.sortBy}_${queryConfig.sortOrder}`}
-                onChange={handleSortChange}
-                className="appearance-none bg-white border border-border rounded-xl px-4 py-2 pr-10 text-sm font-bold text-text-main outline-none cursor-pointer"
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+
+            {/* GỌI SORT DROPDOWN MỚI TẠI ĐÂY */}
+            <SortDropdown
+              options={SORT_OPTIONS}
+              value={`${queryConfig.sortBy}_${queryConfig.sortOrder}`}
+              onChange={handleSortChange}
+            />
           </div>
 
-          {/* Cards */}
+          {/* PROJECT CARDS */}
           <div className="space-y-4">
             {isLoading ? (
               Array.from({ length: Number(queryConfig.limit || 4) }).map((_, i) => <ProjectCardSkeleton key={i} />)
             ) : projects.length === 0 ? (
               <EmptyState onReset={() => navigate(location.pathname)} />
             ) : (
-              projects.map((project) => {
-                const isLiked = project.listLike?.includes(CURRENT_USER._id)
-                const hot = isHot(project)
-
-                return (
-                  <div
-                    key={project._id}
-                    className="bg-white border border-border rounded-2xl p-6 relative flex flex-col shadow-sm group hover:shadow-md transition-shadow"
-                  >
-                    <div
-                      className={`absolute left-0 top-0 bottom-0 w-1 ${hot ? 'bg-accent' : 'bg-transparent group-hover:bg-primary'}`}
-                    ></div>
-
-                    <div className="flex justify-between items-start mb-4 gap-4">
-                      <ContractorInfo contractorId={project.contractorId} />
-                      <div className="flex gap-2">
-                        {hot && (
-                          <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-bold">
-                            🔥 Nổi bật
-                          </span>
-                        )}
-                        <button onClick={() => handleToggleLike(project._id)} className="p-2 border rounded-xl">
-                          <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-text-muted'}`} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <Link to={`/projects/${project._id}`} className="mb-3 block">
-                      <h2 className="font-extrabold text-lg text-primary line-clamp-1 hover:text-accent">
-                        {project.title}
-                      </h2>
-                    </Link>
-
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {project.skills?.map((skill) => (
-                        <span key={skill} className="px-3 py-1 bg-page border text-[11px] font-bold rounded-full">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-text-sub line-clamp-2 flex-grow mb-6">{project.description}</p>
-                    <div className="h-px bg-border mb-4"></div>
-
-                    <div className="flex justify-between items-center gap-4 mt-auto">
-                      <div className="flex gap-4">
-                        <div className="flex gap-1 items-center font-bold text-emerald-600 text-sm">
-                          <DollarSign className="w-4 h-4" /> {formatBudget(project.budgetMin)}{' '}
-                          {project.budgetMax ? `- ${formatBudget(project.budgetMax)}` : ''} ₫
-                        </div>
-                        <div className="flex gap-1 items-center text-xs text-text-sub font-medium">
-                          <Clock className="w-4 h-4" /> {timeAgo(project.createdAt)}
-                        </div>
-                      </div>
-                      <Link
-                        to={`/projects/${project._id}`}
-                        className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl"
-                      >
-                        Gửi Báo Giá
-                      </Link>
-                    </div>
-                  </div>
-                )
-              })
+              projects.map((project: any) => (
+                <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
+              ))
             )}
           </div>
 
-          {/* Pagination */}
-          {!isLoading && totalPages > 1 && (
-            <div className="mt-8 flex justify-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`w-10 h-10 rounded-xl text-sm font-bold border ${Number(queryConfig.page) === page ? 'bg-primary text-white border-primary' : 'bg-white text-text-sub hover:bg-page'}`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* PAGINATION */}
+          <Pagination
+            currentPage={Number(queryConfig.page || 1)}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </div>

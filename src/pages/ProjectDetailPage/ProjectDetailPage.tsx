@@ -11,9 +11,11 @@ import {
   AlertCircle,
   ChevronRight,
   FileText,
-  LogIn
+  LogIn,
+  CheckCircle2 // Thêm icon Check
 } from 'lucide-react'
 import { projectService } from '@/apis/projectService'
+import { applicationService } from '@/apis/applicationService' // Thêm API application
 import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 import { formatBudget, timeAgo } from '@/utils/fomatters'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -23,22 +25,39 @@ export default function ProjectDetailPage() {
   const location = useLocation()
   const { id } = useParams<{ id: string }>()
 
-  // LẤY THÔNG TIN USER THẬT TỪ STORE
+  // LẤY THÔNG TIN USER TỪ STORE
   const { user } = useAuthStore()
+  const isGuest = !user
+  const currentUserRole = user?.role
+  const currentUserId = user?._id || user?.id
 
   // GỌI API LẤY CHI TIẾT DỰ ÁN
   const {
     data: axiosResponse,
-    isLoading,
+    isLoading: isLoadingProject,
     isError
   } = useQuery({
     queryKey: ['project', id],
     queryFn: () => projectService.getProjectById(id as string),
-    enabled: !!id // Chỉ gọi API khi có id
+    enabled: !!id
   })
   const project = axiosResponse?.data?.data
 
-  // --- XỬ LÝ TRẠNG THÁI LOADING & ERROR ---
+  // KIỂM TRA ĐÃ ỨNG TUYỂN CHƯA (Chỉ chạy khi user đã đăng nhập là Freelancer)
+  const { data: myAppsRes, isLoading: isLoadingApps } = useQuery({
+    queryKey: ['my-applications'],
+    queryFn: () => applicationService.getMyApplications(),
+    enabled: !isGuest && currentUserRole === 'freelancer'
+  })
+
+  // Kiểm tra xem trong mảng applications của tôi có chứa id project này không
+  const existingApplication = myAppsRes?.data?.data?.find((app) => app.projectId._id === id)
+  console.log(myAppsRes)
+  const hasApplied = !!existingApplication
+
+  // --- XỬ LÝ LOADING CHUNG ---
+  const isLoading = isLoadingProject || (currentUserRole === 'freelancer' && isLoadingApps)
+
   if (isLoading) {
     return (
       <div className="bg-page min-h-screen pt-12 pb-20 px-4 flex justify-center">
@@ -68,19 +87,13 @@ export default function ProjectDetailPage() {
     )
   }
 
-  // --- TÍNH TOÁN QUYỀN (PERMISSIONS) ĐỘNG DỰA VÀO STORE ---
-  const isGuest = !user // Chưa đăng nhập
-  const currentUserRole = user?.role
-  const currentUserId = user?._id || user?.id
-
+  // --- TÍNH TOÁN QUYỀN ---
   const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractorId
   const isOtherContractor = currentUserRole === 'contractor' && !isOwner
   const isFreelancer = currentUserRole === 'freelancer'
   const isLikedByMe = currentUserId ? project.listLike?.includes(currentUserId) : false
 
-  // Xử lý khi Khách vãng lai bấm vào các nút yêu cầu đăng nhập
   const handleRequireLogin = () => {
-    // Đẩy sang trang login, kèm theo state chứa URL hiện tại để login xong quay lại đúng dự án này
     navigate('/login', { state: { from: location.pathname } })
   }
 
@@ -127,7 +140,6 @@ export default function ProjectDetailPage() {
                 <Share2 className="w-4 h-4" /> Chia sẻ
               </button>
 
-              {/* Nếu là Khách hoặc Freelancer thì hiển thị nút Lưu */}
               {(isGuest || isFreelancer) && (
                 <button
                   onClick={
@@ -151,11 +163,21 @@ export default function ProjectDetailPage() {
       {/* ── MAIN CONTENT ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* ==========================================
-              CỘT TRÁI: CHI TIẾT DỰ ÁN (65%)
-          ========================================== */}
           <div className="w-full lg:w-[65%] space-y-6">
-            {/* Cảnh báo dành cho Contractor đi lướt dạo */}
+            {/* Nếu đã nộp đơn, hiện một khung nhắc nhở nhẹ ở trên cùng */}
+            {hasApplied && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-emerald-800 text-sm">Bạn đã nộp báo giá cho dự án này</h3>
+                  <p className="text-sm text-emerald-700 mt-1">
+                    Đề xuất của bạn đã được gửi đi vào ngày{' '}
+                    {new Date(existingApplication.appliedAt).toLocaleDateString('vi-VN')}. Khách hàng sẽ sớm phản hồi.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {isOtherContractor && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
@@ -166,7 +188,6 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Box 1: Mô tả chi tiết */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">Mô tả công việc</h2>
               <div className="text-text-main text-[15px] leading-relaxed whitespace-pre-line break-words">
@@ -174,7 +195,6 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Box 2: Kỹ năng */}
             {project.skills && project.skills.length > 0 && (
               <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
                 <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
@@ -193,7 +213,6 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Box 3: Hoạt động dự án */}
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
                 Hoạt động trên dự án này
@@ -219,11 +238,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {/* ==========================================
-              CỘT PHẢI: SIDEBAR (35%)
-          ========================================== */}
           <div className="w-full lg:w-[35%] space-y-6">
-            {/* Box Action & Budget */}
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <div className="flex items-start gap-4 mb-6 pb-6 border-b border-border">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-primary shrink-0">
@@ -241,7 +256,7 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
 
-              {/* RENDER NÚT DỰA VÀO ROLE VÀ TRẠNG THÁI */}
+              {/* --- RENDER NÚT DỰA VÀO QUYỀN VÀ TRẠNG THÁI --- */}
               {project.status !== 'open' ? (
                 <button
                   disabled
@@ -265,10 +280,24 @@ export default function ProjectDetailPage() {
                 </button>
               ) : isFreelancer ? (
                 <button
-                  onClick={() => navigate(`/submit-proposal/${project._id}`)}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  onClick={() =>
+                    hasApplied ? navigate('/applications/my') : navigate(`/submit-proposal/${project._id}`)
+                  }
+                  className={`w-full font-bold py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 ${
+                    hasApplied
+                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200'
+                      : 'bg-primary hover:bg-primary/90 text-white shadow-md'
+                  }`}
                 >
-                  <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
+                  {hasApplied ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" /> Xem Báo Giá Của Bạn
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-5 h-5" /> Gửi Báo Giá Ngay
+                    </>
+                  )}
                 </button>
               ) : (
                 <button
@@ -280,15 +309,11 @@ export default function ProjectDetailPage() {
               )}
             </div>
 
-            {/* Box Thông tin Khách hàng (Contractor) */}
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-base text-text-main mb-5">Về khách hàng này</h3>
-
-              {/* COMPONENT CONTRACTOR ĐƯỢC TÁI SỬ DỤNG */}
               <ContractorInfo contractorId={project.contractorId} />
             </div>
 
-            {/* Box Report */}
             {!isOwner && !isGuest && (
               <button className="w-full text-center text-sm font-semibold text-text-muted hover:text-danger transition-colors flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4" /> Báo cáo bài đăng vi phạm

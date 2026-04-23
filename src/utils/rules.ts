@@ -60,5 +60,41 @@ export const schema = yup.object({
     test: testPriceMinMax
   })
 })
+export const proposalSchema = yup.object({
+  proposedBudget: yup
+    .number()
+    .typeError('Vui lòng nhập số tiền hợp lệ')
+    .required('Bắt buộc nhập giá')
+    .min(100000, 'Giá tối thiểu từ 100,000đ'),
+  duration: yup.string().required('Vui lòng chọn thời gian dự kiến'),
+  proposal: yup
+    .string()
+    .required('Vui lòng viết thư chào giá')
+    .min(100, 'Thư chào giá nên chi tiết một chút (ít nhất 100 ký tự)')
+    .max(5000, 'Tối đa 5000 ký tự')
+})
+export const projectSchema = yup.object({
+  title: yup.string().required('Vui lòng nhập tên dự án').min(10, 'Tên dự án phải có ít nhất 10 ký tự'),
+  category: yup.string().required('Vui lòng chọn danh mục công việc'),
+  description: yup.string().required('Vui lòng nhập mô tả dự án').min(50, 'Mô tả phải có ít nhất 50 ký tự'),
+  skills: yup
+    .array()
+    .of(yup.string().required())
+    .required('Vui lòng chọn kỹ năng')
+    .min(1, 'Vui lòng chọn ít nhất 1 kỹ năng'),
+  budgetMin: yup.string().required('Bắt buộc nhập giá tối thiểu').test({
+    name: 'price-not-allowed',
+    message: 'Ngân sách tối thiểu không hợp lệ',
+    test: testPriceMinMax
+  }),
+  budgetMax: yup.string().required('Bắt buộc nhập giá tối đa').test({
+    name: 'price-not-allowed',
+    message: 'Ngân sách tối đa phải lớn hơn hoặc bằng tối thiểu',
+    test: testPriceMinMax
+  })
+})
+
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
+export type ProposalSchema = yup.InferType<typeof proposalSchema>
+export type ProjectSchema = yup.InferType<typeof projectSchema>

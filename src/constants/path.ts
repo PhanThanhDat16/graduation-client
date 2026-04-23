@@ -13,7 +13,7 @@ const path = {
   PROJECTS: '/projects',
   PROJECT_DETAIL: '/projects/:id',
   FREELANCER_DETAIL: '/freelancers/:id',
-  SUBMIT_PROPOSAL: '/submit-proposal/:id',
+  SUBMIT_PROPOSAL: '/submit-proposal/:projectId',
 
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
@@ -25,8 +25,10 @@ const path = {
   BANK_ACCOUNTS: '/wallet/bank-accounts',
   PAYMENT_RESULT: '/payment-result',
   POST_PROJECT: '/post-project',
+  EDIT_PROJECT: '/edit-project/:id',
   MANAGE_PROJECTS: '/manage-projects',
-  MY_PROPOSALS: '/my-proposals',
+  PROJECT_APPLICATIONS: '/manage-projects/:projectId/applications',
+  MY_APPLYCATIONS: '/applications/my',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
 
