@@ -67,18 +67,19 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
 
   // FORM SUBMIT NGÂN SÁCH
   const onSubmit = handleSubmit((data) => {
-    const newConfig = {
-      ...queryConfig,
-      budgetMin: data.budgetMin ? String(data.budgetMin) : undefined,
-      budgetMax: data.budgetMax ? String(data.budgetMax) : undefined,
-      page: '1'
-    }
-
-    const cleanedConfig = omitBy(newConfig, isUndefined)
-
     navigate({
       pathname: location.pathname,
-      search: createSearchParams(cleanedConfig).toString()
+      search: createSearchParams(
+        omitBy(
+          {
+            ...queryConfig,
+            budgetMin: data.budgetMin ? String(data.budgetMin) : undefined,
+            budgetMax: data.budgetMax ? String(data.budgetMax) : undefined,
+            page: '1'
+          },
+          isUndefined
+        ) as Record<string, string>
+      ).toString()
     })
   })
 

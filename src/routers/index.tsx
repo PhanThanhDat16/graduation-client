@@ -13,7 +13,7 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import PasswordSentPage from '@/pages/PasswordSentPage'
 import ProjectDetailPage from '@/pages/ProjectDetailPage'
 import ProjectListPage from '@/pages/ProjectsPage'
-import PostProjectPage from '@/pages/PostProjectPage'
+// import PostProjectPage from '@/pages/PostProjectPage'
 import ProfilePage from '@/pages/ProfilePage'
 import FreelancersPage from '@/pages/FreelancersPage'
 import WalletDashboard from '@/pages/WalletPage/walletPage'
@@ -24,15 +24,19 @@ import BankAccountPage from '@/pages/WalletPage/bankAccountPage'
 import PaymentResultPage from '@/components/components-wallet/notification-payment'
 import ManageProjectsPage from '@/pages/ManageProjectsPage'
 import DashboardLayout from '@/layouts/DashboardLayout'
-import ContractsPage from '@/pages/ContractsPage'
+import ContractsPage from '@/pages/ContractListPage'
 import ContractAgreementPage from '@/pages/ContractAgreementPage'
 import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
 import MessagesPage from '@/pages/MessagesPage'
 import DashboardPage from '@/pages/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
-import MyProposalsPage from '@/pages/MyProposalsPage'
 import NotificationsPage from '@/pages/NotificationsPage'
-import WalletPage from '@/pages/WalletPage'
+import MyApplicationsPage from '@/pages/MyApplicationsPage/MyApplicationsPage'
+import ProjectApplicationsPage from '@/pages/ProjectApplicationsPage/ProjectApplicationsPage'
+import EditProjectPage from '@/pages/EditProjectPage'
+import PostProjectPage from '@/pages/PostProjectPage'
+import ContractCreatePage from '@/pages/ContractCreatePage'
+import ContractDetailPage from '@/pages/ContractDetailPage'
 
 const AppRouters = () => {
   return (
@@ -49,6 +53,7 @@ const AppRouters = () => {
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout />}>
             <Route path={path.POST_PROJECT} element={<PostProjectPage />} />
+            <Route path={path.EDIT_PROJECT} element={<EditProjectPage />} />
             <Route path={path.PROFILE} element={<ProfilePage />} />
             <Route path={path.FREELANCER_DETAIL} element={<ProfilePage />} />
             <Route path={path.SUBMIT_PROPOSAL} element={<SubmitProposalPage />} />
@@ -57,16 +62,19 @@ const AppRouters = () => {
             <Route path={path.DASHBOARD} element={<DashboardPage />} />
             <Route path={path.MANAGE_PROJECTS} element={<ManageProjectsPage />} />
             <Route path={path.CONTRACTS} element={<ContractsPage />} />
-            <Route path={path.CONTRACT_AGREEMENT} element={<ContractAgreementPage />} />
-            <Route path={path.CONTRACT_WORKSPACE} element={<ContractWorkspacePage />} />
+            <Route path={path.CONTRACTS_AGREEMENT} element={<ContractAgreementPage />} />
+            <Route path={path.CONTRACTS_WORKSPACE} element={<ContractWorkspacePage />} />
             <Route path={path.MESSAGES} element={<MessagesPage />} />
-            <Route path={path.MY_PROPOSALS} element={<MyProposalsPage />} />
+            <Route path={path.MY_APPLYCATIONS} element={<MyApplicationsPage />} />
             <Route path={path.NOTIFICATIONS} element={<NotificationsPage />} />
             <Route path={path.WALLET} element={<WalletDashboard />} />
             <Route path={path.ADD_FUNDS} element={<AddFundsPage />} />
             <Route path={path.WITHDRAW} element={<WithdrawPage />} />
             <Route path={path.WITHDRAW_REQUESTS} element={<RequestWithdrawPage />} />
             <Route path={path.BANK_ACCOUNTS} element={<BankAccountPage />} />
+            <Route path={path.PROJECT_APPLICATIONS} element={<ProjectApplicationsPage />} />
+            <Route path={path.CONTRACT_CREATE} element={<ContractCreatePage />} />
+            <Route path={path.CONTRACT_DETAIL} element={<ContractDetailPage />} />
           </Route>
         </Route>
 
