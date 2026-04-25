@@ -24,7 +24,7 @@ import BankAccountPage from '@/pages/WalletPage/bankAccountPage'
 import PaymentResultPage from '@/components/components-wallet/notification-payment'
 import ManageProjectsPage from '@/pages/ManageProjectsPage'
 import DashboardLayout from '@/layouts/DashboardLayout'
-import ContractsPage from '@/pages/ContractsPage'
+import ContractsPage from '@/pages/ContractListPage'
 import ContractAgreementPage from '@/pages/ContractAgreementPage'
 import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
 import MessagesPage from '@/pages/MessagesPage'
@@ -35,6 +35,8 @@ import MyApplicationsPage from '@/pages/MyApplicationsPage/MyApplicationsPage'
 import ProjectApplicationsPage from '@/pages/ProjectApplicationsPage/ProjectApplicationsPage'
 import EditProjectPage from '@/pages/EditProjectPage'
 import PostProjectPage from '@/pages/PostProjectPage'
+import ContractCreatePage from '@/pages/ContractCreatePage'
+import ContractDetailPage from '@/pages/ContractDetailPage'
 
 const AppRouters = () => {
   return (
@@ -60,8 +62,8 @@ const AppRouters = () => {
             <Route path={path.DASHBOARD} element={<DashboardPage />} />
             <Route path={path.MANAGE_PROJECTS} element={<ManageProjectsPage />} />
             <Route path={path.CONTRACTS} element={<ContractsPage />} />
-            <Route path={path.CONTRACT_AGREEMENT} element={<ContractAgreementPage />} />
-            <Route path={path.CONTRACT_WORKSPACE} element={<ContractWorkspacePage />} />
+            <Route path={path.CONTRACTS_AGREEMENT} element={<ContractAgreementPage />} />
+            <Route path={path.CONTRACTS_WORKSPACE} element={<ContractWorkspacePage />} />
             <Route path={path.MESSAGES} element={<MessagesPage />} />
             <Route path={path.MY_APPLYCATIONS} element={<MyApplicationsPage />} />
             <Route path={path.NOTIFICATIONS} element={<NotificationsPage />} />
@@ -71,6 +73,8 @@ const AppRouters = () => {
             <Route path={path.WITHDRAW_REQUESTS} element={<RequestWithdrawPage />} />
             <Route path={path.BANK_ACCOUNTS} element={<BankAccountPage />} />
             <Route path={path.PROJECT_APPLICATIONS} element={<ProjectApplicationsPage />} />
+            <Route path={path.CONTRACT_CREATE} element={<ContractCreatePage />} />
+            <Route path={path.CONTRACT_DETAIL} element={<ContractDetailPage />} />
           </Route>
         </Route>
 

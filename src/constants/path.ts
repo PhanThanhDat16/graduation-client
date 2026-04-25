@@ -33,8 +33,10 @@ const path = {
   NOTIFICATIONS: '/notifications',
 
   CONTRACTS: '/contracts', // Danh sách tất cả hợp đồng
-  CONTRACT_AGREEMENT: '/contracts/agreement/:id', // Trang Thỏa thuận & Ký tên 24h
-  CONTRACT_WORKSPACE: '/contracts/workspace/:id', // Phòng làm việc & Bàn giao (Bước 9, 10)
+  CONTRACT_CREATE: '/contracts/create/:applicationId',
+  CONTRACT_DETAIL: '/contracts/:id',
+  CONTRACTS_AGREEMENT: '/contracts/agreement/:id', // Trang Thỏa thuận & Ký tên 24h
+  CONTRACTS_WORKSPACE: '/contracts/workspace/:id', // Phòng làm việc & Bàn giao (Bước 9, 10)
   SETTINGS: '/settings'
 }
 

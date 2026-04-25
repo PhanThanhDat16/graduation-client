@@ -37,7 +37,7 @@ export default function MyApplicationsPage() {
     queryFn: () => applicationService.getMyApplications()
   })
   const applications: Application[] = axiosResponse?.data?.data || []
-
+  console.log(axiosResponse)
   const deleteMutation = useMutation({
     mutationFn: (id: string) => applicationService.deleteApplication(id),
     onMutate: (id) => {

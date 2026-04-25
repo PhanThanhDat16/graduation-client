@@ -4,8 +4,10 @@ import { Briefcase, AlignLeft, Tags, DollarSign, CheckCircle2, X } from 'lucide-
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-// IMPORT SCHEMA TỪ FILE CỦA BẠN (Sửa lại đường dẫn '@/' cho đúng với dự án của bạn)
+// IMPORT SCHEMA TỪ FILE CỦA BẠN
 import { projectSchema, type ProjectSchema } from '@/utils/rules'
+// IMPORT COMPONENT INPUT CỦA BẠN
+import Input from '@/components/Input/Input'
 
 const CATEGORIES = ['Lập trình Web', 'Mobile App', 'UI/UX Design', 'Marketing', 'Viết lách & Dịch thuật', 'Data / AI']
 const SUGGESTED_SKILLS = ['ReactJS', 'NodeJS', 'Figma', 'SEO', 'Content Writing', 'Python', 'Flutter', 'MongoDB']
@@ -52,7 +54,6 @@ export default function ProjectForm({
   // Xử lý thêm kỹ năng
   const handleAddSkill = (skill: string) => {
     const trimmedSkill = skill.trim()
-    // Ép kiểu (currentSkills as string[]) để tránh lỗi TS
     if (trimmedSkill && !(currentSkills as string[]).includes(trimmedSkill)) {
       setValue('skills', [...(currentSkills as string[]), trimmedSkill], { shouldValidate: true })
       setSkillInput('')
@@ -87,17 +88,20 @@ export default function ProjectForm({
             <label className="block text-sm font-bold text-slate-900 mb-2">
               Tên dự án <span className="text-red-500">*</span>
             </label>
-            <input
+            {/* COMPONENT INPUT */}
+            <Input
               type="text"
+              name="title"
+              register={register}
+              errorMessage={errors.title?.message}
               placeholder="VD: Thiết kế lại website công ty thương mại điện tử..."
-              className={`w-full bg-white border rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 outline-none transition-all font-medium ${
+              classNameInput={`w-full bg-white border rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 outline-none transition-all font-medium ${
                 errors.title
                   ? 'border-red-500 focus:ring-red-500'
                   : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
               }`}
-              {...register('title')}
+              classNameError="text-red-500 text-xs mt-1.5 font-medium"
             />
-            {errors.title && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.title.message}</p>}
           </div>
 
           <div>
@@ -175,6 +179,7 @@ export default function ProjectForm({
             Tìm và thêm kỹ năng <span className="text-red-500">*</span>
           </label>
           <div className="flex gap-2 mb-4">
+            {/* Input thường cho thẻ Search (Không dùng register vì đây là un-controlled local state) */}
             <input
               type="text"
               placeholder="Nhập kỹ năng (VD: Figma)..."
@@ -257,45 +262,47 @@ export default function ProjectForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+          <div className="relative">
             <label className="block text-sm font-bold text-slate-900 mb-2">
               Ngân sách tối thiểu <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="VD: 5000000"
-                className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                  errors.budgetMin
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
-                }`}
-                {...register('budgetMin')}
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">₫</span>
-            </div>
-            {errors.budgetMin && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.budgetMin.message}</p>}
+            <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
+            {/* COMPONENT INPUT */}
+            <Input
+              type="number"
+              name="budgetMin"
+              register={register}
+              errorMessage={errors.budgetMin?.message}
+              placeholder="VD: 5000000"
+              classNameInput={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                errors.budgetMin
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              }`}
+              classNameError="text-red-500 text-xs mt-1.5 font-medium"
+            />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-bold text-slate-900 mb-2">
               Ngân sách tối đa <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="VD: 15000000"
-                className={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                  errors.budgetMax
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
-                }`}
-                {...register('budgetMax')}
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">₫</span>
-            </div>
-            {errors.budgetMax && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.budgetMax.message}</p>}
+            <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
+            {/* COMPONENT INPUT */}
+            <Input
+              type="number"
+              name="budgetMax"
+              register={register}
+              errorMessage={errors.budgetMax?.message}
+              placeholder="VD: 15000000"
+              classNameInput={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                errors.budgetMax
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              }`}
+              classNameError="text-red-500 text-xs mt-1.5 font-medium"
+            />
           </div>
         </div>
 

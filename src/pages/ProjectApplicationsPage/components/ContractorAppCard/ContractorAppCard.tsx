@@ -1,9 +1,8 @@
-import { Link } from 'react-router-dom'
-import { CheckCircle2, XCircle, DollarSign, FileText, Mail, MessageSquare } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle2, XCircle, DollarSign, FileText, Mail, MessageSquare, PenTool } from 'lucide-react'
 import { formatBudget } from '@/utils/fomatters'
 import type { Application } from '@/types/application'
 
-// Helper UI nội bộ của Card
 const getStatusUI = (status: string) => {
   switch (status) {
     case 'accepted':
@@ -16,19 +15,22 @@ const getStatusUI = (status: string) => {
   }
 }
 
-interface ApplicationCardProps {
+interface ContractorAppCardProps {
   app: Application
   processingId: string | null
   onUpdateStatus: (id: string, status: 'accepted' | 'rejected') => void
 }
 
-export default function ApplicationCard({ app, processingId, onUpdateStatus }: ApplicationCardProps) {
+export default function ContractorAppCard({ app, processingId, onUpdateStatus }: ContractorAppCardProps) {
+  // Thêm hook điều hướng
+  const navigate = useNavigate()
+
   const statusUI = getStatusUI(app.status)
   const isRejected = app.status === 'rejected'
   const isAccepted = app.status === 'accepted'
   const isProcessing = processingId === app._id
 
-  // Xử lý dữ liệu an toàn
+  // BÓC TÁCH DỮ LIỆU FREELANCER
   const fData = app.freelancerId as any
   const fId = typeof fData === 'string' ? fData : fData?._id || ''
   const fEmail = typeof fData === 'object' && fData?.email ? fData.email : ''
@@ -47,7 +49,7 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
         </div>
       )}
 
-      {/* HEADER: INFO FREELANCER */}
+      {/* THÔNG TIN FREELANCER */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 mb-6">
         <div className="flex items-start gap-4">
           <img
@@ -63,6 +65,7 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
               {fName}
             </Link>
             <p className="text-sm font-medium text-slate-500 mt-0.5 mb-2">Freelancer</p>
+
             {fEmail && (
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100 w-fit">
                 <Mail className="w-3.5 h-3.5" /> {fEmail}
@@ -70,6 +73,8 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
             )}
           </div>
         </div>
+
+        {/* Status Badge */}
         <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto">
           <span
             className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${statusUI.class}`}
@@ -82,15 +87,18 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
         </div>
       </div>
 
-      {/* BODY: BÁO GIÁ */}
+      {/* THÔNG TIN BÁO GIÁ */}
       <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 mb-6">
-        <div className="mb-4 pb-4 border-b border-slate-200/60">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mức giá đề xuất</p>
-          <p className="text-xl font-extrabold text-emerald-600 flex items-center gap-1">
-            <DollarSign className="w-5 h-5 text-emerald-500" />
-            {formatBudget(app.proposedBudget)} <span className="text-sm">₫</span>
-          </p>
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-4 mb-4 pb-4 border-b border-slate-200/60">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mức giá đề xuất</p>
+            <p className="text-xl font-extrabold text-emerald-600 flex items-center gap-1">
+              <DollarSign className="w-5 h-5 text-emerald-500" />
+              {formatBudget(app.proposedBudget)} <span className="text-sm">₫</span>
+            </p>
+          </div>
         </div>
+
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5" /> Thư chào giá
@@ -99,7 +107,7 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
         </div>
       </div>
 
-      {/* FOOTER: HÀNH ĐỘNG */}
+      {/* HÀNH ĐỘNG */}
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
         {isRejected ? (
           <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-xl">
@@ -107,7 +115,7 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
           </span>
         ) : isAccepted ? (
           <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-bold rounded-xl">
-            <CheckCircle2 className="w-5 h-5" /> Đã chốt ứng viên này
+            <CheckCircle2 className="w-5 h-5" /> Ứng viên đã trúng thầu
           </span>
         ) : (
           <>
@@ -118,18 +126,21 @@ export default function ApplicationCard({ app, processingId, onUpdateStatus }: A
             >
               <XCircle className="w-4 h-4" /> Từ chối
             </button>
+
             <button
               onClick={() => (window.location.href = `mailto:${fEmail}`)}
               className="w-full sm:w-auto px-5 py-2.5 bg-blue-50 text-blue-700 text-sm font-bold rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-4 h-4" /> Liên hệ
             </button>
+
+            {/* ĐÃ SỬA: Đẩy thẳng sang trang Khởi tạo hợp đồng (Gửi kèm ID của báo giá) */}
             <button
-              onClick={() => onUpdateStatus(app._id, 'accepted')}
+              onClick={() => navigate(`/contracts/create/${app._id}`)}
               disabled={isProcessing}
-              className="w-full sm:w-auto px-8 py-2.5 bg-slate-900 text-white text-sm font-extrabold rounded-xl shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-2.5 bg-slate-900 text-white text-sm font-extrabold rounded-xl shadow-md hover:bg-indigo-600 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
             >
-              <CheckCircle2 className="w-4 h-4" /> Duyệt báo giá
+              <PenTool className="w-4 h-4" /> Tạo Hợp Đồng
             </button>
           </>
         )}
