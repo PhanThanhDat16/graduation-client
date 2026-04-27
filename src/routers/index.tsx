@@ -16,7 +16,7 @@ import ProjectListPage from '@/pages/ProjectsPage'
 // import PostProjectPage from '@/pages/PostProjectPage'
 import ProfilePage from '@/pages/ProfilePage'
 import FreelancersPage from '@/pages/FreelancersPage'
-import WalletDashboard from '@/pages/WalletPage/walletPage'
+import WalletPage from '@/pages/WalletPage/walletPage'
 import AddFundsPage from '@/pages/WalletPage/addFundsPage'
 import WithdrawPage from '@/pages/WalletPage/withdrawsPage'
 import RequestWithdrawPage from '@/pages/WalletPage/requestWithdrawPage'
@@ -28,7 +28,7 @@ import ContractsPage from '@/pages/ContractListPage'
 import ContractAgreementPage from '@/pages/ContractAgreementPage'
 import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
 import MessagesPage from '@/pages/MessagesPage'
-import DashboardPage from '@/pages/DashboardPage'
+import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
 import NotificationsPage from '@/pages/NotificationsPage'
 import MyApplicationsPage from '@/pages/MyApplicationsPage/MyApplicationsPage'
@@ -67,7 +67,7 @@ const AppRouters = () => {
             <Route path={path.MESSAGES} element={<MessagesPage />} />
             <Route path={path.MY_APPLYCATIONS} element={<MyApplicationsPage />} />
             <Route path={path.NOTIFICATIONS} element={<NotificationsPage />} />
-            <Route path={path.WALLET} element={<WalletDashboard />} />
+            <Route path={path.WALLET} element={<WalletPage />} />
             <Route path={path.ADD_FUNDS} element={<AddFundsPage />} />
             <Route path={path.WITHDRAW} element={<WithdrawPage />} />
             <Route path={path.WITHDRAW_REQUESTS} element={<RequestWithdrawPage />} />

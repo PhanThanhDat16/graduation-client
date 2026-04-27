@@ -1,6 +1,7 @@
 const path = {
   // public
   HOME_PAGE: '/',
+  AUTH_SUCCESS: '/auth/success',
   // ABOUT: '/about',
   // CONTACT: '/contact',
 
@@ -31,6 +32,7 @@ const path = {
   MY_APPLYCATIONS: '/applications/my',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
+  FREELANCERS: '/freelancers',
 
   CONTRACTS: '/contracts', // Danh sách tất cả hợp đồng
   CONTRACT_CREATE: '/contracts/create/:applicationId',
