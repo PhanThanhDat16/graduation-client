@@ -1,165 +1,92 @@
-import { useState, useCallback } from 'react'
-import { createSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Search, X } from 'lucide-react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { omit } from 'lodash'
+import { useNavigate } from 'react-router-dom'
+import { Briefcase, ArrowLeft } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { projectService } from '@/apis/projectService'
-import useProjectQueryConfig from '@/hooks/useProjectQueryConfig'
+import type { ProjectCreateParams } from '@/types/project'
+import ProjectForm from '@/components/ProjectForm/ProjectForm'
+import type { ProjectSchema } from '@/utils/rules'
 
-// Components
-import FilterSidebar from './components/FilterSidebar/FilterSidebar'
-import ProjectCardSkeleton from '@/components/ProjectCardSkeleton'
-import { EmptyState } from '@/components/EmptyState/EmptyState'
-import ProjectCard from '@/components/ProjectCard/ProjectCard'
-import Pagination from '@/components/Pagination/Pagination'
-
-// IMPORT COMPONENT SORT MỚI
-import SortDropdown from '@/components/SortDropdown/SortDropdown'
-
-const SORT_OPTIONS = [
-  { label: 'Mới nhất', value: 'createdAt_desc' },
-  { label: 'Ngân sách: Cao → Thấp', value: 'budgetMax_desc' },
-  { label: 'Nhiều lượt thích', value: 'likes_desc' }
-]
-
-export default function ProjectsPage() {
+export default function PostProjectPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const queryConfig = useProjectQueryConfig()
+  const queryClient = useQueryClient()
 
-  const [searchInput, setSearchInput] = useState(queryConfig.keyword || '')
+  // Móc API Create Project
+  const createMutation = useMutation({
+    mutationFn: (data: ProjectCreateParams) => projectService.createProject(data),
+    onSuccess: () => {
+      // Báo cho React Query biết data đã cũ, cần fetch lại ở trang Danh sách
+      queryClient.invalidateQueries({ queryKey: ['my-projects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
 
-  // --- API CALL ---
-  const { data: axiosResponse, isLoading } = useQuery({
-    queryKey: ['projects', queryConfig],
-    queryFn: () => projectService.getProjects(queryConfig),
-    placeholderData: keepPreviousData
+      alert('Đăng dự án thành công!')
+      navigate('/manage-projects')
+    },
+    onError: () => {
+      alert('Có lỗi xảy ra khi đăng dự án. Vui lòng thử lại!')
+    }
   })
 
-  const apiResponse = axiosResponse?.data
-  const projects = apiResponse?.data || []
-  const totalPages = apiResponse?.pagination?.totalPages || 1
-  const totalItems = apiResponse?.pagination?.total || 0
+  // Hàm xử lý khi Form bấm Submit
+  const handleCreateSubmit = (data: ProjectSchema) => {
+    // Ép kiểu dữ liệu ngân sách từ string sang number trước khi gửi API
+    const payload: ProjectCreateParams = {
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      skills: data.skills,
+      budgetMin: Number(data.budgetMin),
+      budgetMax: Number(data.budgetMax),
+      status: 'open' // Mặc định khi tạo là open
+    }
 
-  // --- HANDLERS ---
-  const handleSearchSubmit = () => {
-    navigate({
-      pathname: location.pathname,
-      search: createSearchParams({ ...queryConfig, keyword: searchInput, page: '1' } as any).toString()
-    })
+    createMutation.mutate(payload)
   }
-
-  const handleClearSearch = () => {
-    setSearchInput('')
-    const newConfig = omit(queryConfig, ['keyword'])
-    navigate({
-      pathname: location.pathname,
-      search: createSearchParams(newConfig as any).toString()
-    })
-  }
-
-  // ĐÃ SỬA: Nhận trực tiếp chuỗi value từ SortDropdown
-  const handleSortChange = (value: string) => {
-    const [sortField, sortOrder] = value.split('_')
-    navigate({
-      pathname: location.pathname,
-      search: createSearchParams({ ...queryConfig, sortBy: sortField, sortOrder, page: '1' } as any).toString()
-    })
-  }
-
-  const handlePageChange = (page: number) => {
-    navigate({
-      pathname: location.pathname,
-      search: createSearchParams({ ...queryConfig, page: page.toString() } as any).toString()
-    })
-  }
-
-  const handleToggleLike = useCallback((projectId: string) => {
-    console.log('Toggle like for project:', projectId)
-    // Implement your mutation here
-  }, [])
 
   return (
-    <div className="bg-page min-h-screen font-body pb-20">
-      {/* HERO SECTION */}
-      <div className="bg-primary pt-12 pb-16 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white mb-3">
-            Tìm dự án freelance <span className="text-[#89CCF5]">phù hợp</span>
-          </h1>
-        </div>
-      </div>
-
-      {/* SEARCH BAR */}
-      <div className="max-w-5xl mx-auto px-4 -mt-7 relative z-20">
-        <div className="bg-white p-2 rounded-2xl shadow-lg border border-border flex items-center gap-2">
-          <Search className="w-5 h-5 text-text-muted ml-3" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-            placeholder="Tìm theo tên dự án, kỹ năng..."
-            className="flex-1 bg-transparent border-none outline-none text-sm text-text-main py-2"
-          />
-          {searchInput && (
-            <button onClick={handleClearSearch} className="p-1 text-text-muted hover:text-danger transition-colors">
-              <X className="w-5 h-5" />
+    <div className="bg-slate-50 min-h-screen font-body pb-24 text-slate-800">
+      {/* ── HEADER ── */}
+      <div className="bg-white border-b border-slate-200 py-4 sticky top-[64px] z-40 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 -ml-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
             </button>
-          )}
-          <button
-            onClick={handleSearchSubmit}
-            className="bg-primary hover:bg-primary/90 transition-colors text-white px-6 py-2.5 rounded-xl text-sm font-bold hidden sm:block"
-          >
-            Tìm kiếm
-          </button>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                Khởi tạo công việc
+              </p>
+              <h1 className="font-heading font-extrabold text-xl text-slate-900 leading-none">Đăng dự án mới</h1>
+            </div>
+          </div>
+          <div className="text-sm font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-lg hidden sm:block border border-slate-200">
+            Bước 1 / 1
+          </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 flex flex-col lg:flex-row gap-8 items-start">
-        {/* SIDEBAR */}
-        <div className="w-full lg:w-[280px] shrink-0 sticky top-24">
-          <FilterSidebar queryConfig={queryConfig} />
+      {/* ── NỘI DUNG ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8">
+        {/* Banner */}
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-800 rounded-2xl p-6 text-white shadow-md mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 className="font-bold text-lg mb-1">Mô tả rõ ràng, tìm người dễ dàng!</h2>
+            <p className="text-indigo-100 text-sm">
+              Các dự án có mô tả chi tiết và kỹ năng rõ ràng thường nhận được báo giá chất lượng hơn 70%.
+            </p>
+          </div>
+          <Briefcase className="w-12 h-12 text-white/20 shrink-0 hidden sm:block" />
         </div>
 
-        {/* LISTING */}
-        <div className="flex-1 w-full min-w-0">
-          {/* TOOLBAR */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <span className="text-sm text-text-sub font-medium">
-              Tìm thấy <strong className="text-text-main">{totalItems}</strong> dự án
-            </span>
-
-            {/* GỌI SORT DROPDOWN MỚI TẠI ĐÂY */}
-            <SortDropdown
-              options={SORT_OPTIONS}
-              value={`${queryConfig.sortBy}_${queryConfig.sortOrder}`}
-              onChange={handleSortChange}
-            />
-          </div>
-
-          {/* PROJECT CARDS */}
-          <div className="space-y-4">
-            {isLoading ? (
-              Array.from({ length: Number(queryConfig.limit || 4) }).map((_, i) => <ProjectCardSkeleton key={i} />)
-            ) : projects.length === 0 ? (
-              <EmptyState onReset={() => navigate(location.pathname)} />
-            ) : (
-              projects.map((project: any) => (
-                <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
-              ))
-            )}
-          </div>
-
-          {/* PAGINATION */}
-          <Pagination
-            currentPage={Number(queryConfig.page || 1)}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
+        {/* Gọi Component Form */}
+        <ProjectForm
+          isSubmitting={createMutation.isPending}
+          onSubmit={handleCreateSubmit}
+          submitText="Đăng Dự Án Ngay"
+        />
       </div>
     </div>
   )

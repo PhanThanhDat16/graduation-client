@@ -66,6 +66,7 @@ export interface WithdrawRequest {
   _id: string
   account_id: PopulatedAccount | string
   amount: number
+  amountReceived: number
   status: WithdrawStatus
   admin_id?: string
   createdAt: string

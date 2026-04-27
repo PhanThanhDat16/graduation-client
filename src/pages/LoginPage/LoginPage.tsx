@@ -15,7 +15,9 @@ export default function LoginPage() {
     await logIn(email, password)
   }
 
-  const handleGoogleLogin = () => {}
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`
+  }
   return (
     // Thẻ gốc tự đảm nhận 50% width trên desktop và full màn hình trên mobile
     <div className="w-full lg:w-1/2 min-h-screen bg-white relative flex flex-col justify-center px-8 md:px-16 lg:px-24 xl:px-32 font-body">

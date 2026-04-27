@@ -211,7 +211,7 @@ export default function ProjectDetailPage() {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
 
             <div className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
               <h2 className="font-bold text-lg text-text-main mb-4 border-b border-border pb-4">
