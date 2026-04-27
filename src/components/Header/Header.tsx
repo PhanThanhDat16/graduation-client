@@ -19,45 +19,57 @@ import {
   Search,
   MessageSquare,
   Briefcase,
-  LayoutDashboard,
   Newspaper,
   Building2,
   Mail,
-  Headset
+  Headset,
+  LayoutDashboard,
+  Send
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import path from '@/constants/path'
 import { useWalletStore } from '@/store/useWalletStore'
 
 export default function Header() {
+  const location = useLocation()
+  const [prevPathname, setPrevPathname] = useState(location.pathname)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const navigate = useNavigate()
+
   const { balance, fetchBalance } = useWalletStore()
-
-  useEffect(() => {
-    fetchBalance()
-  }, [fetchBalance])
-
-  const location = useLocation()
-
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const moreMenuRef = useRef<HTMLDivElement>(null)
-
   const { user, accessToken, logOut } = useAuthStore()
 
   // Tạm mock data (Nếu user chưa có role, mặc định là freelancer)
   const userRole = user?.role || 'freelancer'
   const unreadCount = 2
 
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (accessToken) fetchBalance()
+  }, [fetchBalance, accessToken])
+
   const handleLogout = async () => {
+    setIsDropdownOpen(false)
+    setIsMobileMenuOpen(false)
     await logOut()
     navigate(path.LOGIN)
   }
 
-  // Hiệu ứng đổ bóng
+  // 2. Kiểm tra ngay trong lúc render (KHÔNG dùng useEffect)
+  if (location.pathname !== prevPathname) {
+    // Nếu URL thay đổi, cập nhật lại URL cũ và đóng các menu
+    setPrevPathname(location.pathname)
+    setIsMobileMenuOpen(false)
+    setIsDropdownOpen(false)
+    setIsMoreMenuOpen(false)
+  }
+
+  // Hiệu ứng đổ bóng khi cuộn trang
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0)
     window.addEventListener('scroll', handleScroll)
@@ -100,19 +112,31 @@ export default function Header() {
             <nav className="hidden lg:flex items-center gap-1">
               <Link
                 to="/"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === '/' ? 'bg-indigo-50 text-primary' : 'text-text-sub hover:text-primary hover:bg-gray-100'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname === '/'
+                    ? 'bg-indigo-50 text-primary'
+                    : 'text-text-sub hover:text-primary hover:bg-gray-100'
+                }`}
               >
                 <Home className="h-4 w-4" /> <span>Trang chủ</span>
               </Link>
               <Link
                 to="/projects"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname.includes('/projects') ? 'bg-indigo-50 text-primary' : 'text-text-sub hover:text-primary hover:bg-gray-100'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname.includes('/projects')
+                    ? 'bg-indigo-50 text-primary'
+                    : 'text-text-sub hover:text-primary hover:bg-gray-100'
+                }`}
               >
                 <FolderSearch className="h-4 w-4" /> <span>Tìm dự án</span>
               </Link>
               <Link
                 to="/freelancers"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname.includes('/freelancers') ? 'bg-indigo-50 text-primary' : 'text-text-sub hover:text-primary hover:bg-gray-100'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location.pathname.includes('/freelancers')
+                    ? 'bg-indigo-50 text-primary'
+                    : 'text-text-sub hover:text-primary hover:bg-gray-100'
+                }`}
               >
                 <Users className="h-4 w-4" /> <span>Tìm freelancer</span>
               </Link>
@@ -120,7 +144,9 @@ export default function Header() {
               <div className="relative" ref={moreMenuRef}>
                 <button
                   onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isMoreMenuOpen ? 'bg-page text-primary' : 'text-text-sub hover:text-primary hover:bg-gray-100'}`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isMoreMenuOpen ? 'bg-page text-primary' : 'text-text-sub hover:text-primary hover:bg-gray-100'
+                  }`}
                 >
                   <MoreHorizontal className="h-4 w-4" /> <span>Thêm</span>
                   <ChevronDown
@@ -129,33 +155,29 @@ export default function Header() {
                 </button>
 
                 {isMoreMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     <Link
                       to="/blog"
-                      onClick={() => setIsMoreMenuOpen(false)}
-                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
                       <Newspaper className="h-4 w-4" /> Blog & Tin tức
                     </Link>
                     <Link
                       to="/about"
-                      onClick={() => setIsMoreMenuOpen(false)}
-                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
                       <Building2 className="h-4 w-4" /> Về FreeWork
                     </Link>
                     <Link
                       to="/contact"
-                      onClick={() => setIsMoreMenuOpen(false)}
-                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
                       <Mail className="h-4 w-4" /> Liên hệ với chúng tôi
                     </Link>
                     <div className="h-px bg-border my-1"></div>
                     <Link
                       to="/faq"
-                      onClick={() => setIsMoreMenuOpen(false)}
-                      className="block flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                     >
                       <Headset className="h-4 w-4" /> Trung tâm hỗ trợ (FAQ)
                     </Link>
@@ -171,7 +193,7 @@ export default function Header() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-indigo-50 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-indigo-50 rounded-lg transition-colors hidden sm:block"
                 >
                   Đăng Nhập
                 </Link>
@@ -184,7 +206,7 @@ export default function Header() {
               </div>
             ) : (
               <>
-                {/* === NÚT ĐỘNG DỰA VÀO ROLE === */}
+                {/* === NÚT CALL-TO-ACTION THEO ROLE === */}
                 <div className="hidden sm:block mr-2">
                   {userRole === 'contractor' ? (
                     <Link
@@ -206,8 +228,6 @@ export default function Header() {
                     </Link>
                   )}
                 </div>
-
-                {/* ĐÃ XÓA KHỐI TÌM KIẾM Ở ĐÂY */}
 
                 <Link
                   to="/messages"
@@ -239,7 +259,7 @@ export default function Header() {
                 <div className="relative ml-1" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-full hover:bg-gray-100 transition-colors outline-none"
                   >
                     <img
                       src={
@@ -247,7 +267,7 @@ export default function Header() {
                         `https://ui-avatars.com/api/?name=${user?.fullName || 'NV'}&background=1B2A6B&color=fff`
                       }
                       alt="Avatar"
-                      className="h-8 w-8 rounded-full object-cover shadow-sm"
+                      className="h-8 w-8 rounded-full object-cover shadow-sm border border-slate-200"
                     />
                     <ChevronDown
                       className={`h-4 w-4 text-text-muted hidden sm:block transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -255,65 +275,57 @@ export default function Header() {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="px-4 py-2 mb-1 border-b border-border">
+                    <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-border py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-4 py-3 mb-1 border-b border-border bg-slate-50/50">
                         <p className="text-sm font-bold text-text-main truncate">{user?.fullName || 'Người dùng'}</p>
-                        <p className="text-xs text-text-muted capitalize">{userRole}</p>
+                        <p className="text-xs font-medium text-text-muted mt-0.5">{user?.email}</p>
                       </div>
 
+                      {/* --- MENU THEO ROLE --- */}
                       <Link
                         to="/dashboard"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-primary bg-indigo-50/50 hover:bg-page transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-primary hover:bg-indigo-50 transition-colors"
                       >
                         <LayoutDashboard className="w-4 h-4 text-primary" /> Bảng điều khiển
                       </Link>
 
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
-                      >
-                        <User className="w-4 h-4 text-text-sub" /> Hồ sơ cá nhân
-                      </Link>
-
-                      {/* Thay đổi link quản lý tùy theo Role */}
                       {userRole === 'contractor' ? (
                         <Link
                           to="/manage-projects"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                         >
                           <Briefcase className="w-4 h-4 text-text-sub" /> Quản lý dự án
                         </Link>
                       ) : (
                         <Link
-                          to="/my-proposals"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                          to="/applications/my"
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                         >
-                          <FileText className="w-4 h-4 text-text-sub" /> Việc đã nộp
+                          <Send className="w-4 h-4 text-text-sub" /> Việc đã nộp
                         </Link>
                       )}
 
                       <Link
+                        to="/profile"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                      >
+                        <User className="w-4 h-4 text-text-sub" /> Hồ sơ cá nhân
+                      </Link>
+                      <Link
                         to="/contracts"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <FileText className="w-4 h-4 text-text-sub" /> Hợp đồng
                       </Link>
                       <Link
                         to="/wallet"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                        className="flex md:hidden items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <Wallet className="w-4 h-4 text-text-sub" /> Ví Escrow
                       </Link>
                       <Link
                         to="/settings"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <Settings className="w-4 h-4 text-text-sub" /> Cài đặt
                       </Link>
@@ -321,8 +333,7 @@ export default function Header() {
                       {userRole === 'admin' && (
                         <Link
                           to="/admin"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 mt-1"
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors mt-1"
                         >
                           <ShieldAlert className="w-4 h-4" /> Admin Panel
                         </Link>
@@ -330,11 +341,8 @@ export default function Header() {
 
                       <div className="my-1 border-t border-border"></div>
                       <button
-                        onClick={() => {
-                          handleLogout()
-                          setIsDropdownOpen(false)
-                        }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-danger hover:bg-red-50 transition-colors"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-danger hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" /> Đăng xuất
                       </button>
@@ -356,7 +364,7 @@ export default function Header() {
 
       {/* --- MOBILE MENU --- */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-border bg-white absolute w-full shadow-lg">
+        <div className="lg:hidden border-t border-border bg-white absolute w-full shadow-lg animate-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-3 space-y-1">
             <Link
               to="/"
@@ -375,14 +383,6 @@ export default function Header() {
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-main hover:bg-gray-50"
             >
               <Users className="h-4 w-4 text-text-sub" /> Tìm freelancer
-            </Link>
-
-            <div className="h-px bg-border my-2 mx-3"></div>
-            <Link to="/blog" className="block px-3 py-2.5 text-sm font-medium text-text-main hover:bg-gray-50">
-              Blog & Tin tức
-            </Link>
-            <Link to="/contact" className="block px-3 py-2.5 text-sm font-medium text-text-main hover:bg-gray-50">
-              Liên hệ
             </Link>
 
             {accessToken && (
@@ -405,7 +405,6 @@ export default function Header() {
                   </span>
                 </Link>
 
-                {/* NÚT MOBILE ĐỘNG THEO ROLE */}
                 {userRole === 'contractor' ? (
                   <Link
                     to="/post-project"
@@ -439,10 +438,10 @@ export default function Header() {
             ) : (
               <div className="pt-2 mt-2 border-t border-border">
                 <button
-                  onClick={logOut}
-                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-red-50"
+                  onClick={handleLogout}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-red-50 flex items-center gap-3"
                 >
-                  Đăng xuất
+                  <LogOut className="h-4 w-4" /> Đăng xuất
                 </button>
               </div>
             )}

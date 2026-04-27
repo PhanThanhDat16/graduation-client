@@ -1,7 +1,6 @@
 import { useAuthStore } from '@/store/useAuthStore'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-
 const PrivateRoute = () => {
   const { accessToken, user, refresh, fetchMe } = useAuthStore()
   const [starting, setStarting] = useState(true)
@@ -25,7 +24,7 @@ const PrivateRoute = () => {
   }, [])
 
   if (starting) {
-    return <div className="flex h-screen items-center justify-center">Đang tải trang...</div>
+    return <div className="flex items-center justify-center h-screen">Đang tải trang...</div>
   }
 
   if (!accessToken) {

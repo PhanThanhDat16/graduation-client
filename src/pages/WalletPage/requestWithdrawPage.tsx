@@ -57,19 +57,19 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function RequestWithdrawPage() {
-  const { adminWithdrawRequests: requests, adminLoading: loading, fetchAllWithdrawRequests } = useWalletStore()
+  const { withdrawRequests: requests, withdrawRequestsLoading: loading, fetchWithdrawRequests } = useWalletStore()
 
   const [selectedRequest, setSelectedRequest] = useState<WithdrawRequest | null>(null)
   const [filterStatus, setFilterStatus] = useState<WithdrawStatus | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   const fetchRequests = useCallback(() => {
-    fetchAllWithdrawRequests()
-  }, [fetchAllWithdrawRequests])
+    fetchWithdrawRequests()
+  }, [fetchWithdrawRequests])
 
   useEffect(() => {
     fetchRequests()
-  }, [fetchRequests])
+  }, [])
 
   const filteredRequests = useMemo(
     () =>

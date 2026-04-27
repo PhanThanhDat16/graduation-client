@@ -11,9 +11,11 @@ import useProjectQueryConfig from '@/hooks/useProjectQueryConfig'
 import FilterSidebar from './components/FilterSidebar/FilterSidebar'
 import ProjectCardSkeleton from '@/components/ProjectCardSkeleton'
 import { EmptyState } from '@/components/EmptyState/EmptyState'
+import ProjectCard from '@/components/ProjectCard/ProjectCard'
+import Pagination from '@/components/Pagination/Pagination'
 import SortDropdown from '@/components/SortDropDown'
-import ProjectCard from '@/components/ProjectCard'
-import Pagination from '@/components/Pagination'
+
+// IMPORT COMPONENT SORT MỚI
 
 const SORT_OPTIONS = [
   { label: 'Mới nhất', value: 'createdAt_desc' },
@@ -139,7 +141,7 @@ export default function ProjectsPage() {
           </div>
 
           {/* PROJECT CARDS */}
-          <div className="space-y-4"> 
+          <div className="space-y-4">
             {isLoading ? (
               Array.from({ length: Number(queryConfig.limit || 4) }).map((_, i) => <ProjectCardSkeleton key={i} />)
             ) : projects.length === 0 ? (

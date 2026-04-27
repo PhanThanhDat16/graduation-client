@@ -25,10 +25,6 @@ interface WalletState {
   withdrawRequests: WithdrawRequest[]
   withdrawRequestsLoading: boolean
 
-  // Withdraw requests (admin)
-  adminWithdrawRequests: WithdrawRequest[]
-  adminLoading: boolean
-
   // Mutation loading
   loading: boolean
 
@@ -38,10 +34,6 @@ interface WalletState {
   fetchWithdrawRequests: (filter?: WithdrawRequestFilter) => Promise<void>
   createWithdrawRequest: (body: CreateWithdrawRequest) => Promise<boolean>
   cancelWithdrawRequest: (id: string) => Promise<boolean>
-
-  // Admin
-  fetchAllWithdrawRequests: (filter?: WithdrawRequestFilter & { user_id?: string }) => Promise<void>
-  processWithdrawRequest: (id: string, status: string) => Promise<boolean>
 }
 
 // ─── Store ─────────────────────────────────────────────────────────────────────
@@ -55,9 +47,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   withdrawRequests: [],
   withdrawRequestsLoading: false,
-
-  adminWithdrawRequests: [],
-  adminLoading: false,
 
   loading: false,
 
@@ -128,40 +117,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       return true
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Hủy yêu cầu thất bại.')
-      return false
-    } finally {
-      set({ loading: false })
-    }
-  },
-
-  // ── Admin: fetch all withdraw requests ──────────────────────────────────────
-  fetchAllWithdrawRequests: async (filter?) => {
-    set({ adminLoading: true })
-    try {
-      const res = await walletService.getAllWithdrawRequests(filter)
-      set({ adminWithdrawRequests: res.data })
-    } catch (error) {
-      console.error('fetchAllWithdrawRequests failed:', error)
-      toast.error('Không thể tải danh sách yêu cầu')
-    } finally {
-      set({ adminLoading: false })
-    }
-  },
-
-  // ── Admin: process (approve / reject) withdraw request ─────────────────────
-  processWithdrawRequest: async (id: string, status: string) => {
-    set({ loading: true })
-    try {
-      await walletService.processWithdrawRequest(id, status)
-      // Update local list optimistically
-      set((s) => ({
-        adminWithdrawRequests: s.adminWithdrawRequests.map((r) => (r._id === id ? { ...r, status: status as any } : r))
-      }))
-      if (status === 'approved') toast.success('Đã duyệt yêu cầu rút tiền')
-      else toast.info('Đã từ chối yêu cầu')
-      return true
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Xử lý yêu cầu thất bại.')
       return false
     } finally {
       set({ loading: false })
