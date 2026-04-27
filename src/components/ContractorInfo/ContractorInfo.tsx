@@ -25,6 +25,7 @@ export default function ContractorInfo({ contractorId }: ContractorInfoProps) {
     enabled: !!contractorId,
     staleTime: 1000 * 60 * 10 // Cache 10 phút
   })
+  // console.log(contractorId)
 
   // --- TRẠNG THÁI LOADING (Sửa lại cho đẹp khớp với layout cũ) ---
   if (isLoading) {

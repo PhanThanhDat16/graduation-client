@@ -36,6 +36,7 @@ export default function ProjectsPage() {
     queryFn: () => projectService.getProjects(queryConfig),
     placeholderData: keepPreviousData
   })
+  // console.log(axiosResponse)
 
   const apiResponse = axiosResponse?.data
   const projects = apiResponse?.data || []
