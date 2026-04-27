@@ -1,33 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query' // Đã thêm useQueryClient
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import { ArrowLeft, FileSignature, ShieldCheck, AlertCircle, Briefcase, CheckCircle2 } from 'lucide-react' // Đã thêm CheckCircle2
+import { ArrowLeft, FileSignature, ShieldCheck, AlertCircle, Briefcase, CheckCircle2 } from 'lucide-react'
 
 // APIs
 import { applicationService } from '@/apis/applicationService'
 import { contractService } from '@/apis/contractService'
 import { formatBudget } from '@/utils/fomatters'
 import Input from '@/components/Input/Input'
+import { contractSchema, type ContractSchema } from '@/utils/rules'
 
 const PLATFORM_FEE_PERCENTAGE = 0.05
-
-const contractSchema = yup
-  .object({
-    contractor_terms: yup
-      .string()
-      .required('Vui lòng nhập điều khoản hợp đồng')
-      .min(50, 'Điều khoản cần chi tiết hơn (ít nhất 50 ký tự)'),
-    deadline: yup.string().required('Vui lòng chọn ngày nghiệm thu dự kiến'),
-    agreeToTerms: yup
-      .boolean()
-      .required('Bạn phải đồng ý với chính sách của hệ thống')
-      .oneOf([true], 'Bạn phải đồng ý với chính sách của hệ thống')
-  })
-  .required()
-
-type ContractFormData = yup.InferType<typeof contractSchema>
 
 export default function ContractCreatePage() {
   const { applicationId } = useParams<{ applicationId: string }>()
@@ -53,7 +37,7 @@ export default function ContractCreatePage() {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<ContractFormData>({
+  } = useForm<ContractSchema>({
     resolver: yupResolver(contractSchema),
     defaultValues: { contractor_terms: '', deadline: '', agreeToTerms: false }
   })
@@ -89,7 +73,7 @@ export default function ContractCreatePage() {
     }
   })
 
-  const onSubmit = (formData: ContractFormData) => {
+  const onSubmit = (formData: ContractSchema) => {
     if (!appData) return
     const payload = {
       project_id: typeof appData.projectId === 'string' ? appData.projectId : appData.projectId._id,

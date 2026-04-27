@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell,
   Wallet,
   ChevronDown,
   User,
@@ -29,6 +28,7 @@ import {
 import { useAuthStore } from '@/store/useAuthStore'
 import path from '@/constants/path'
 import { useWalletStore } from '@/store/useWalletStore'
+import NotificationDropdown from './NotificationDropdown'
 
 export default function Header() {
   const location = useLocation()
@@ -42,9 +42,7 @@ export default function Header() {
   const { balance, fetchBalance } = useWalletStore()
   const { user, accessToken, logOut } = useAuthStore()
 
-  // Tạm mock data (Nếu user chưa có role, mặc định là freelancer)
   const userRole = user?.role || 'freelancer'
-  const unreadCount = 2
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const moreMenuRef = useRef<HTMLDivElement>(null)
@@ -60,23 +58,19 @@ export default function Header() {
     navigate(path.LOGIN)
   }
 
-  // 2. Kiểm tra ngay trong lúc render (KHÔNG dùng useEffect)
   if (location.pathname !== prevPathname) {
-    // Nếu URL thay đổi, cập nhật lại URL cũ và đóng các menu
     setPrevPathname(location.pathname)
     setIsMobileMenuOpen(false)
     setIsDropdownOpen(false)
     setIsMoreMenuOpen(false)
   }
 
-  // Hiệu ứng đổ bóng khi cuộn trang
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -190,10 +184,10 @@ export default function Header() {
           {/* --- PHẢI: ACTIONS --- */}
           <div className="flex items-center gap-1 sm:gap-1.5">
             {!accessToken ? (
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-indigo-50 rounded-lg transition-colors hidden sm:block"
+                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-indigo-50 rounded-lg transition-colors"
                 >
                   Đăng Nhập
                 </Link>
@@ -237,14 +231,7 @@ export default function Header() {
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent border-2 border-white"></span>
                 </Link>
 
-                <button className="relative p-2 rounded-lg text-text-sub hover:bg-gray-100 hover:text-primary transition-colors">
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                <NotificationDropdown />
 
                 {/* Wallet Balance Pill */}
                 <Link

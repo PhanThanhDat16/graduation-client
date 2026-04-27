@@ -31,8 +31,8 @@ export default function ContractListPage() {
     queryKey: ['my-contracts'],
     queryFn: () => contractService.getMyContracts()
   })
-
   const contracts = axiosResponse?.data?.data || []
+  console.log('contract: ', contracts)
 
   // LOGIC ĐẾM SỐ LƯỢNG CHO TỪNG TAB
   const counts = {

@@ -64,6 +64,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.logIn(email, password)
+      console.log(res)
       get().setAccessToken(res.data.data.accessToken)
       message.success('Đăng nhập thành công!')
       // console.log(res)
