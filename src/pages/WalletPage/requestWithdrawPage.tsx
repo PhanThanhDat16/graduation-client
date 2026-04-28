@@ -103,8 +103,8 @@ export default function RequestWithdrawPage() {
   ] as const
 
   return (
-    <div className="flex-1 overflow-auto bg-slate-50 font-sans text-slate-900">
-      <div className="p-8 space-y-8">
+    <div className="flex-1 overflow-auto bg-slate-50 text-slate-900">
+      <div className="space-y-8">
         {/* ── Header ── */}
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Quản lý Rút tiền</h1>
