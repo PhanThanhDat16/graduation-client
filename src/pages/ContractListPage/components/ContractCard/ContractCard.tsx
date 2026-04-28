@@ -1,14 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { Calendar, FileSignature, ArrowRight, User } from 'lucide-react'
 import type { Contract } from '@/types/contract'
 import { formatBudget } from '@/utils/fomatters'
-import { projectService } from '@/apis/projectService'
-import { userService } from '@/apis/userService'
 
 interface ContractCardProps {
   contract: Contract
-  userRole: string
+  userRole: 'contractor' | 'freelancer'
 }
 
 const STATUS_MAP: Record<string, { label: string; dot: string; badge: string; bar: string }> = {
@@ -67,25 +64,11 @@ const getStatus = (status: string) =>
 export default function ContractCard({ contract, userRole }: ContractCardProps) {
   const isContractor = userRole === 'contractor'
   const partnerRole = isContractor ? 'Freelancer' : 'Khách hàng'
-  const projectId = contract.project_id
-  const partnerId = isContractor ? contract.freelancer_id : contract.contractor_id
 
-  const { data: projectRes, isLoading: isProjectLoading } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: () => projectService.getProjectById(projectId),
-    enabled: !!projectId,
-    staleTime: 5 * 60 * 1000
-  })
-
-  const { data: partnerRes, isLoading: isPartnerLoading } = useQuery({
-    queryKey: ['partner', partnerId],
-    queryFn: () => userService.getUserById(partnerId),
-    enabled: !!partnerId,
-    staleTime: 5 * 60 * 1000
-  })
-
-  const projectTitle = projectRes?.data?.data?.title || 'Hợp đồng Dịch vụ'
-  const partnerName = partnerRes?.data?.data?.fullName || 'Chưa cập nhật'
+  const projectTitle = contract.project_id?.title || 'Hợp đồng Dịch vụ'
+  const partnerName = isContractor
+    ? contract.freelancer_id?.fullName
+    : contract.contractor_id?.fullName || 'Chưa cập nhật'
   const status = getStatus(contract.status)
 
   return (
@@ -111,10 +94,10 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
         <div className="flex items-start justify-between gap-4 mb-5">
           <div className="flex-1 min-w-0">
             <h3 className="font-black text-lg text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug">
-              {isProjectLoading ? (
-                <span className="inline-block w-48 h-5 bg-slate-100 animate-pulse rounded-lg" />
-              ) : (
+              {projectTitle ? (
                 projectTitle
+              ) : (
+                <span className="inline-block w-48 h-5 bg-slate-100 animate-pulse rounded-lg" />
               )}
             </h3>
           </div>
@@ -133,10 +116,10 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{partnerRole}</p>
-            {isPartnerLoading ? (
-              <span className="inline-block w-28 h-4 bg-slate-200 animate-pulse rounded mt-0.5" />
-            ) : (
+            {partnerName ? (
               <p className="text-sm font-bold text-slate-700 truncate">{partnerName}</p>
+            ) : (
+              <span className="inline-block w-28 h-4 bg-slate-200 animate-pulse rounded mt-0.5" />
             )}
           </div>
         </div>

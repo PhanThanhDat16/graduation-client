@@ -88,12 +88,6 @@ export default function MessagesPage() {
 
   return (
     <div className="w-full max-w-7xl mx-auto animate-in fade-in duration-300 h-[calc(100vh-100px)] flex flex-col">
-      {/* Tiêu đề ẩn trên mobile, hiện trên desktop */}
-      <div className="mb-4 hidden md:block shrink-0">
-        <h1 className="font-heading font-extrabold text-2xl text-slate-900 mb-1">Tin nhắn</h1>
-        <p className="text-sm text-slate-500">Trao đổi và thương lượng với ứng viên trước khi chốt hợp đồng.</p>
-      </div>
-
       {/* KHUNG CHAT CHÍNH (CHIA 2 CỘT) */}
       <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col md:flex-row h-full min-h-0">
         {/* ==========================================

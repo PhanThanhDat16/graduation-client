@@ -1,7 +1,15 @@
-// --- CẤU TRÚC DỰ ÁN (Dựa trên Schema Backend) ---
+export interface ContractorInfo {
+  _id: string
+  fullName: string
+  avatar?: string
+  ratingAvg?: number | null
+  isVerified: boolean
+  address?: string
+  ratingCount?: number | null
+}
 export interface Project {
   _id: string
-  contractorId: string
+  contractorId: ContractorInfo
   title: string
   description: string
   category: string
