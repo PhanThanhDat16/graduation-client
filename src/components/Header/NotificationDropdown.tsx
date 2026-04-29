@@ -4,6 +4,7 @@ import { Bell, CheckCheck, Trash2, FileSignature, Briefcase, BellRing, Clock } f
 import { notificationService } from '@/apis/notificationService'
 import type { Notification } from '@/types/notification'
 import Popover from '@/components/Popover/Popover'
+import { Link } from 'react-router-dom'
 
 // Hàm helper format thời gian
 const formatTimeAgo = (dateString: string) => {
@@ -149,9 +150,9 @@ export default function NotificationDropdown() {
       </div>
 
       <div className="p-3 border-t border-slate-100 text-center bg-white sticky bottom-0">
-        <button className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+        <Link to="/notifications" className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
           Xem tất cả thông báo
-        </button>
+        </Link>
       </div>
     </div>
   )
