@@ -6,7 +6,7 @@ export interface UserProfile {
   address?: string
   birthday?: string
   gender?: string
-  role: 'freelancer' | 'contractor' | 'admin'
+  role: 'freelancer' | 'contractor'
   avatar?: string
   isVerified: boolean
   status: 'active' | 'inactive' | 'banned'
