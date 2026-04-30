@@ -20,6 +20,7 @@ import { applicationService } from '@/apis/applicationService'
 import InputNumber from '@/components/InputNumber'
 import { formatBudget } from '@/utils/fomatters'
 import { proposalSchema, type ProposalSchema } from '@/utils/rules'
+import { toast } from 'react-toastify'
 
 const SERVICE_FEE_PERCENT = 0.1
 
@@ -76,12 +77,12 @@ export default function SubmitProposalPage() {
   const submitMutation = useMutation({
     mutationFn: (body: any) => applicationService.createApplication(body),
     onSuccess: () => {
+      toast.success('Gửi báo giá thành công!')
       queryClient.invalidateQueries({ queryKey: ['my-applications'] })
-      alert('Gửi báo giá thành công!')
       navigate(`/projects/${projectId}`)
     },
     onError: (error: any) => {
-      alert(error?.response?.data?.message || 'Có lỗi xảy ra, có thể bạn đã ứng tuyển dự án này rồi!')
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra, có thể bạn đã ứng tuyển dự án này rồi!')
     }
   })
 
