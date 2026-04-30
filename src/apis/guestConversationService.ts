@@ -72,9 +72,9 @@ export const guestConversationService = {
   /**
    * Merge guest conversation to user account (called after login)
    */
-  mergeGuestConversation: async (memberId: string) => {
+  mergeGuestConversation: async (guestUserId: string) => {
     const res = await axiosInstance.post('conversations/merge', {
-      memberId: memberId
+      guestUserId: guestUserId
     })
     return res.data
   },
@@ -83,11 +83,21 @@ export const guestConversationService = {
    * Save guest message to conversation
    */
   saveGuestMessage: async (groupId: string, guestName: string, content: string) => {
-    const res = await axiosInstance.post(`conversations/${groupId}/messages`, {
+    const memberId = localStorage.getItem('memberId')
+    const res = await axiosInstance.post(`chat/groups/${groupId}/messages`, {
       guestName: guestName,
       content: content,
-      type: 'text'
+      type: 'text',
+      ...(memberId ? { userId: memberId } : {})
     })
+    return res.data
+  },
+
+  /**
+   * Get messages for guest conversation (no auth required)
+   */
+  getMessages: async (groupId: string) => {
+    const res = await axiosInstance.get(`chat/groups/${groupId}/messages/guest`)
     return res.data
   },
 
