@@ -14,6 +14,7 @@ import {
 
 import { notificationService } from '@/apis/notificationService'
 import type { Notification } from '@/types/notification'
+import { toast } from 'react-toastify'
 
 // Hàm format thời gian (Giống trong Header)
 const formatTimeAgo = (dateString: string) => {
@@ -76,7 +77,7 @@ export default function NotificationListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] })
-      alert('Đã đánh dấu tất cả là đã đọc!')
+      toast.success('Đã đánh dấu tất cả là đã đọc!')
     }
   })
 
@@ -93,7 +94,7 @@ export default function NotificationListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] })
-      alert('Đã xoá toàn bộ thông báo!')
+      toast.success('Đã xoá toàn bộ thông báo!')
     }
   })
 

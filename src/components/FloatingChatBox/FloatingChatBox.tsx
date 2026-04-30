@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useStoreSocketIO } from '@/store/useStoreSocketIO'
 import { guestConversationService } from '@/apis/guestConversationService'
 import { emitGuestJoinConversation, listenNewMessage } from '@/services/socketConversation'
+import { toast } from 'react-toastify'
 
 interface Message {
   id: string
@@ -180,7 +181,7 @@ export default function FloatingChatBox() {
       await fetchGuestMessages(group_id)
     } catch (error) {
       console.error('[FloatingChatBox] Error creating guest conversation:', error)
-      alert('Không thể tạo cuộc trò chuyện. Vui lòng thử lại.')
+      toast.error('Không thể tạo cuộc trò chuyện. Vui lòng thử lại.')
     } finally {
       setIsLoadingGuestConversation(false)
     }
@@ -242,7 +243,7 @@ export default function FloatingChatBox() {
         console.error('[FloatingChatBox] Error saving guest message:', error)
         // Remove message from UI if save fails
         setMessages((prev) => prev.filter((msg) => msg.id !== newMessage.id))
-        alert('Không thể gửi tin nhắn. Vui lòng thử lại.')
+        toast.error('Không thể gửi tin nhắn. Vui lòng thử lại.')
       }
     }
   }

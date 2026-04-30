@@ -8,6 +8,7 @@ import type { Application } from '@/types/application'
 import ContractorAppCard from './components/ContractorAppCard/ContractorAppCard'
 import StatusTabs from '@/components/StatusTabs/StatusTabs'
 import SortDropdown from '@/components/SortDropDown/SortDropdown'
+import { toast } from 'react-toastify'
 
 const SORT_OPTIONS = [
   { label: 'Nộp gần đây', value: 'newest' },
@@ -41,9 +42,9 @@ export default function ProjectApplicationsPage() {
     onMutate: (variables) => setProcessingId(variables.id),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project-applications', projectId] })
-      alert(variables.status === 'accepted' ? 'Đã duyệt trúng thầu ứng viên!' : 'Đã từ chối ứng viên.')
+      toast.success(variables.status === 'accepted' ? 'Đã duyệt trúng thầu ứng viên!' : 'Đã từ chối ứng viên.')
     },
-    onError: () => alert('Có lỗi xảy ra khi cập nhật trạng thái!'),
+    onError: () => toast.error('Có lỗi xảy ra khi cập nhật trạng thái!'),
     onSettled: () => setProcessingId(null)
   })
 

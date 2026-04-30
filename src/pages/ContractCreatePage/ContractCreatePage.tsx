@@ -10,6 +10,7 @@ import { contractService } from '@/apis/contractService'
 import { formatBudget } from '@/utils/fomatters'
 import Input from '@/components/Input/Input'
 import { contractSchema, type ContractSchema } from '@/utils/rules'
+import { toast } from 'react-toastify'
 
 const PLATFORM_FEE_PERCENTAGE = 0.05
 
@@ -61,7 +62,7 @@ export default function ContractCreatePage() {
       // GỌI KÈM API ĐỔI TRẠNG THÁI BÁO GIÁ THÀNH "ACCEPTED"
       updateAppStatusMutation.mutate()
 
-      alert('Tạo hợp đồng thành công! Đã gửi cho Freelancer.')
+      toast.success('Tạo hợp đồng thành công! Đã gửi cho Freelancer.')
       if (newContractId) {
         navigate(`/contracts/${newContractId}`, { replace: true }) // Dùng replace để user không bấm Back lại trang tạo được nữa
       } else {
@@ -69,7 +70,7 @@ export default function ContractCreatePage() {
       }
     },
     onError: () => {
-      alert('Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.')
+      toast.error('Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.')
     }
   })
 

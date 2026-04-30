@@ -11,6 +11,7 @@ import ApplicationCard from './components/ApplicationCard'
 import ApplicationModal from './components/ApplicationModal'
 import StatusTabs from '@/components/StatusTabs/StatusTabs'
 import SortDropdown from '@/components/SortDropDown/SortDropdown'
+import { toast } from 'react-toastify'
 
 const SORT_OPTIONS = [
   { label: 'Gửi gần đây', value: 'newest' },
@@ -46,9 +47,9 @@ export default function MyApplicationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-applications'] })
-      alert('Đã rút báo giá thành công!')
+      toast.success('Đã rút báo giá thành công!')
     },
-    onError: () => alert('Có lỗi xảy ra, không thể rút báo giá lúc này.'),
+    onError: () => toast.error('Có lỗi xảy ra, không thể rút báo giá lúc này.'),
     onSettled: () => setDeletingId(null)
   })
 
