@@ -29,7 +29,7 @@ export default function ProjectDetailPage() {
   const { user } = useAuthStore()
   const isGuest = !user
   const currentUserRole = user?.role
-  const currentUserId = user?._id || user?.id
+  const currentUserId = user?._id
 
   // GỌI API LẤY CHI TIẾT DỰ ÁN
   const {
@@ -88,7 +88,7 @@ export default function ProjectDetailPage() {
   }
 
   // --- TÍNH TOÁN QUYỀN ---
-  const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractorId
+  const isOwner = currentUserRole === 'contractor' && currentUserId === project.contractorId._id
   const isOtherContractor = currentUserRole === 'contractor' && !isOwner
   const isFreelancer = currentUserRole === 'freelancer'
   const isLikedByMe = currentUserId ? project.listLike?.includes(currentUserId) : false
@@ -311,7 +311,9 @@ export default function ProjectDetailPage() {
 
             <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-base text-text-main mb-5">Về khách hàng này</h3>
-              <ContractorInfo contractorId={project.contractorId} />
+              <Link to={`/profile/${project.contractorId._id}`} className="hover:opacity-80 transition-opacity">
+                <ContractorInfo contractorId={project.contractorId} />
+              </Link>
             </div>
 
             {!isOwner && !isGuest && (

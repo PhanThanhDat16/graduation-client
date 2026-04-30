@@ -18,7 +18,7 @@ const path = {
   SUBMIT_PROPOSAL: '/submit-proposal/:projectId',
 
   DASHBOARD: '/dashboard',
-  PROFILE: '/profile',
+  PROFILE: '/profile/:id',
   WALLET: '/wallet',
   ADD_FUNDS: '/add-funds',
   WITHDRAW: '/withdraw',

@@ -250,7 +250,7 @@ export default function Header() {
                   >
                     <img
                       src={
-                        user?.avatarUrl ||
+                        user?.avatar ||
                         `https://ui-avatars.com/api/?name=${user?.fullName || 'NV'}&background=1B2A6B&color=fff`
                       }
                       alt="Avatar"
@@ -293,7 +293,7 @@ export default function Header() {
                       )}
 
                       <Link
-                        to="/profile"
+                        to={`/profile/${user?._id}`}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <User className="w-4 h-4 text-text-sub" /> Hồ sơ cá nhân

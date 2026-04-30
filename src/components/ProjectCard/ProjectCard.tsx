@@ -23,7 +23,9 @@ export default function ProjectCard({ project, onToggleLike }: ProjectCardProps)
       ></div>
 
       <div className="flex justify-between items-start mb-4 gap-4">
-        <ContractorInfo contractorId={project.contractorId} />
+        <Link to={`/profile/${project.contractorId._id}`} className="hover:opacity-80 transition-opacity">
+          <ContractorInfo contractorId={project.contractorId} />
+        </Link>
         <div className="flex gap-2">
           {hot && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-bold">🔥 Nổi bật</span>}
           <button
