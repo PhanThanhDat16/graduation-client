@@ -10,5 +10,16 @@ export const userService = {
   getUserById: async (id: string) => {
     const res = await axiosInstance.get<ApiResponse<UserProfile>>(`/users/${id}`)
     return res
+  },
+  updateProfile: async (body: Partial<UserProfile>) => {
+    const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
+    return res
+  },
+
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    const res = await axiosInstance.post<ApiResponse<UserProfile>>('/upload/avatar', formData)
+    return res
   }
 }

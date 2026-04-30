@@ -13,6 +13,7 @@ export interface UserProfile {
   ratingAvg?: number | null
   ratingCount?: number | null
   createdAt: string
+  description?: string
 }
 
 export interface UserQueryParams {

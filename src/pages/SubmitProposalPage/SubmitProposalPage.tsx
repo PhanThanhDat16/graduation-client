@@ -1,7 +1,7 @@
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   DollarSign,
@@ -32,6 +32,7 @@ const DURATION_OPTIONS = [
 
 export default function SubmitProposalPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { projectId } = useParams<{ projectId: string }>()
 
   const {
@@ -75,6 +76,7 @@ export default function SubmitProposalPage() {
   const submitMutation = useMutation({
     mutationFn: (body: any) => applicationService.createApplication(body),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-applications'] })
       alert('Gửi báo giá thành công!')
       navigate(`/projects/${projectId}`)
     },
