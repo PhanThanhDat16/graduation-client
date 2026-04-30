@@ -1,11 +1,24 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Printer, ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Wallet } from 'lucide-react'
+import {
+  ArrowLeft,
+  Printer,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+  CheckCircle2,
+  Wallet,
+  Send,
+  CheckSquare,
+  PlayCircle
+} from 'lucide-react'
+import { toast } from 'react-toastify' // Thay alert bằng toast cho chuyên nghiệp
 
 import { contractService } from '@/apis/contractService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { formatBudget } from '@/utils/fomatters'
+import PaymentModal from './components/PaymentModal' // Đảm bảo bạn đã tạo file này theo code tôi gửi lúc nãy
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -13,8 +26,8 @@ export default function ContractDetailPage() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
 
-  // State cho chữ ký điện tử
   const [signature, setSignature] = useState('')
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 
   // 1. FETCH DỮ LIỆU HỢP ĐỒNG
   const { data: axiosResponse, isLoading } = useQuery({
@@ -23,42 +36,54 @@ export default function ContractDetailPage() {
     enabled: !!id
   })
 
-  console.log(id)
   const contract = axiosResponse?.data?.data
 
   // 2. NHẬN DIỆN VAI TRÒ & TRẠNG THÁI
   const userRole = user?.role || 'freelancer'
   const isContractor = userRole === 'contractor'
 
-  // Kiểm tra xem user hiện tại đã ký chưa
   const hasAgreed = isContractor ? contract?.contractor_agreed : contract?.freelancer_agreed
-  // Kiểm tra xem đối tác đã ký chưa (Đã tận dụng ở Banner Status và chữ ký)
   const partnerAgreed = isContractor ? contract?.freelancer_agreed : contract?.contractor_agreed
 
-  // 3. MUTATION: ĐỒNG Ý HỢP ĐỒNG
+  // 3. MUTATIONS (CÁC HÀNH ĐỘNG CẬP NHẬT TRẠNG THÁI)
   const agreeMutation = useMutation({
     mutationFn: () => contractService.agreeToContract(id as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract', id] })
-      alert('Đã ký xác nhận hợp đồng thành công!')
+      toast.success('Đã ký xác nhận hợp đồng thành công!')
     },
-    onError: () => alert('Có lỗi xảy ra, vui lòng thử lại.')
+    onError: () => toast.error('Có lỗi xảy ra, vui lòng thử lại.')
   })
 
-  // 4. MUTATION: HUỶ HỢP ĐỒNG
   const cancelMutation = useMutation({
     mutationFn: () => contractService.cancelContract(id as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract', id] })
-      alert('Hợp đồng đã được huỷ!')
+      toast.success('Hợp đồng đã được huỷ!')
     },
-    onError: () => alert('Không thể huỷ hợp đồng lúc này.')
+    onError: () => toast.error('Không thể huỷ hợp đồng lúc này.')
   })
 
-  // HANDLERS
+  const submitMutation = useMutation({
+    mutationFn: () => contractService.submitContract(id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      toast.success('Đã nộp sản phẩm cho Khách hàng!')
+    }
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: () => contractService.completeContract(id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      toast.success('Đã nghiệm thu và giải ngân thành công!')
+    }
+  })
+
+  // 4. HANDLERS
   const handleAgree = () => {
     if (signature.trim().length < 2) {
-      alert('Vui lòng nhập đầy đủ Họ và Tên để làm chữ ký điện tử.')
+      toast.warning('Vui lòng nhập đầy đủ Họ và Tên để làm chữ ký điện tử.')
       return
     }
     if (window.confirm('Bạn có chắc chắn muốn ký và chấp thuận hợp đồng này?')) {
@@ -72,7 +97,53 @@ export default function ContractDetailPage() {
     }
   }
 
-  // RENDER UI CHỜ/LỖI
+  // 5. RENDER LOGIC: NÚT ACTION TRÊN TOOLBAR
+  const renderActionButtons = () => {
+    if (contract?.status === 'waiting_payment') {
+      const needToPay = isContractor
+        ? contract.payment_info?.contractor_must_pay > 0
+        : contract.payment_info?.freelancer_must_pay > 0
+
+      if (needToPay) {
+        return (
+          <button
+            onClick={() => setShowPaymentModal(true)}
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+          >
+            <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
+          </button>
+        )
+      }
+    }
+
+    if (contract?.status === 'running' && !isContractor) {
+      return (
+        <button
+          onClick={() => submitMutation.mutate()}
+          disabled={submitMutation.isPending}
+          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
+        >
+          <Send className="w-4 h-4" /> {submitMutation.isPending ? 'Đang gửi...' : 'Nộp sản phẩm'}
+        </button>
+      )
+    }
+
+    if (contract?.status === 'submitted' && isContractor) {
+      return (
+        <button
+          onClick={() => completeMutation.mutate()}
+          disabled={completeMutation.isPending}
+          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
+        >
+          <CheckSquare className="w-4 h-4" /> {completeMutation.isPending ? 'Đang xử lý...' : 'Nghiệm thu & Giải ngân'}
+        </button>
+      )
+    }
+
+    return null
+  }
+
+  // UI LOADING & LỖI
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 gap-4">
@@ -82,7 +153,7 @@ export default function ContractDetailPage() {
     )
   }
 
-  if (!contract) return <div className="text-center py-20">Không tìm thấy hợp đồng</div>
+  if (!contract) return <div className="text-center py-20 font-bold text-slate-500">Không tìm thấy hợp đồng</div>
 
   const contractorInfo = contract.contractor_id as any
   const freelancerInfo = contract.freelancer_id as any
@@ -114,14 +185,8 @@ export default function ContractDetailPage() {
               <Printer className="w-4 h-4" /> In PDF
             </button>
 
-            {contract.status === 'waiting_payment' && isContractor && (
-              <button
-                onClick={() => alert('Chuyển qua cổng thanh toán VNPay/Ví (Chưa làm)')}
-                className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
-              >
-                <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
-              </button>
-            )}
+            {/* Hiển thị Action Button tương ứng với Trạng thái */}
+            {renderActionButtons()}
           </div>
         </div>
       </div>
@@ -133,29 +198,28 @@ export default function ContractDetailPage() {
             <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Hợp đồng đã bị huỷ</p>
-              <p className="text-sm">Một trong hai bên đã từ chối hoặc quá hạn 24h không xác nhận.</p>
+              <p className="text-sm">Một trong hai bên đã từ chối hoặc quá hạn xác nhận.</p>
             </div>
           </div>
         )}
 
-        {/* CẬP NHẬT: SỬ DỤNG partnerAgreed Ở ĐÂY ĐỂ HIỂN THỊ LOGIC THÔNG MINH HƠN */}
-        {contract.status === 'draft' || contract.status === 'pending_agreement' ? (
+        {(contract.status === 'draft' || contract.status === 'pending_agreement') && (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Đang chờ chữ ký xác nhận</p>
               <p className="text-sm mt-1">
-                {
-                  !hasAgreed
-                    ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy điền chữ ký điện tử ở cuối trang để xác nhận.'
-                    : !partnerAgreed
-                      ? 'Bạn đã ký. Đang chờ đối tác kiểm tra và chấp thuận hợp đồng này.'
-                      : 'Đang xử lý...' // Cả 2 đã ký nhưng BE chưa update kịp status
-                }
+                {!hasAgreed
+                  ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy điền chữ ký điện tử ở cuối trang để xác nhận.'
+                  : !partnerAgreed
+                    ? 'Bạn đã ký. Đang chờ đối tác kiểm tra và chấp thuận hợp đồng này.'
+                    : 'Đang xử lý...'}
               </p>
             </div>
           </div>
-        ) : contract.status === 'waiting_payment' ? (
+        )}
+
+        {contract.status === 'waiting_payment' && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -167,7 +231,45 @@ export default function ContractDetailPage() {
               </p>
             </div>
           </div>
-        ) : null}
+        )}
+
+        {contract.status === 'running' && (
+          <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <PlayCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Dự án đang được thực hiện</p>
+              <p className="text-sm mt-1">
+                {!isContractor
+                  ? 'Tiền cọc đã được lưu trong ví Escrow an toàn. Hãy bắt đầu công việc và nộp sản phẩm khi hoàn thành nhé!'
+                  : 'Freelancer đang tiến hành công việc. Bạn sẽ nhận được thông báo khi có sản phẩm bàn giao.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {contract.status === 'submitted' && (
+          <div className="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <Send className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Đã nộp sản phẩm</p>
+              <p className="text-sm mt-1">
+                {isContractor
+                  ? 'Freelancer đã nộp sản phẩm. Vui lòng kiểm tra và tiến hành nghiệm thu để giải ngân.'
+                  : 'Sản phẩm đã được gửi thành công. Đang chờ khách hàng nghiệm thu.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {contract.status === 'completed' && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Hợp đồng hoàn tất</p>
+              <p className="text-sm mt-1">Dự án đã được nghiệm thu và tiền đã được giải ngân thành công.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── BẢN HỢP ĐỒNG ── */}
@@ -226,18 +328,14 @@ export default function ContractDetailPage() {
             </div>
 
             <p>
-              Hai bên cùng thống nhất ký kết Hợp đồng Dịch vụ Tự do thông qua nền tảng trung gian{' '}
-              <strong>FreelanceVN</strong> với các điều khoản sau đây:
+              Hai bên cùng thống nhất ký kết Hợp đồng Dịch vụ thông qua nền tảng <strong>FreelanceVN</strong> với các
+              điều khoản:
             </p>
           </div>
 
           <div className="space-y-6 text-[15px] leading-relaxed">
             <div>
               <h3 className="font-bold text-lg mb-2">Điều 1: Nội dung công việc</h3>
-              <p>
-                Bên B đồng ý thực hiện các công việc theo đúng yêu cầu dự án mà Bên A đã đăng tải, với các yêu cầu cụ
-                thể và tiêu chí nghiệm thu được Bên A đưa ra như sau:
-              </p>
               <div className="mt-3 p-4 bg-slate-50 border-l-4 border-slate-300 italic whitespace-pre-line rounded-r-xl">
                 {contract.contractor_terms}
               </div>
@@ -263,9 +361,7 @@ export default function ContractDetailPage() {
                   Tổng thù lao Bên A đồng ý thanh toán cho Bên B là:{' '}
                   <strong>{formatBudget(contract.total_amount)} VNĐ</strong>.
                 </li>
-                <li>
-                  Khoản tiền này sẽ được giữ an toàn bởi FreelanceVN (Escrow) trong suốt quá trình thực hiện dự án.
-                </li>
+                <li>Khoản tiền này sẽ được giữ an toàn bởi hệ thống Escrow trong suốt quá trình thực hiện dự án.</li>
                 <li>Tiền chỉ được giải ngân cho Bên B khi Bên A xác nhận nghiệm thu sản phẩm đạt yêu cầu.</li>
               </ul>
             </div>
@@ -303,7 +399,6 @@ export default function ContractDetailPage() {
                     </button>
                   </div>
                 ) : (
-                  // NẾU LÀ FREELANCER ĐANG XEM, VÀ CONTRACTOR CHƯA KÝ (partnerAgreed)
                   <p className="text-slate-400 italic mt-8">Đang chờ ký...</p>
                 )}
               </div>
@@ -359,6 +454,15 @@ export default function ContractDetailPage() {
           </div>
         )}
       </div>
+
+      {/* NHÚNG MODAL THANH TOÁN */}
+      {showPaymentModal && (
+        <PaymentModal
+          contract={contract}
+          userRole={userRole as 'contractor' | 'freelancer'}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </div>
   )
 }
