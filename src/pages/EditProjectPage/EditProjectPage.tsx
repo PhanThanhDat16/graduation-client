@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { projectService } from '@/apis/projectService'
 import type { ProjectCreateParams } from '@/types/project'
-import ProjectForm, { type ProjectFormData } from '@/components/ProjectForm/ProjectForm'
+import ProjectForm from '@/components/ProjectForm/ProjectForm'
+import type { ProjectSchema } from '@/utils/rules'
 
 export default function EditProjectPage() {
   // 1. Lấy ID dự án từ URL (ví dụ: /edit-project/60a7b...)
@@ -29,7 +30,7 @@ export default function EditProjectPage() {
 
   // 3. CHUYỂN ĐỔI DỮ LIỆU CŨ SANG ĐỊNH DẠNG CỦA FORM
   // (camelCase và ép kiểu số)
-  const initialFormData: ProjectFormData | undefined = oldProjectData
+  const initialFormData: ProjectSchema | undefined = oldProjectData
     ? {
         title: oldProjectData.title,
         description: oldProjectData.description,
@@ -60,7 +61,7 @@ export default function EditProjectPage() {
   })
 
   // 5. HÀM XỬ LÝ KHI FORM BẤM SUBMIT (handleUpdate)
-  const handleUpdateSubmit = (data: ProjectFormData) => {
+  const handleUpdateSubmit = (data: ProjectSchema) => {
     // Ép kiểu dữ liệu ngân sách từ string sang number trước khi gửi API
     const payload: Partial<ProjectCreateParams> = {
       title: data.title,

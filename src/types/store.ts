@@ -1,6 +1,6 @@
-import type { UserResponse } from './user'
+import type { UserProfile } from './user'
 
-export type BodyRegister = Omit<UserResponse, '_id' | 'createdAt' | 'updatedAt' | 'isVerified'>
+export type BodyRegister = Omit<UserProfile, '_id' | 'createdAt' | 'updatedAt' | 'isVerified'>
 export type BodyVerifyOtpRegister = {
   email: string
   otp: string
@@ -9,8 +9,9 @@ export type BodyVerifyOtpRegister = {
 export type BodyResendOTP = Pick<BodyVerifyOtpRegister, 'email' | 'purpose'>
 export interface AuthState {
   accessToken: string | null
-  user: UserResponse | null
+  user: UserProfile | null
   loading: boolean
+  updating: boolean
 
   setAccessToken: (accessToken: string) => void
   clearState: () => void
@@ -24,4 +25,6 @@ export interface AuthState {
   resendOTP: (body: BodyResendOTP) => Promise<boolean>
   forgotPassword: (email: string) => Promise<boolean>
   verifyOTPPassword: (email: string, otp: string) => Promise<boolean>
+  updateProfile: (data: Partial<UserProfile>) => Promise<boolean>
+  uploadAvatar: (file: File) => Promise<boolean>
 }

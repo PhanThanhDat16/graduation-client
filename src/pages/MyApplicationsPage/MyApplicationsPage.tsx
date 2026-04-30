@@ -175,7 +175,7 @@ export default function MyApplicationsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+      <div className="max-w-7xl mx-auto pt-6">
         {!isLoading && applications.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
