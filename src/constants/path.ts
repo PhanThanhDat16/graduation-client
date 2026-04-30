@@ -1,6 +1,7 @@
 const path = {
   // public
   HOME_PAGE: '/',
+  AUTH_SUCCESS: '/auth/success',
   // ABOUT: '/about',
   // CONTACT: '/contact',
 

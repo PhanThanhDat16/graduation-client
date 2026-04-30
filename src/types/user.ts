@@ -16,8 +16,8 @@ export interface UserProfile {
 }
 
 export interface UserQueryParams {
-  page?: number | string
-  limit?: number | string
+  page?: number
+  limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   role?: string

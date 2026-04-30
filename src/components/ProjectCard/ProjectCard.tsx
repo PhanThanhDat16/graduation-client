@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom'
 import { Heart, Clock, DollarSign } from 'lucide-react'
 import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 import { formatBudget, isHot, timeAgo } from '@/utils/fomatters'
+import type { Project } from '@/types/project'
 
 // Note: Replace with your actual User type if available
 const CURRENT_USER = { _id: 'user_me_123' }
 
 interface ProjectCardProps {
-  project: any // Consider replacing 'any' with your Project interface (e.g., Project)
+  project: Project
   onToggleLike: (projectId: string) => void
 }
 

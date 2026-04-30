@@ -13,9 +13,9 @@ import ProjectCardSkeleton from '@/components/ProjectCardSkeleton'
 import { EmptyState } from '@/components/EmptyState/EmptyState'
 import ProjectCard from '@/components/ProjectCard/ProjectCard'
 import Pagination from '@/components/Pagination/Pagination'
+import SortDropdown from '@/components/SortDropDown'
 
 // IMPORT COMPONENT SORT MỚI
-import SortDropdown from '@/components/SortDropdown/SortDropdown'
 
 const SORT_OPTIONS = [
   { label: 'Mới nhất', value: 'createdAt_desc' },
@@ -36,6 +36,7 @@ export default function ProjectsPage() {
     queryFn: () => projectService.getProjects(queryConfig),
     placeholderData: keepPreviousData
   })
+  // console.log(axiosResponse)
 
   const apiResponse = axiosResponse?.data
   const projects = apiResponse?.data || []

@@ -5,7 +5,7 @@ import { Briefcase, AlertCircle } from 'lucide-react'
 import { projectService } from '@/apis/projectService'
 import ManageProjectCard from './components/ManageProjectCard/ManageProjectCard'
 import StatusTabs from '@/components/StatusTabs/StatusTabs'
-import SortDropdown from '@/components/SortDropdown/SortDropdown'
+import SortDropdown from '@/components/SortDropDown'
 
 // Tuỳ chọn sắp xếp cho Contractor
 const SORT_OPTIONS = [
@@ -103,7 +103,7 @@ export default function ManageProjectsPage() {
   // --- BỐ CỤC CHÍNH ---
   return (
     <div className="bg-slate-50 min-h-screen font-body pb-24 flex flex-col md:flex-row w-full text-slate-800">
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto pt-8">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>

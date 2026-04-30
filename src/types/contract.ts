@@ -1,3 +1,6 @@
+import type { Project } from './project'
+import type { UserProfile } from './user'
+
 // Các trạng thái của Hợp đồng
 export type ContractStatus =
   | 'draft' // Bản nháp (Đang soạn)
@@ -20,13 +23,15 @@ export interface PaymentInfo {
   freelancer_remaining: number
 }
 
+export type UserSumary = Pick<UserProfile, '_id' | 'fullName' | 'avatar' | 'email'>
+export type ProjectSummary = Pick<Project, '_id' | 'title' | 'description'>
 // Cấu trúc một Hợp đồng (Lấy từ API)
 export interface Contract {
   _id: string
-  project_id: string
+  project_id: ProjectSummary
   application_id: string
-  contractor_id: any // Tạm để any, có thể thay bằng User type
-  freelancer_id: any
+  contractor_id: UserSumary
+  freelancer_id: UserSumary
   description: string
   contractor_terms: string
   freelancer_terms: string

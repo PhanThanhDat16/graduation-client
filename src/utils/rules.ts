@@ -93,8 +93,22 @@ export const projectSchema = yup.object({
     test: testPriceMinMax
   })
 })
+export const contractSchema = yup
+  .object({
+    contractor_terms: yup
+      .string()
+      .required('Vui lòng nhập điều khoản hợp đồng')
+      .min(50, 'Điều khoản cần chi tiết hơn (ít nhất 50 ký tự)'),
+    deadline: yup.string().required('Vui lòng chọn ngày nghiệm thu dự kiến'),
+    agreeToTerms: yup
+      .boolean()
+      .required('Bạn phải đồng ý với chính sách của hệ thống')
+      .oneOf([true], 'Bạn phải đồng ý với chính sách của hệ thống')
+  })
+  .required()
 
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
 export type ProposalSchema = yup.InferType<typeof proposalSchema>
 export type ProjectSchema = yup.InferType<typeof projectSchema>
+export type ContractSchema = yup.InferType<typeof contractSchema>

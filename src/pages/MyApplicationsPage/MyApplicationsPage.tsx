@@ -10,7 +10,7 @@ import type { Application } from '@/types/application'
 import ApplicationCard from './components/ApplicationCard'
 import ApplicationModal from './components/ApplicationModal'
 import StatusTabs from '@/components/StatusTabs/StatusTabs'
-import SortDropdown from '@/components/SortDropdown/SortDropdown'
+import SortDropdown from '@/components/SortDropDown/SortDropdown'
 
 const SORT_OPTIONS = [
   { label: 'Gửi gần đây', value: 'newest' },

@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 // Import các Component dùng chung
 import ContractCard from './components/ContractCard'
 import StatusTabs, { type TabItem } from '@/components/StatusTabs/StatusTabs' // Đường dẫn của bạn
-import SortDropdown, { type SortOption } from '@/components/SortDropdown/SortDropdown' // Component mới của bạn
+import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDropdown' // Component mới của bạn
 
 // Định nghĩa các tuỳ chọn sắp xếp
 const SORT_OPTIONS: SortOption[] = [
@@ -31,8 +31,8 @@ export default function ContractListPage() {
     queryKey: ['my-contracts'],
     queryFn: () => contractService.getMyContracts()
   })
-
   const contracts = axiosResponse?.data?.data || []
+  console.log('contract: ', contracts)
 
   // LOGIC ĐẾM SỐ LƯỢNG CHO TỪNG TAB
   const counts = {

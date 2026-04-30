@@ -7,7 +7,7 @@ import { applicationService } from '@/apis/applicationService'
 import type { Application } from '@/types/application'
 import ContractorAppCard from './components/ContractorAppCard/ContractorAppCard'
 import StatusTabs from '@/components/StatusTabs/StatusTabs'
-import SortDropdown from '@/components/SortDropdown/SortDropdown'
+import SortDropdown from '@/components/SortDropDown/SortDropdown'
 
 const SORT_OPTIONS = [
   { label: 'Nộp gần đây', value: 'newest' },
