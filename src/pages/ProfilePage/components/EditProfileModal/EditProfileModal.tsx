@@ -56,7 +56,8 @@ export default function EditProfileModal({ profile, onClose }: EditProfileModalP
 
     const success = await updateProfile({
       ...data,
-      birthday: birthdayISO
+      birthday: birthdayISO,
+      avatar: profile.avatar || ''
     })
 
     if (success) {
