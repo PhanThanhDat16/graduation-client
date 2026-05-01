@@ -16,10 +16,21 @@ export const userService = {
     return res
   },
 
+  // uploadAvatar: async (file: File) => {
+  //   const formData = new FormData()
+  //   formData.append('avatar', file)
+  //   const res = await axiosInstance.post<ApiResponse<UserProfile>>('/upload/avatar', formData)
+  //   return res
+  // }
   uploadAvatar: async (file: File) => {
     const formData = new FormData()
     formData.append('avatar', file)
-    const res = await axiosInstance.post<ApiResponse<UserProfile>>('/upload/avatar', formData)
+
+    const res = await axiosInstance.post('/upload/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return res
   }
 }

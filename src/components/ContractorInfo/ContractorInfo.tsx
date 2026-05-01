@@ -14,7 +14,7 @@ function getInitials(fullName: string) {
 }
 
 export default function contractorIdInfo({ contractorId }: contractorIdInfoProps) {
-  console.log(contractorId)
+  // console.log(contractorId)
 
   // --- TRẠNG THÁI LOADING (Sửa lại cho đẹp khớp với layout cũ) ---
   if (contractorId === undefined) {

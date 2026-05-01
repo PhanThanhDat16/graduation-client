@@ -23,9 +23,10 @@ interface ProfileHeaderProps {
   isOwner: boolean
   updating: boolean
   onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onEditClick?: () => void
 }
 
-export default function ProfileHeader({ profile, isOwner, updating, onAvatarChange }: ProfileHeaderProps) {
+export default function ProfileHeader({ profile, isOwner, updating, onAvatarChange, onEditClick }: ProfileHeaderProps) {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -42,11 +43,11 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
           alt="Cover"
           className="w-full h-full object-cover opacity-80"
         />
-        {isOwner && (
+        {/* {isOwner && (
           <button className="absolute top-4 right-4 px-3 py-1.5 bg-black/40 hover:bg-black/60 text-white rounded-lg backdrop-blur-md border border-white/20 flex items-center gap-1.5 text-xs font-semibold transition-all">
             <Camera size={14} /> Đổi ảnh bìa
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -138,6 +139,7 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
               )}
               {isOwner && (
                 <button
+                  onClick={onEditClick}
                   className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
                   title="Chỉnh sửa thông tin"
                 >

@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2Icon, AlertCircle } from 'lucide-react'
+
 import { useAuthStore } from '@/store/useAuthStore'
 import { userService } from '@/apis/userService'
 import { projectService } from '@/apis/projectService'
@@ -11,10 +12,13 @@ import ProfileHeader from './components/ProfileHeader'
 import ProfileInfo from './components/ProfileInfo'
 import ProfileProjects from './components/ProfileProjects'
 import ProfileReviews from './components/ProfileReviews'
+import EditProfileModal from './components/EditProfileModal'
 
 export default function ProfilePage() {
+  const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [showEditModal, setShowEditModal] = useState(false)
 
   const { user: authUser, loading: authLoading, fetchMe, uploadAvatar, updating } = useAuthStore()
 
@@ -38,10 +42,15 @@ export default function ProfilePage() {
   })
 
   const profileData = profileRes?.data?.data
-  console.log(profileData)
-  console.log(profileData?.role)
 
-  // 2. Fetch danh sách Dự án (Chỉ gọi khi Profile này là Client/Contractor)
+  const displayProfile = useMemo(() => {
+    if (!profileData) return null
+    if (isOwner && authUser) {
+      return { ...profileData, avatar: authUser.avatar, fullName: authUser.fullName }
+    }
+    return profileData
+  }, [profileData, isOwner, authUser])
+  // 2. Fetch danh sách Dự án (Chỉ gọi khi Profile này là Khách hàng)
   const { data: projectsRes, isLoading: isLoadingProjects } = useQuery({
     queryKey: ['projects', 'contractor', profileData?._id],
     queryFn: () => projectService.getProjects({ contractorId: profileData?._id }),
@@ -49,34 +58,31 @@ export default function ProfilePage() {
     staleTime: 1000 * 60 * 5
   })
 
-  // 3. Fetch danh sách Đánh giá (Tự động dựa theo role của Profile đang xem)
+  // 3. Fetch danh sách Đánh giá MÀ HỌ NHẬN ĐƯỢC (Dùng cho cả Khách hàng & Freelancer)
   const { data: reviewsRes, isLoading: isLoadingReviews } = useQuery({
-    queryKey: ['reviews', profileData?.role, profileData?._id],
-    queryFn: () => {
-      if (profileData?.role === 'freelancer') {
-        return reviewService.getFreelancerReviews(profileData._id)
-      }
-      return reviewService.getContractorReviews(profileData!._id)
-    },
+    queryKey: ['reviews', 'received', profileData?._id],
+    queryFn: () => reviewService.getReviewsByUserId(profileData!._id, true),
     enabled: !!profileData?._id,
     staleTime: 1000 * 60 * 5
   })
 
-  // Bóc tách dữ liệu mảng
   const projects = projectsRes?.data?.data || []
   const reviews = reviewsRes?.data?.data || []
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước ảnh tối đa là 5MB')
+
+    if (file.size > 1 * 1024 * 1024) {
+      console.error('Kích thước ảnh tối đa là 1MB (Quy định từ hệ thống)')
       return
     }
+
     await uploadAvatar(file)
+    queryClient.invalidateQueries({ queryKey: ['userProfile', targetProfileId] })
+    queryClient.invalidateQueries({ queryKey: ['projects'] })
   }
 
-  // --- TRẠNG THÁI LOADING & ERROR ---
   if (authLoading || isProfileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
@@ -85,7 +91,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (isError || !profileData) {
+  if (isError || !displayProfile) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] gap-4">
         <AlertCircle className="w-12 h-12 text-slate-400" />
@@ -102,17 +108,24 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen font-sans pb-20">
-      <ProfileHeader profile={profileData} isOwner={isOwner} updating={updating} onAvatarChange={handleAvatarChange} />
+      <ProfileHeader
+        profile={displayProfile}
+        isOwner={isOwner}
+        updating={updating}
+        onAvatarChange={handleAvatarChange}
+        onEditClick={() => setShowEditModal(true)}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
-        <ProfileInfo profile={profileData} />
+        <ProfileInfo profile={displayProfile} />
 
         {/* Chỉ hiện danh sách dự án nếu người này là Khách hàng (Contractor) */}
-        {profileData.role === 'contractor' && <ProfileProjects projects={projects} loading={isLoadingProjects} />}
+        {displayProfile?.role === 'contractor' && <ProfileProjects projects={projects} loading={isLoadingProjects} />}
 
-        {/* Luôn hiện danh sách đánh giá */}
+        {/* Luôn hiện danh sách đánh giá (Vì ai cũng có thể được đánh giá) */}
         <ProfileReviews reviews={reviews} loading={isLoadingReviews} />
       </div>
+      {showEditModal && <EditProfileModal profile={displayProfile} onClose={() => setShowEditModal(false)} />}
     </div>
   )
 }

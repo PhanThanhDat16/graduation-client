@@ -178,11 +178,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   uploadAvatar: async (file: File) => {
+    set({ updating: true })
     try {
-      set({ updating: true })
-      await userService.uploadAvatar(file)
-
+      const uploadRes = await userService.uploadAvatar(file)
+      const imageUrl = uploadRes.data.data.image
+      console.log(imageUrl)
       // Sau khi upload thành công, gọi lại fetchMe để cập nhật URL avatar mới nhất
+      await get().updateProfile({ avatar: imageUrl })
       await get().fetchMe()
       message.success('Cập nhật ảnh đại diện thành công!')
       return true
