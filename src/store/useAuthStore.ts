@@ -2,11 +2,14 @@ import { create } from 'zustand'
 import { authService } from '../apis/authService'
 import type { AuthState, BodyRegister, BodyResendOTP, BodyVerifyOtpRegister } from '../types/store'
 import { message } from 'antd'
+import type { UserProfile } from '@/types/user'
+import { userService } from '@/apis/userService'
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
   loading: false,
+  updating: false,
 
   setAccessToken: (accessToken) => {
     set({ accessToken })
@@ -64,10 +67,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.logIn(email, password)
+      console.log(res)
       get().setAccessToken(res.data.data.accessToken)
       message.success('Đăng nhập thành công!')
-      console.log(res)
-      console.log(res.data.data.accessToken)
+      // console.log(res)
+      // console.log(res.data.data.accessToken)
       get().fetchMe()
     } catch (error) {
       console.error(error)
@@ -121,6 +125,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.fetchMe()
+      console.log(res)
+      // console.log(res)
       set({ user: res.data.data })
     } catch (error) {
       console.error(error)
@@ -144,7 +150,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (error: any) {
       const status = error.status
-      console.log(error.status)
       if (status === 401 || status === 403) {
         get().clearState()
         return
@@ -152,6 +157,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       message.error('Có lỗi xảy ra, vui lòng thử lại!')
     } finally {
       set({ loading: false })
+    }
+  },
+  updateProfile: async (data: Partial<UserProfile>) => {
+    try {
+      set({ updating: true })
+      const res = await userService.updateProfile(data)
+
+      // Cập nhật lại user state với data mới trả về từ server
+      set({ user: res.data.data })
+      message.success('Cập nhật thông tin thành công!')
+      return true
+    } catch (error: any) {
+      console.error(error)
+      message.error(error.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại!')
+      return false
+    } finally {
+      set({ updating: false })
+    }
+  },
+
+  uploadAvatar: async (file: File) => {
+    set({ updating: true })
+    try {
+      const uploadRes = await userService.uploadAvatar(file)
+      const imageUrl = uploadRes.data.data.image
+      console.log(imageUrl)
+      // Sau khi upload thành công, gọi lại fetchMe để cập nhật URL avatar mới nhất
+      await get().updateProfile({ avatar: imageUrl })
+      await get().fetchMe()
+      message.success('Cập nhật ảnh đại diện thành công!')
+      return true
+    } catch (error: any) {
+      console.error(error)
+      message.error(error.response?.data?.message || 'Upload ảnh thất bại. Kích thước có thể quá lớn.')
+      return false
+    } finally {
+      set({ updating: false })
     }
   }
 }))

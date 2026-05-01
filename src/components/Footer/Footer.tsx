@@ -70,7 +70,7 @@ export default function Footer() {
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <span className="font-heading text-2xl font-extrabold text-white tracking-tight">
-                Freelance<span className="text-indigo-400">VN</span>
+                Free<span className="text-indigo-400">Work</span>
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6 pr-4">
@@ -175,7 +175,7 @@ export default function Footer() {
 
           {/* Cột 4: Công ty */}
           <div>
-            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Về FreelanceVN</h4>
+            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Về FreeWork</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
                 <Link to="/about" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
@@ -242,7 +242,7 @@ export default function Footer() {
         {/* ── BOTTOM SECTION: COPYRIGHT & LOCALE ── */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-500 text-sm flex items-center gap-1">
-            © {new Date().getFullYear()} FreelanceVN. Coded with{' '}
+            © {new Date().getFullYear()} FreeWork. Coded with{' '}
             <Heart className="w-4 h-4 text-red-500 fill-red-500 mx-0.5" /> in Da Nang.
           </p>
 

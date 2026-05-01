@@ -9,8 +9,12 @@ import {
   Star,
   ArrowRight,
   ShieldCheck,
-  Users
+  Users,
+  DollarSign,
+  Clock
 } from 'lucide-react'
+import { projectService } from '@/apis/projectService'
+import { useQuery } from '@tanstack/react-query'
 
 // --- MOCK DATA ---
 const POPULAR_CATEGORIES = [
@@ -18,33 +22,6 @@ const POPULAR_CATEGORIES = [
   { id: 'c2', name: 'Thiết kế UI/UX', icon: PenTool, count: 850 },
   { id: 'c3', name: 'Mobile App', icon: Smartphone, count: 432 },
   { id: 'c4', name: 'Digital Marketing', icon: Megaphone, count: 610 }
-]
-
-const FEATURED_PROJECTS = [
-  {
-    id: 'p1',
-    title: 'Thiết kế Landing Page cho chiến dịch Tết',
-    budget: '2,000,000đ - 5,000,000đ',
-    skills: ['Figma', 'UI/UX', 'Photoshop'],
-    time: 'Đăng 2 giờ trước',
-    proposals: 5
-  },
-  {
-    id: 'p2',
-    title: 'Lập trình ứng dụng React Native',
-    budget: '15,000,000đ - 30,000,000đ',
-    skills: ['React Native', 'NodeJS', 'MongoDB'],
-    time: 'Đăng 5 giờ trước',
-    proposals: 12
-  },
-  {
-    id: 'p3',
-    title: 'Viết nội dung chuẩn SEO mảng Công nghệ',
-    budget: '500,000đ - 1,000,000đ',
-    skills: ['Copywriting', 'SEO', 'Content'],
-    time: 'Đăng 1 ngày trước',
-    proposals: 25
-  }
 ]
 
 const TOP_FREELANCERS = [
@@ -83,6 +60,18 @@ const TOP_FREELANCERS = [
 ]
 
 export default function HomePage() {
+  const {
+    data: projectsResponse,
+    isLoading,
+    isError
+  } = useQuery({
+    queryKey: ['projects', 'latest'], // Từ khóa để React Query lưu cache
+    queryFn: () => projectService.getProjects({ limit: 6, sortBy: 'createdAt', sortOrder: 'desc' })
+  })
+  const projects = projectsResponse?.data.data || []
+  console.log(projects)
+  // 3. Hàm format tiền
+  const formatMoney = (amount: number) => amount.toLocaleString('vi-VN')
   return (
     <div className="bg-page font-body min-h-screen pb-20">
       {/* --- HERO SECTION --- */}
@@ -233,59 +222,77 @@ export default function HomePage() {
       </section>
 
       {/* --- DỰ ÁN MỚI NHẤT --- */}
-      <section className="py-20 bg-page">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="font-heading font-extrabold text-3xl text-text-main mb-12">Dự án mới nhất</h2>
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Việc làm mới nhất</h2>
+            <p className="text-slate-500">Hàng ngàn cơ hội đang chờ đón bạn.</p>
+          </div>
+          <Link to="/projects" className="text-indigo-600 font-bold hover:text-indigo-800">
+            Xem tất cả &rarr;
+          </Link>
+        </div>
 
-          <div className="space-y-4">
-            {FEATURED_PROJECTS.map((project) => (
+        {/* Xử lý trạng thái Loading */}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* Xử lý trạng thái Lỗi */}
+        {isError && (
+          <div className="text-center py-12 text-red-500 bg-red-50 rounded-2xl font-bold">
+            Đã có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau!
+          </div>
+        )}
+
+        {/* Hiển thị dữ liệu THẬT */}
+        {!isLoading && !isError && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
               <div
-                key={project.id}
-                className="bg-white p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-6 md:items-center justify-between group"
+                key={project._id}
+                className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow group"
               >
-                <div className="flex-1">
-                  <h3 className="font-bold text-xl text-primary group-hover:text-accent transition-colors cursor-pointer mb-2">
-                    {project.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-text-sub mb-4">
-                    <span className="text-emerald-600 font-bold">{project.budget}</span>
-                    <span className="w-1 h-1 bg-border rounded-full"></span>
-                    <span>{project.time}</span>
-                    <span className="w-1 h-1 bg-border rounded-full"></span>
-                    <span>{project.proposals} báo giá</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {project.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="bg-page border border-border text-text-sub px-3 py-1 rounded-full text-xs font-bold"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                    {project.category}
+                  </span>
+                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Mới đăng
+                  </span>
                 </div>
-                <div className="shrink-0">
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="w-full md:w-auto block text-center bg-primary/5 border border-primary/20 text-primary hover:bg-primary hover:text-white px-6 py-2.5 rounded-xl font-bold transition-colors"
-                  >
-                    Gửi báo giá
-                  </Link>
+
+                <h3 className="font-bold text-lg text-slate-900 mb-2 group-hover:text-indigo-600 line-clamp-2">
+                  <Link to={`/projects/${project._id}`}>{project.title}</Link>
+                </h3>
+
+                <p className="text-sm text-slate-500 mb-4 line-clamp-2">{project.description}</p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {project.skills?.slice(0, 3).map((skill) => (
+                    <span key={skill} className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                      {skill}
+                    </span>
+                  ))}
+                  {(project.skills?.length || 0) > 3 && (
+                    <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                      +{(project.skills?.length || 0) - 3}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                  <div className="font-extrabold text-emerald-600 flex items-center gap-1">
+                    <DollarSign className="w-4 h-4" />
+                    {formatMoney(project.budgetMin)} {project.budgetMax ? `- ${formatMoney(project.budgetMax)}` : '+'} ₫
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="mt-10 text-center">
-            <Link
-              to="/projects"
-              className="inline-block bg-white border border-border shadow-sm text-text-main hover:text-primary px-8 py-3 rounded-xl font-bold transition-all hover:bg-gray-50"
-            >
-              Xem thêm hàng ngàn dự án khác
-            </Link>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* --- FREELANCER NỔI BẬT --- */}
@@ -334,7 +341,7 @@ export default function HomePage() {
             </h2>
             <p className="relative z-10 text-[#93A5E6] text-lg mb-8 max-w-2xl mx-auto font-medium">
               Tham gia ngay hôm nay để kết nối, làm việc và thanh toán an toàn. Dù bạn muốn thuê chuyên gia hay tìm
-              việc, FreelanceVN đều dành cho bạn.
+              việc, FreeWork đều dành cho bạn.
             </p>
 
             <div className="relative z-10 flex flex-col sm:flex-row justify-center gap-4">

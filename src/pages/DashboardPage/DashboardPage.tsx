@@ -192,7 +192,7 @@ export default function DashboardPage() {
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 mb-4 hover:bg-white/20 transition-colors cursor-pointer">
                 <h4 className="font-bold text-white mb-1 truncate">Tuyển Fullstack Dev maintain app React Native</h4>
                 <p className="text-indigo-200 text-xs flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> 10M - 15M ₫
+                  <DollarSign className="w-3 h-3" /> 10.000.000 - 15.000.000 ₫
                 </p>
               </div>
 

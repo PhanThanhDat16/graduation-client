@@ -1,32 +1,28 @@
-import type { Pagination } from '.'
-
-export type UserResponse = {
+export interface UserProfile {
   _id: string
   email: string
   fullName: string
-  avatarUrl?: string
   phone?: string
-  birthday?: Date
-  role: 'admin' | 'staff' | 'freelancer' | 'contractor'
-  gender?: 'male' | 'female'
   address?: string
-  status?: 'active' | 'disabled'
-  createdAt?: string
-  updatedAt?: string
-  isVerified?: boolean
-}
-
-export type UserListResponse = {
-  data: UserResponse[]
-  pagination: Pagination
-}
-
-export type UserQuery = {
-  page: number
-  limit: number
-  search?: string
-  meta?: Pagination
-  status?: string
+  birthday?: string
   gender?: string
+  role: 'freelancer' | 'contractor'
+  avatar?: string
+  isVerified: boolean
+  status: 'active' | 'inactive' | 'banned'
+  ratingAvg?: number | null
+  ratingCount?: number | null
+  createdAt: string
+  description?: string
+}
+
+export interface UserQueryParams {
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  role?: string
+  status?: string
   isVerified?: boolean
+  keyword?: string
 }

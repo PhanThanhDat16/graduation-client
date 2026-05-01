@@ -1,14 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, Wallet, ChevronDown, User, Settings, LogOut, Shield, MessageSquare, ArrowLeft } from 'lucide-react'
+import { Wallet, ChevronDown, User, Settings, LogOut, Shield, MessageSquare, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useWalletStore } from '@/store/useWalletStore'
+import NotificationDropdown from '../Header/NotificationDropdown'
 
 export default function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logOut } = useAuthStore()
 
-  const userBalance = 2500000
+  const { balance, fetchBalance } = useWalletStore()
+
+  useEffect(() => {
+    fetchBalance()
+  }, [fetchBalance])
+
   const unreadCount = 2
 
   useEffect(() => {
@@ -31,7 +38,7 @@ export default function DashboardHeader() {
             <Shield className="h-4 w-4 text-white" />
           </div>
           <span className="font-heading text-xl font-extrabold text-slate-900 hidden sm:block tracking-tight">
-            Freelance<span className="text-indigo-600">VN</span>
+            Free<span className="text-indigo-600">Work</span>
           </span>
         </Link>
       </div>
@@ -55,14 +62,16 @@ export default function DashboardHeader() {
           </button>
 
           <button className="relative p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-            <Bell className="w-5 h-5" />
+            {/* <Bell className="w-5 h-5" /> */}
+            <NotificationDropdown />
+
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
+              <span className="absolute top-4 right-4 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
             )}
           </button>
 
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-sm">
-            <Wallet className="w-4 h-4" /> {userBalance.toLocaleString('vi-VN')} ₫
+            <Wallet className="w-4 h-4" /> {balance.toLocaleString('vi-VN')} ₫
           </div>
 
           <div className="relative ml-1" ref={dropdownRef}>
@@ -72,7 +81,7 @@ export default function DashboardHeader() {
             >
               <img
                 src={
-                  user?.avatarUrl ||
+                  user?.avatar ||
                   `https://ui-avatars.com/api/?name=${user?.fullName || 'NV'}&background=4f46e5&color=fff`
                 }
                 alt="Avatar"
@@ -88,7 +97,7 @@ export default function DashboardHeader() {
                   <p className="text-xs text-slate-500 capitalize">{user?.role || 'Khách hàng'}</p>
                 </div>
                 <Link
-                  to="/profile"
+                  to={`/profile/${user?._id}`}
                   onClick={() => setIsDropdownOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
                 >
