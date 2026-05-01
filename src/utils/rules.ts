@@ -107,8 +107,30 @@ export const contractSchema = yup
   })
   .required()
 
+export const profileSchema = yup
+  .object({
+    fullName: yup.string().required('Họ tên và bắt buộc').default('').max(160, 'Độ dài tối đa là 160 ký tự'),
+    phone: yup
+      .string()
+      .required('Số điện thoại là bắt buộc')
+      .matches(/^[0-9]{10,11}$/, 'SĐT phải 10-11 số'),
+    address: yup.string().default('').max(160, 'Độ dài tối đa là 160 ký tự'),
+    birthday: yup
+      .date()
+      .typeError('Vui lòng chọn ngày sinh')
+      // .default(new Date(1990, 1, 1))
+      .required('Vui lòng chọn ngày sinh')
+      .max(minAgeDate, 'Bạn phải đủ ít nhất 18 tuổi')
+      .min(maxAgeDate, 'Ngày sinh quá xa, vui lòng kiểm tra lại'),
+    gender: yup.string().required('Giới tính là bắt buộc').oneOf(['female', 'male', 'other'], 'Giới tính không hợp lệ'),
+    avatar: yup.string().default('').max(1000, 'Độ dài tối đa là 1000 ký tự'),
+    description: yup.string().max(500, 'Giới thiệu không vượt quá 500 ký tự').optional()
+  })
+  .required()
+
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
 export type ProposalSchema = yup.InferType<typeof proposalSchema>
 export type ProjectSchema = yup.InferType<typeof projectSchema>
 export type ContractSchema = yup.InferType<typeof contractSchema>
+export type ProfileSchema = yup.InferType<typeof profileSchema>

@@ -18,16 +18,17 @@ const translateGender = (gender?: string) => {
 }
 
 export default function ProfileInfo({ profile }: { profile: UserProfile }) {
+  console.log(profile)
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
       <div className="p-6 md:p-8 border-b border-slate-100">
         <h2 className="text-base font-bold text-slate-900 mb-4">Giới thiệu</h2>
         <div className="text-slate-700 text-[15px] leading-relaxed whitespace-pre-line font-medium">
-          Xin chào! Tôi là {profile.fullName}. Là một lập trình viên đam mê xây dựng các sản phẩm web hiện đại với trải
-          nghiệm người dùng tốt và hiệu suất cao. Tôi có kinh nghiệm làm việc với React, Node.js và các công nghệ liên
-          quan, đồng thời luôn chú trọng vào việc viết code sạch, dễ bảo trì và tối ưu. Tôi thích học hỏi những công
-          nghệ mới và không ngừng cải thiện kỹ năng để mang lại giá trị tốt nhất cho dự án. Tôi luôn làm việc với tinh
-          thần trách nhiệm cao, chủ động trong giao tiếp và cam kết hoàn thành công việc đúng thời hạn.
+          {profile.description ? (
+            profile.description
+          ) : (
+            <span className="text-slate-400 italic">Người dùng này chưa cập nhật thông tin giới thiệu.</span>
+          )}
         </div>
       </div>
 
@@ -58,6 +59,7 @@ export default function ProfileInfo({ profile }: { profile: UserProfile }) {
             </p>
             <p className="text-[15px] font-semibold text-slate-800">{translateGender(profile.gender)}</p>
           </div>
+
           <div className="sm:col-span-2 pt-2">
             <div className="flex items-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl">
               <ShieldCheck size={20} className={profile.isVerified ? 'text-emerald-500' : 'text-slate-400'} />

@@ -1,8 +1,16 @@
+export interface PopulatedUser {
+  _id: string
+  fullName: string
+  email: string
+  avatar?: string
+}
+
 export interface Review {
   _id: string
-  contract_id: string
-  contractor_id: string
-  freelancer_id: string
+  contractId: string
+  reviewerId: PopulatedUser | string
+  revieweeId: PopulatedUser | string
+  role: 'freelancer' | 'contractor'
   rating: number
   comment: string
   createdAt: string
@@ -14,9 +22,16 @@ export interface ReviewQueryParams {
   limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
-  contractor_id?: string
-  freelancer_id?: string
+  contractId?: string
+  reviewerId?: string
+  revieweeId?: string
+  role?: 'freelancer' | 'contractor'
   rating?: number
   minRating?: number
   maxRating?: number
+}
+export interface CreateReviewBody {
+  contractId: string
+  rating: number
+  comment: string
 }
