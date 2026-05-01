@@ -5,7 +5,10 @@ export type ApplicationStatus = 'pending' | 'accepted' | 'rejected'
 export interface Application {
   _id: string
   projectId: ProjectCreateParams & { _id: string }
-  freelancerId: string
+  freelancerId: {
+    _id: string
+    email: string
+  }
   proposal: string
   proposedBudget: number
   status: ApplicationStatus

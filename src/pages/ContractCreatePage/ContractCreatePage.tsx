@@ -11,11 +11,14 @@ import { formatBudget } from '@/utils/fomatters'
 import Input from '@/components/Input/Input'
 import { contractSchema, type ContractSchema } from '@/utils/rules'
 import { toast } from 'react-toastify'
+import { useAuthStore } from '@/store/useAuthStore'
+import { chatService } from '@/apis/chatService'
 
 const PLATFORM_FEE_PERCENTAGE = 0.05
 
 export default function ContractCreatePage() {
   const { applicationId } = useParams<{ applicationId: string }>()
+  const { user } = useAuthStore()
   const navigate = useNavigate()
   const queryClient = useQueryClient() // Dùng để refresh lại data sau khi update status
 
@@ -26,6 +29,8 @@ export default function ContractCreatePage() {
   })
 
   const appData = appDataRes?.data?.data
+  console.log('Báo giá được chọn để tạo hợp đồng:', appData?.freelancerId._id)
+  console.log('Báo giá được chọn để tạo hợp đồng:', user?._id)
 
   const proposedBudget = appData?.proposedBudget || 0
   const adminFee = proposedBudget * PLATFORM_FEE_PERCENTAGE
@@ -58,6 +63,16 @@ export default function ContractCreatePage() {
     mutationFn: (data: any) => contractService.createContract(data),
     onSuccess: (res) => {
       const newContractId = res.data?.data?._id
+
+      chatService
+        .createGroup({ type: 'contract_chat', memberIds: [appData?.freelancerId._id, user?._id] })
+        .then((group) => {
+          // Gửi tin nhắn hệ thống vào group chat mới tạo
+          chatService.sendMessage(group._id, {
+            content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
+            userId: user?._id
+          })
+        })
 
       // GỌI KÈM API ĐỔI TRẠNG THÁI BÁO GIÁ THÀNH "ACCEPTED"
       updateAppStatusMutation.mutate()
