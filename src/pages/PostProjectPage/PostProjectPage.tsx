@@ -6,6 +6,7 @@ import { projectService } from '@/apis/projectService'
 import type { ProjectCreateParams } from '@/types/project'
 import ProjectForm from '@/components/ProjectForm/ProjectForm'
 import type { ProjectSchema } from '@/utils/rules'
+import { toast } from 'react-toastify'
 
 export default function PostProjectPage() {
   const navigate = useNavigate()
@@ -19,11 +20,11 @@ export default function PostProjectPage() {
       queryClient.invalidateQueries({ queryKey: ['my-projects'] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
 
-      alert('Đăng dự án thành công!')
+      toast.success('Đăng dự án thành công!')
       navigate('/manage-projects')
     },
     onError: () => {
-      alert('Có lỗi xảy ra khi đăng dự án. Vui lòng thử lại!')
+      toast.error('Có lỗi xảy ra khi đăng dự án. Vui lòng thử lại!')
     }
   })
 

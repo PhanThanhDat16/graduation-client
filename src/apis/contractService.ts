@@ -28,17 +28,16 @@ export const contractService = {
     return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/agree`)
   },
 
-  // 6. Thanh toán tiền cọc (Chuyển tiền vào Ví Escrow)
-  payDeposit: async (id: string) => {
+  payContract: async (id: string) => {
     return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/pay`)
   },
 
-  // 7. Freelancer nộp bài hoàn thành
-  submitWork: async (id: string) => {
+  // Freelancer nộp sản phẩm
+  submitContract: async (id: string) => {
     return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/submit`)
   },
 
-  // 8. Contractor nghiệm thu và thanh toán cho Freelancer
+  // Khách hàng nghiệm thu (Giải ngân)
   completeContract: async (id: string) => {
     return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/complete`)
   },

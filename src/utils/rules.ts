@@ -65,7 +65,7 @@ export const proposalSchema = yup.object({
     .number()
     .typeError('Vui lòng nhập số tiền hợp lệ')
     .required('Bắt buộc nhập giá')
-    .min(100000, 'Giá tối thiểu từ 100,000đ'),
+    .min(1000, 'Giá tối thiểu từ 100,000đ'),
   duration: yup.string().required('Vui lòng chọn thời gian dự kiến'),
   proposal: yup
     .string()

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { projectService } from '@/apis/projectService'
 import type { ProjectCreateParams } from '@/types/project'
 import ProjectForm from '@/components/ProjectForm/ProjectForm'
+import { toast } from 'react-toastify'
 import type { ProjectSchema } from '@/utils/rules'
 
 export default function EditProjectPage() {
@@ -51,12 +52,12 @@ export default function EditProjectPage() {
       queryClient.invalidateQueries({ queryKey: ['my-projects'] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
 
-      alert('Cập nhật dự án thành công!')
+      toast.success('Cập nhật dự án thành công!')
       // Cập nhật xong thì quay về trang quản lý
       navigate('/manage-projects')
     },
     onError: () => {
-      alert('Có lỗi xảy ra khi cập nhật. Vui lòng thử lại!')
+      toast.error('Có lỗi xảy ra khi cập nhật. Vui lòng thử lại!')
     }
   })
 
