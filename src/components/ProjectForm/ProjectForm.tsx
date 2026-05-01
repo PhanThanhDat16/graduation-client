@@ -1,20 +1,18 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Briefcase, AlignLeft, Tags, DollarSign, CheckCircle2, X } from 'lucide-react'
+import { Briefcase, AlignLeft, Tags, DollarSign, CheckCircle2, X, Image as ImageIcon, UploadCloud } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-// IMPORT SCHEMA TỪ FILE CỦA BẠN
 import { projectSchema, type ProjectSchema } from '@/utils/rules'
-// IMPORT COMPONENT INPUT CỦA BẠN
 import Input from '@/components/Input/Input'
 
 const CATEGORIES = ['Lập trình Web', 'Mobile App', 'UI/UX Design', 'Marketing', 'Viết lách & Dịch thuật', 'Data / AI']
 const SUGGESTED_SKILLS = ['ReactJS', 'NodeJS', 'Figma', 'SEO', 'Content Writing', 'Python', 'Flutter', 'MongoDB']
 
 interface ProjectFormProps {
-  initialData?: Partial<ProjectSchema> // Data truyền vào từ màn Edit
-  onSubmit: (data: ProjectSchema) => void
+  initialData?: Partial<ProjectSchema> & { images?: string[] } // Thêm type cho images
+  onSubmit: (data: ProjectSchema, newFiles: File[], remainingExistingImages: string[]) => void
   isSubmitting: boolean
   submitText?: string
 }
@@ -26,7 +24,16 @@ export default function ProjectForm({
   submitText = 'Đăng Dự Án Ngay'
 }: ProjectFormProps) {
   const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // State cho Kỹ năng
   const [skillInput, setSkillInput] = useState('')
+
+  // State cho Hình ảnh
+  const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || [])
+  const [newFiles, setNewFiles] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
+
   const {
     register,
     handleSubmit,
@@ -45,13 +52,9 @@ export default function ProjectForm({
     }
   })
 
-  const currentSkills =
-    useWatch({
-      control,
-      name: 'skills'
-    }) || []
+  const currentSkills = useWatch({ control, name: 'skills' }) || []
 
-  // Xử lý thêm kỹ năng
+  // Xử lý Thêm / Xóa Kỹ năng
   const handleAddSkill = (skill: string) => {
     const trimmedSkill = skill.trim()
     if (trimmedSkill && !(currentSkills as string[]).includes(trimmedSkill)) {
@@ -60,7 +63,6 @@ export default function ProjectForm({
     }
   }
 
-  // Xử lý xóa kỹ năng
   const handleRemoveSkill = (skillToRemove: string) => {
     setValue(
       'skills',
@@ -69,8 +71,40 @@ export default function ProjectForm({
     )
   }
 
+  // Xử lý Hình ảnh (Upload & Preview)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files)
+      setNewFiles((prev) => [...prev, ...filesArray])
+
+      const urlsArray = filesArray.map((file) => URL.createObjectURL(file))
+      setPreviewUrls((prev) => [...prev, ...urlsArray])
+    }
+    // Reset input để có thể chọn lại cùng 1 file
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleRemoveNewFile = (index: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index))
+    setPreviewUrls((prev) => {
+      URL.revokeObjectURL(prev[index]) // Giải phóng bộ nhớ
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleRemoveExistingImage = (urlToRemove: string) => {
+    setExistingImages((prev) => prev.filter((url) => url !== urlToRemove))
+  }
+
+  // Dọn dẹp URL Blob khi component unmount để tránh memory leak
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit((data) => onSubmit(data, newFiles, existingImages))} className="space-y-8">
       {/* ── THÔNG TIN CƠ BẢN ── */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
@@ -88,17 +122,14 @@ export default function ProjectForm({
             <label className="block text-sm font-bold text-slate-900 mb-2">
               Tên dự án <span className="text-red-500">*</span>
             </label>
-            {/* COMPONENT INPUT */}
             <Input
               type="text"
               name="title"
               register={register}
               errorMessage={errors.title?.message}
               placeholder="VD: Thiết kế lại website công ty thương mại điện tử..."
-              classNameInput={`w-full bg-white border rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 outline-none transition-all font-medium ${
-                errors.title
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              classNameInput={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-900 focus:bg-white focus:ring-1 outline-none transition-all font-medium ${
+                errors.title ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
               }`}
               classNameError="text-red-500 text-xs mt-1.5 font-medium"
             />
@@ -109,10 +140,8 @@ export default function ProjectForm({
               Danh mục công việc <span className="text-red-500">*</span>
             </label>
             <select
-              className={`w-full bg-white border rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 outline-none transition-all cursor-pointer font-medium ${
-                errors.category
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-900 focus:bg-white focus:ring-1 outline-none transition-all cursor-pointer font-medium ${
+                errors.category ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
               }`}
               {...register('category')}
             >
@@ -127,6 +156,87 @@ export default function ProjectForm({
             </select>
             {errors.category && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.category.message}</p>}
           </div>
+        </div>
+      </div>
+
+      {/* ── HÌNH ẢNH / AVATAR DỰ ÁN ── */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+          <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+            <ImageIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="font-bold text-lg text-slate-900">Hình ảnh dự án</h2>
+            <p className="text-xs text-slate-500">Tải lên ảnh bìa, mockup hoặc tài liệu liên quan để làm rõ yêu cầu</p>
+          </div>
+        </div>
+
+        <div>
+          {/* Khu vực Upload */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-slate-50 hover:bg-indigo-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group"
+          >
+            <div className="w-14 h-14 bg-white shadow-sm rounded-full flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:scale-110 transition-all mb-4">
+              <UploadCloud className="w-7 h-7" />
+            </div>
+            <p className="text-sm font-bold text-slate-700 mb-1">Click để tải ảnh lên</p>
+            <p className="text-xs text-slate-500 font-medium">Hỗ trợ JPG, PNG, WEBP (Tối đa 5MB/ảnh)</p>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* Hiển thị danh sách ảnh (Cũ + Mới) */}
+          {(existingImages.length > 0 || previewUrls.length > 0) && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+              {/* Ảnh đã có từ trước (Khi Edit) */}
+              {existingImages.map((url) => (
+                <div
+                  key={url}
+                  className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group bg-slate-50"
+                >
+                  <img src={url} alt="Existing" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExistingImage(url)}
+                      className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 hover:scale-110 transition-all"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Ảnh vừa chọn thêm */}
+              {previewUrls.map((url, index) => (
+                <div
+                  key={url}
+                  className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group bg-slate-50"
+                >
+                  <img src={url} alt={`New upload ${index}`} className="w-full h-full object-cover" />
+                  <div className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded uppercase font-bold shadow-sm">
+                    Mới
+                  </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewFile(index)}
+                      className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 hover:scale-110 transition-all"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -150,9 +260,7 @@ export default function ProjectForm({
             rows={8}
             placeholder="- Mục tiêu của dự án là gì?&#10;- Các tính năng cụ thể cần có?&#10;- Yêu cầu về thời gian hoàn thành?"
             className={`w-full bg-slate-50 border rounded-xl p-5 text-sm text-slate-900 focus:bg-white focus:ring-1 outline-none transition-all resize-none leading-relaxed ${
-              errors.description
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              errors.description ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
             }`}
             {...register('description')}
           />
@@ -179,11 +287,10 @@ export default function ProjectForm({
             Tìm và thêm kỹ năng <span className="text-red-500">*</span>
           </label>
           <div className="flex gap-2 mb-4">
-            {/* Input thường cho thẻ Search (Không dùng register vì đây là un-controlled local state) */}
             <input
               type="text"
               placeholder="Nhập kỹ năng (VD: Figma)..."
-              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all"
+              className="flex-1 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:ring-1 focus:ring-indigo-600 outline-none transition-all"
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
               onKeyDown={(e) => {
@@ -196,7 +303,7 @@ export default function ProjectForm({
             <button
               type="button"
               onClick={() => handleAddSkill(skillInput)}
-              className="bg-slate-900 text-white px-6 rounded-xl font-bold hover:bg-slate-800 transition-colors"
+              className="bg-slate-900 text-white px-6 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-sm"
             >
               Thêm
             </button>
@@ -219,9 +326,9 @@ export default function ProjectForm({
                   <button
                     type="button"
                     onClick={() => handleRemoveSkill(skill)}
-                    className="hover:text-red-500 hover:bg-white rounded-full transition-colors"
+                    className="hover:text-red-500 hover:bg-white rounded-full transition-colors p-0.5"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3" />
                   </button>
                 </span>
               ))
@@ -232,7 +339,9 @@ export default function ProjectForm({
           )}
 
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gợi ý kỹ năng phổ biến:</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+              Gợi ý kỹ năng phổ biến:
+            </p>
             <div className="flex flex-wrap gap-2">
               {SUGGESTED_SKILLS.map((skill) => (
                 <button
@@ -268,17 +377,14 @@ export default function ProjectForm({
               Ngân sách tối thiểu <span className="text-red-500">*</span>
             </label>
             <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
-            {/* COMPONENT INPUT */}
             <Input
               type="number"
               name="budgetMin"
               register={register}
               errorMessage={errors.budgetMin?.message}
               placeholder="VD: 5000000"
-              classNameInput={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                errors.budgetMin
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                errors.budgetMin ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
               }`}
               classNameError="text-red-500 text-xs mt-1.5 font-medium"
             />
@@ -289,17 +395,14 @@ export default function ProjectForm({
               Ngân sách tối đa <span className="text-red-500">*</span>
             </label>
             <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
-            {/* COMPONENT INPUT */}
             <Input
               type="number"
               name="budgetMax"
               register={register}
               errorMessage={errors.budgetMax?.message}
               placeholder="VD: 15000000"
-              classNameInput={`w-full bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                errors.budgetMax
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
+              classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                errors.budgetMax ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
               }`}
               classNameError="text-red-500 text-xs mt-1.5 font-medium"
             />
@@ -323,19 +426,19 @@ export default function ProjectForm({
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="px-8 py-3.5 bg-white border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+          className="px-8 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
         >
           Hủy bỏ
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-10 py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-10 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isSubmitting ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Đang
-              xử lý...
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Đang xử
+              lý...
             </>
           ) : (
             <>

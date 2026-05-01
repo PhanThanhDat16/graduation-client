@@ -14,6 +14,7 @@ export interface Project {
   description: string
   category: string
   skills: string[]
+  images?: string[]
   budgetMin: number
   budgetMax?: number // Backend trả về có thể thiếu nếu không set
   status: 'draft' | 'open' | 'closed'
@@ -32,6 +33,7 @@ export interface ProjectCreateParams {
   budgetMin: number
   budgetMax?: number
   status?: 'draft' | 'open' | 'closed'
+  images?: string[]
 }
 
 // --- QUERY PARAMS KHI TÌM KIẾM/LỌC DỰ ÁN ---

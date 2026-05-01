@@ -69,7 +69,6 @@ export default function HomePage() {
     queryFn: () => projectService.getProjects({ limit: 6, sortBy: 'createdAt', sortOrder: 'desc' })
   })
   const projects = projectsResponse?.data.data || []
-  console.log(projects)
   // 3. Hàm format tiền
   const formatMoney = (amount: number) => amount.toLocaleString('vi-VN')
   return (

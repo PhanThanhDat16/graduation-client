@@ -13,13 +13,13 @@ export const reviewService = {
   },
 
   // Lấy đánh giá của một User cụ thể (truyền type = true để lấy những đánh giá họ ĐƯỢC NHẬN)
-  getReviewsByUserId: async (userId: string, type: boolean = true) => {
-    return await axiosInstance.get<ApiResponse<Review[]>>(`/reviews/user/${userId}`, {
-      params: { type }
+  getReviewsByUserId: async (userId: string, type?: 'received' | 'given') => {
+    return await axiosInstance.get(`/reviews/user/${userId}`, {
+      params: { type } // Axios sẽ tự động nối chuỗi thành ?type=received
     })
   },
 
-  getMyReviews: async (type?: boolean) => {
+  getMyReviews: async (type?: 'received' | 'given') => {
     return await axiosInstance.get<ApiResponse<Review[]>>('/reviews/me', {
       params: { type }
     })
