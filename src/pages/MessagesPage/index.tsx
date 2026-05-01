@@ -11,11 +11,11 @@ import {
   FileText
 } from 'lucide-react'
 import { chatService } from '@/apis/chatService'
-import type { ChatGroup, ChatMessage } from '@/apis/chatService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useStoreSocketIO } from '@/store/useStoreSocketIO'
 import { emitJoinConversation, listenNewConversation, listenNewMessage } from '@/services/socketConversation'
 import dayjs from 'dayjs'
+import type { ChatGroup, MessageListResponse, MessageResponse } from '@/types/chat'
 
 type TabType = 'user_support' | 'contract_chat'
 
@@ -23,10 +23,12 @@ export default function MessagesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('user_support')
   const [groups, setGroups] = useState<ChatGroup[]>([])
   const [activeGroup, setActiveGroup] = useState<ChatGroup | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<MessageResponse[]>([])
+  const [pagination, setPagination] = useState<{ page: number; totalPages: number } | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [loadingGroups, setLoadingGroups] = useState(true)
   const [loadingMessages, setLoadingMessages] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [sendingMessage, setSendingMessage] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -34,6 +36,8 @@ export default function MessagesPage() {
   const user = useAuthStore((state) => state.user)
   const { socket } = useStoreSocketIO()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const lastScrollHeightRef = useRef<number>(0)
 
   // Fetch groups for current tab (silent = no loading spinner)
   const fetchGroups = useCallback(
@@ -53,23 +57,67 @@ export default function MessagesPage() {
         if (!silent) setLoadingGroups(false)
       }
     },
-    [activeTab]
+    [activeTab, socket]
   )
 
   // Fetch messages for active group
-  const fetchMessages = useCallback(async (groupId: string) => {
-    setLoadingMessages(true)
+  const fetchMessages = useCallback(async (groupId: string, page = 1) => {
+    if (page === 1) {
+      setLoadingMessages(true)
+    } else {
+      setLoadingMore(true)
+    }
+
     try {
-      const res = await chatService.getMessages(groupId)
+      const res = (await chatService.getMessages(groupId, { page, limit: 20 })) as MessageListResponse
       const data = Array.isArray(res.data) ? res.data : []
-      setMessages(data)
+
+      if (page === 1) {
+        setMessages(data)
+        // Auto scroll to bottom on initial load
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+        }, 100)
+      } else {
+        // Prepend older messages
+        setMessages((prev) => [...data, ...prev])
+
+        // Adjust scroll position to maintain view
+        if (scrollContainerRef.current) {
+          const container = scrollContainerRef.current
+          const newMessagesHeight = container.scrollHeight - lastScrollHeightRef.current
+          container.scrollTop = newMessagesHeight
+        }
+      }
+
+      setPagination({
+        page: res.pagination.page,
+        totalPages: res.pagination.totalPages
+      })
     } catch (error) {
       console.error('[MessagesPage] Error fetching messages:', error)
-      setMessages([])
+      if (page === 1) setMessages([])
     } finally {
       setLoadingMessages(false)
+      setLoadingMore(false)
     }
   }, [])
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current || loadingMore || !pagination || pagination.page >= pagination.totalPages) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+    if (container.scrollTop === 0) {
+      // Save current scrollHeight before loading more
+      lastScrollHeightRef.current = container.scrollHeight
+      const nextPage = (pagination.page || 1) + 1
+      if (activeGroup) {
+        fetchMessages(activeGroup._id, nextPage)
+      }
+    }
+  }
 
   // Initial fetch
   useEffect(() => {
@@ -83,7 +131,7 @@ export default function MessagesPage() {
     return () => {
       cleanup && cleanup()
     }
-  }, [socket])
+  }, [socket, fetchGroups])
 
   // Join room + listen for new messages when active group changes
   useEffect(() => {
@@ -105,20 +153,29 @@ export default function MessagesPage() {
         if (exists) return prev
         return [...prev, data]
       })
+
+      // If user is near bottom, scroll to new message
+      if (scrollContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 150
+        if (isNearBottom) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        }
+      }
     }
 
     listenNewMessage(socket, handleNewMessage)
   }, [socket, activeGroup?._id, user])
 
-  // Auto scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  // Auto scroll - Only when sending a new message or initial load (handled in fetchMessages/handleSendMessage)
+  // We remove the general useEffect that triggers on [messages] to avoid jumping when loading more.
 
   // Handle selecting a group
   const handleSelectGroup = async (group: ChatGroup) => {
     setActiveGroup(group)
-    await fetchMessages(group._id)
+    await fetchMessages(group._id, 1)
   }
 
   // Handle tab change
@@ -126,6 +183,7 @@ export default function MessagesPage() {
     setActiveTab(tab)
     setActiveGroup(null)
     setMessages([])
+    setPagination(null)
   }
 
   // Create user_support group with default message
@@ -146,7 +204,9 @@ export default function MessagesPage() {
         await chatService.sendMessage(newGroup._id, {
           content: 'tôi cần hỗ trợ',
           userId: user._id,
-          type: 'text'
+          type: 'text',
+          senderType: 'user',
+          guestName: 'user'
         })
 
         // Join room when created (to receive the new_message event for the default message)
@@ -159,7 +219,7 @@ export default function MessagesPage() {
       await fetchGroups()
       if (newGroup) {
         setActiveGroup(newGroup)
-        await fetchMessages(newGroup._id)
+        await fetchMessages(newGroup._id, 1)
       }
     } catch (error) {
       console.error('[MessagesPage] Error creating support group:', error)
@@ -177,22 +237,30 @@ export default function MessagesPage() {
     setMessageInput('')
 
     // Optimistic add
-    const optimisticMsg: ChatMessage = {
+    const optimisticMsg: MessageResponse = {
       _id: Date.now().toString(),
       groupId: activeGroup._id,
-      senderId: { _id: user._id, full_name: user.full_name || '', avatar: user.avatar || '' },
+      senderId: { _id: user._id, fullName: user.fullName || '', avatar: user.avatar || '' },
+      senderName: 'user',
+      senderType: 'user',
       type: 'text',
       content,
-      replyTo: null,
       createdAt: new Date().toISOString()
     }
     setMessages((prev) => [...prev, optimisticMsg])
+
+    // Scroll to bottom after sending
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
 
     try {
       const res = await chatService.sendMessage(activeGroup._id, {
         content,
         userId: user._id,
-        type: 'text'
+        type: 'text',
+        senderType: 'user',
+        guestName: 'user'
       })
 
       // Update optimistic message ID with real _id
@@ -406,7 +474,16 @@ export default function MessagesPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-slate-50/30">
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 p-6 space-y-4 overflow-y-auto bg-slate-50/30 custom-scrollbar"
+            >
+              {loadingMore && (
+                <div className="flex items-center justify-center py-2">
+                  <Loader className="w-4 h-4 text-indigo-600 animate-spin" />
+                </div>
+              )}
               {loadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <Loader className="w-6 h-6 text-slate-400 animate-spin" />
@@ -435,7 +512,7 @@ export default function MessagesPage() {
                       <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         {!isMe && (
                           <span className="text-[10px] text-slate-400 mb-1 ml-1">
-                            {msg.senderId?.full_name || 'Hỗ trợ'}
+                            {msg.senderType === 'staff' ? 'Nhân viên hỗ trợ' : msg.senderId?.fullName || 'Hỗ trợ'}
                           </span>
                         )}
                         <div

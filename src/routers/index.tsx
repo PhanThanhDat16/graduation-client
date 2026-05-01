@@ -27,7 +27,6 @@ import DashboardLayout from '@/layouts/DashboardLayout'
 import ContractsPage from '@/pages/ContractListPage'
 import ContractAgreementPage from '@/pages/ContractAgreementPage'
 import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
-import MessagesPage from '@/pages/MessagesPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
 import NotificationListPage from '@/pages/NotificationListPage'
@@ -38,6 +37,7 @@ import PostProjectPage from '@/pages/PostProjectPage'
 import ContractCreatePage from '@/pages/ContractCreatePage'
 import ContractDetailPage from '@/pages/ContractDetailPage'
 import GoogleAuthSuccessPage from '@/pages/GoogleAuthSuccessPage'
+import MessagesPage from '@/pages/MessagesPage'
 
 const AppRouters = () => {
   return (
