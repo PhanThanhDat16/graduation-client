@@ -73,7 +73,6 @@ export default function SubmitProposalPage() {
 
   // Tìm xem trong mảng applications của tôi có cái nào trùng projectId hiện tại không
   const existingApplication = myAppsRes?.data?.data?.find((app) => app.projectId._id === projectId)
-  // console.log(myAppsRes)
   const submitMutation = useMutation({
     mutationFn: (body: any) => applicationService.createApplication(body),
     onSuccess: () => {

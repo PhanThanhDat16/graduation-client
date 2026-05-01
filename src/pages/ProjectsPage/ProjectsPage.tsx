@@ -36,7 +36,6 @@ export default function ProjectsPage() {
     queryFn: () => projectService.getProjects(queryConfig),
     placeholderData: keepPreviousData
   })
-  // console.log(axiosResponse)
 
   const apiResponse = axiosResponse?.data
   const projects = apiResponse?.data || []
@@ -148,9 +147,10 @@ export default function ProjectsPage() {
             ) : projects.length === 0 ? (
               <EmptyState onReset={() => navigate(location.pathname)} />
             ) : (
-              projects.map((project: any) => (
-                <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
-              ))
+              projects.map((project: any) => {
+                console.log(project)
+                return <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
+              })
             )}
           </div>
 

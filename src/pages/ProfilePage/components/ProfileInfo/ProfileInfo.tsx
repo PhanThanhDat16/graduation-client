@@ -18,7 +18,6 @@ const translateGender = (gender?: string) => {
 }
 
 export default function ProfileInfo({ profile }: { profile: UserProfile }) {
-  console.log(profile)
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
       <div className="p-6 md:p-8 border-b border-slate-100">

@@ -28,7 +28,7 @@ export const useStoreSocketIO = create<ISocketSore>((set) => ({
       socket.on('connect', () => {
         set({ socket, isConnected: true })
 
-        console.log('Socket IO Connected')
+        // console.log('Socket IO Connected')
         failedAttempts = 0
       })
 
@@ -49,7 +49,7 @@ export const useStoreSocketIO = create<ISocketSore>((set) => ({
     set((state) => {
       if (state.socket && state.socket.connected) {
         state.socket.disconnect()
-        console.log('Socket disconnected')
+        // console.log('Socket disconnected')
       }
       return { socket: null, isConnected: false }
     })

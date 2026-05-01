@@ -58,16 +58,17 @@ export default function ProfilePage() {
     staleTime: 1000 * 60 * 5
   })
 
-  // 3. Fetch danh sách Đánh giá MÀ HỌ NHẬN ĐƯỢC (Dùng cho cả Khách hàng & Freelancer)
+  // 3. Fetch danh sách Đánh giá MÀ HỌ NHẬN ĐƯỢC
   const { data: reviewsRes, isLoading: isLoadingReviews } = useQuery({
     queryKey: ['reviews', 'received', profileData?._id],
-    queryFn: () => reviewService.getReviewsByUserId(profileData!._id, true),
+    // Sửa `true` thành `'received'` ở đây nè:
+    queryFn: () => reviewService.getReviewsByUserId(profileData!._id, 'received'),
     enabled: !!profileData?._id,
     staleTime: 1000 * 60 * 5
   })
 
   const projects = projectsRes?.data?.data || []
-  const reviews = reviewsRes?.data?.data || []
+  const reviews = reviewsRes?.data?.data?.received || []
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
