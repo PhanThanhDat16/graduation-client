@@ -48,7 +48,7 @@ export default function RegisterPage() {
   }
   const onSubmit = handleSubmit(async (data) => {
     // const { confirm_password, ...payload } = data
-    const body = omit(data, ['confirm_password'])
+    const body = omit(data, ['confirmPassword'])
     const isSuccess = await registerUser(body as any)
     if (isSuccess) {
       navigate('/verify-otp', { state: { email: data.email } })
@@ -260,10 +260,10 @@ export default function RegisterPage() {
               <Input
                 type="password"
                 register={registerForm}
-                classNameInput={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-indigo-950 outline-none transition-all placeholder-gray-400 ${errors.confirm_password ? 'border-red-500' : 'border-gray-300'}`}
-                name="confirm_password"
+                classNameInput={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-indigo-950 outline-none transition-all placeholder-gray-400 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+                name="confirmPassword"
                 placeholder="••••••••"
-                errorMessage={errors.confirm_password?.message}
+                errorMessage={errors.confirmPassword?.message}
               />
             </div>
           </div>

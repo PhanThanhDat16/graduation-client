@@ -79,7 +79,7 @@ export default function VerifyOtpPage() {
     } else {
       const isSuccess = await verifyOTPPassword(emailFromState, otpCode)
       if (isSuccess) {
-        navigate(path.PASSWORK_SEND, { state: { email: emailFromState } })
+        navigate(path.PASSWORD_SEND, { state: { email: emailFromState } })
       }
     }
   }

@@ -15,13 +15,13 @@ const STATUS_MAP: Record<string, { label: string; dot: string; badge: string; ba
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     bar: 'bg-amber-400'
   },
-  pending_agreement: {
+  pendingAgreement: {
     label: 'Chờ chữ ký',
     dot: 'bg-amber-400',
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     bar: 'bg-amber-400'
   },
-  waiting_payment: {
+  waitingPayment: {
     label: 'Chờ thanh toán',
     dot: 'bg-blue-400',
     badge: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -65,10 +65,10 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
   const isContractor = userRole === 'contractor'
   const partnerRole = isContractor ? 'Freelancer' : 'Khách hàng'
 
-  const projectTitle = contract.project_id?.title || 'Hợp đồng Dịch vụ'
+  const projectTitle = contract.projectId?.title || 'Hợp đồng Dịch vụ'
   const partnerName = isContractor
-    ? contract.freelancer_id?.fullName
-    : contract.contractor_id?.fullName || 'Chưa cập nhật'
+    ? contract.freelancerId?.fullName
+    : contract.contractorId?.fullName || 'Chưa cập nhật'
   const status = getStatus(contract.status)
 
   return (
@@ -104,7 +104,7 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
           <div className="shrink-0 text-right">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Giá trị</p>
             <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
-              {formatBudget(contract.total_amount)} ₫
+              {formatBudget(contract.totalAmount)} ₫
             </p>
           </div>
         </div>

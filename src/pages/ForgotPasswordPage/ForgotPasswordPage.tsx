@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
       navigate(path.VERIFY_OTP, {
         state: {
           email: data.email,
-          purpose: 'forgot_password'
+          purpose: 'forgotPassword'
         }
       })
     }

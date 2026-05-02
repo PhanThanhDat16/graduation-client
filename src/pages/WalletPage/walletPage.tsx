@@ -80,7 +80,7 @@ export default function WalletDashboard() {
     const q = search.toLowerCase()
     return (
       (t.description || '').toLowerCase().includes(q) ||
-      (t.payment_order_id || '').toLowerCase().includes(q) ||
+      (t.paymentOrderId || '').toLowerCase().includes(q) ||
       t._id.toLowerCase().includes(q)
     )
   })
@@ -226,11 +226,11 @@ export default function WalletDashboard() {
                   }}
                 >
                   <option value="">Tất cả loại giao dịch</option>
-                  <option value="escrow_release">Giải ngân Escrow</option>
+                  <option value="escrowRelease">Giải ngân Escrow</option>
                   <option value="withdraw">Rút tiền</option>
                   <option value="deposit">Nạp tiền</option>
-                  <option value="admin_fee">Phí nền tảng</option>
-                  <option value="escrow_deposit">Ký quỹ Escrow</option>
+                  <option value="adminFee">Phí nền tảng</option>
+                  <option value="escrowDeposit">Ký quỹ Escrow</option>
                   <option value="refund">Hoàn tiền</option>
                 </select>
                 <select
@@ -302,7 +302,7 @@ export default function WalletDashboard() {
                       >
                         <td className="px-6 py-4">
                           <span className="font-mono text-slate-500 group-hover:text-indigo-600 transition-colors">
-                            {tx.payment_order_id || tx._id.slice(-8).toUpperCase()}
+                            {tx.paymentOrderId || tx._id.slice(-8).toUpperCase()}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
@@ -324,7 +324,7 @@ export default function WalletDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 capitalize">
-                            {tx.method_payment}
+                            {tx.methodPayment}
                           </span>
                         </td>
                         <td className="px-6 py-4">

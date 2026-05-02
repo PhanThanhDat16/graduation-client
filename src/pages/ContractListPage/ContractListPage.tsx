@@ -14,8 +14,8 @@ import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDro
 const SORT_OPTIONS: SortOption[] = [
   { label: 'Cập nhật mới nhất', value: 'newest' },
   { label: 'Cũ nhất', value: 'oldest' },
-  { label: 'Giá trị cao nhất', value: 'highest_price' },
-  { label: 'Giá trị thấp nhất', value: 'lowest_price' }
+  { label: 'Giá trị cao nhất', value: 'highestPrice' },
+  { label: 'Giá trị thấp nhất', value: 'lowestPrice' }
 ]
 
 export default function ContractListPage() {
@@ -36,7 +36,7 @@ export default function ContractListPage() {
   // LOGIC ĐẾM SỐ LƯỢNG CHO TỪNG TAB
   const counts = {
     all: contracts.length,
-    pending: contracts.filter((c) => ['draft', 'pending_agreement', 'waiting_payment'].includes(c.status)).length,
+    pending: contracts.filter((c) => ['draft', 'pendingAgreement', 'waitingPayment'].includes(c.status)).length,
     running: contracts.filter((c) => ['running', 'submitted', 'dispute'].includes(c.status)).length,
     completed: contracts.filter((c) => ['completed', 'cancelled'].includes(c.status)).length
   }
@@ -51,7 +51,7 @@ export default function ContractListPage() {
   // LOGIC LỌC DỮ LIỆU (Filter by Status)
   const filteredContracts = contracts.filter((contract) => {
     if (activeTab === 'all') return true
-    if (activeTab === 'pending') return ['draft', 'pending_agreement', 'waiting_payment'].includes(contract.status)
+    if (activeTab === 'pending') return ['draft', 'pendingAgreement', 'waitingPayment'].includes(contract.status)
     if (activeTab === 'running') return ['running', 'submitted', 'dispute'].includes(contract.status)
     if (activeTab === 'completed') return ['completed', 'cancelled'].includes(contract.status)
     return true
@@ -62,10 +62,10 @@ export default function ContractListPage() {
     switch (sortOrder) {
       case 'oldest':
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      case 'highest_price':
-        return b.total_amount - a.total_amount
-      case 'lowest_price':
-        return a.total_amount - b.total_amount
+      case 'highestPrice':
+        return b.totalAmount - a.totalAmount
+      case 'lowestPrice':
+        return a.totalAmount - b.totalAmount
       case 'newest':
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

@@ -9,8 +9,8 @@ export default function PaymentResultPage() {
   const resultCode = params.get('resultCode') || ''
   const message = params.get('message') || ''
   const amount = Number(params.get('amount') || 0)
-  const method_payment = params.get('method_payment') || ''
-  const author_payment = params.get('author_payment') || ''
+  const method_payment = params.get('methodPayment') || ''
+  const author_payment = params.get('authorPayment') || ''
   const email = params.get('email') || ''
 
   const isSuccess = resultCode === '0' || resultCode === '00'

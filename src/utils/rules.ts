@@ -19,7 +19,7 @@ export const authSchema = yup.object({
     .matches(/[0-9]/, 'Phải có số')
     .matches(/[^a-zA-Z0-9]/, 'Phải có ký tự đặc biệt')
     .max(160, 'Độ dài tối đa 50 ký tự'),
-  confirm_password: yup
+  confirmPassword: yup
     .string()
     .required('Nhập lại password là bẳt buộc')
     .oneOf([yup.ref('password')], 'Nhập lại password không khớp'),
@@ -95,7 +95,7 @@ export const projectSchema = yup.object({
 })
 export const contractSchema = yup
   .object({
-    contractor_terms: yup
+    contractorTerms: yup
       .string()
       .required('Vui lòng nhập điều khoản hợp đồng')
       .min(50, 'Điều khoản cần chi tiết hơn (ít nhất 50 ký tự)'),

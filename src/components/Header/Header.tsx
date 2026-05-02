@@ -9,7 +9,6 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldAlert,
   Shield,
   Home,
   FolderSearch,
@@ -316,15 +315,6 @@ export default function Header() {
                       >
                         <Settings className="w-4 h-4 text-text-sub" /> Cài đặt
                       </Link>
-
-                      {userRole === 'admin' && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors mt-1"
-                        >
-                          <ShieldAlert className="w-4 h-4" /> Admin Panel
-                        </Link>
-                      )}
 
                       <div className="my-1 border-t border-border"></div>
                       <button
