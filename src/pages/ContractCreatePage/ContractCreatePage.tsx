@@ -3,16 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { ArrowLeft, FileSignature, ShieldCheck, AlertCircle, Briefcase, CheckCircle2 } from 'lucide-react'
-
-// APIs
 import { applicationService } from '@/apis/applicationService'
 import { contractService } from '@/apis/contractService'
+import { projectService } from '@/apis/projectService'
+import { chatService } from '@/apis/chatService'
 import { formatBudget } from '@/utils/fomatters'
 import Input from '@/components/Input/Input'
 import { contractSchema, type ContractSchema } from '@/utils/rules'
 import { toast } from 'react-toastify'
 import { useAuthStore } from '@/store/useAuthStore'
-import { chatService } from '@/apis/chatService'
 
 const PLATFORM_FEE_PERCENTAGE = 0.05
 
@@ -20,7 +19,7 @@ export default function ContractCreatePage() {
   const { applicationId } = useParams<{ applicationId: string }>()
   const { user } = useAuthStore()
   const navigate = useNavigate()
-  const queryClient = useQueryClient() // Dùng để refresh lại data sau khi update status
+  const queryClient = useQueryClient()
 
   const { data: appDataRes, isLoading: isAppLoading } = useQuery({
     queryKey: ['application', applicationId],
@@ -29,9 +28,6 @@ export default function ContractCreatePage() {
   })
 
   const appData = appDataRes?.data?.data
-  console.log('Báo giá được chọn để tạo hợp đồng:', appData?.freelancerId._id)
-  console.log('Báo giá được chọn để tạo hợp đồng:', user?._id)
-
   const proposedBudget = appData?.proposedBudget || 0
   const adminFee = proposedBudget * PLATFORM_FEE_PERCENTAGE
   const totalAmount = proposedBudget + adminFee
@@ -47,52 +43,60 @@ export default function ContractCreatePage() {
     resolver: yupResolver(contractSchema),
     defaultValues: { contractor_terms: '', deadline: '', agreeToTerms: false }
   })
+  console.log(appData)
 
-  // --- THÊM MỚI: MUTATION ĐỂ CẬP NHẬT TRẠNG THÁI APPLICATION ---
-  const updateAppStatusMutation = useMutation({
-    mutationFn: () => applicationService.updateApplicationStatus(applicationId as string, 'accepted'),
-    onSuccess: () => {
-      // Refresh lại danh sách báo giá
+  // --- GOM TẤT CẢ LOGIC VÀO 1 MUTATION DUY NHẤT ---
+  const createContractMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      if (!appData || !user?._id) throw new Error('Dữ liệu không hợp lệ')
+      //Tạo hợp đồng
+      const res = await contractService.createContract(payload)
+      const newContractId = res.data?.data?._id
+      // Cập nhật Application -> 'accepted'
+      await applicationService.updateApplicationStatus(applicationId as string, 'accepted')
+      // Cập nhật Project -> 'progress'
+      const projectId = appData.projectId._id as string
+      await projectService.updateProject(projectId, { status: 'progress' })
+      return newContractId
+    },
+    onSuccess: (newContractId) => {
+      // Cập nhật lại UI các trang
       queryClient.invalidateQueries({ queryKey: ['project-applications'] })
       queryClient.invalidateQueries({ queryKey: ['application', applicationId] })
-    }
-  })
+      queryClient.invalidateQueries({ queryKey: ['my-projects'] })
+      // TẠO BOX CHAT
 
-  // 4. MUTATION TẠO HỢP ĐỒNG (CẬP NHẬT LẠI)
-  const createContractMutation = useMutation({
-    mutationFn: (data: any) => contractService.createContract(data),
-    onSuccess: (res) => {
-      const newContractId = res.data?.data?._id
-
+      //t thêm 3 cái as string cho hết lỗi type, còn cái dưới nớ truyền thiếu nên nó báo lỗi hay ren á
       chatService
-        .createGroup({ type: 'contract_chat', memberIds: [appData?.freelancerId._id, user?._id] })
+        .createGroup({ type: 'contract_chat', memberIds: [appData?.freelancerId._id as string, user?._id as string] })
         .then((group) => {
           // Gửi tin nhắn hệ thống vào group chat mới tạo
           chatService.sendMessage(group._id, {
             content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
-            userId: user?._id
+            userId: user?._id as string
           })
         })
+        .catch((err) => console.error('Lỗi tạo chat:', err))
+      // 3. Hiển thị thông báo & Chuyển trang
+      toast.success('Khởi tạo hợp đồng thành công! Dự án đã chuyển sang Đang thực hiện.')
 
-      // GỌI KÈM API ĐỔI TRẠNG THÁI BÁO GIÁ THÀNH "ACCEPTED"
-      updateAppStatusMutation.mutate()
-
-      toast.success('Tạo hợp đồng thành công! Đã gửi cho Freelancer.')
       if (newContractId) {
-        navigate(`/contracts/${newContractId}`, { replace: true }) // Dùng replace để user không bấm Back lại trang tạo được nữa
+        navigate(`/contracts/${newContractId}`, { replace: true })
       } else {
         navigate(`/contracts`, { replace: true })
       }
     },
+
+    // ── BƯỚC 3: XỬ LÝ KHI THẤT BẠI ──
     onError: () => {
-      toast.error('Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.')
+      toast.error('Có lỗi xảy ra khi xử lý hệ thống. Vui lòng thử lại.')
     }
   })
 
   const onSubmit = (formData: ContractSchema) => {
     if (!appData) return
     const payload = {
-      project_id: typeof appData.projectId === 'string' ? appData.projectId : appData.projectId._id,
+      project_id: appData.projectId._id,
       application_id: appData._id,
       freelancer_id:
         typeof appData.freelancerId === 'string' ? appData.freelancerId : (appData.freelancerId as any)._id,
@@ -126,7 +130,6 @@ export default function ContractCreatePage() {
     )
   }
 
-  // --- THÊM MỚI: CHẶN UI NẾU BÁO GIÁ ĐÃ ĐƯỢC TẠO HỢP ĐỒNG ---
   if (appData.status === 'accepted') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-center px-4">

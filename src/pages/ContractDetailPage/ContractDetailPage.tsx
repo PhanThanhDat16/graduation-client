@@ -19,6 +19,7 @@ import { contractService } from '@/apis/contractService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { formatBudget } from '@/utils/fomatters'
 import PaymentModal from './components/PaymentModal' // Đảm bảo bạn đã tạo file này theo code tôi gửi lúc nãy
+import { projectService } from '@/apis/projectService'
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -56,10 +57,22 @@ export default function ContractDetailPage() {
   })
 
   const cancelMutation = useMutation({
-    mutationFn: () => contractService.cancelContract(id as string),
+    // Đổi mutationFn thành hàm async để gọi 2 API
+    mutationFn: async () => {
+      // 1. Gọi API Hủy Hợp đồng
+      await contractService.cancelContract(id as string)
+
+      // 2. Gọi API Cập nhật Dự án về trạng thái 'open'
+      const projectId = contract?.project_id._id as string
+      await projectService.updateProject(projectId, { status: 'open' })
+    },
     onSuccess: () => {
+      // Load lại thông tin Hợp đồng
       queryClient.invalidateQueries({ queryKey: ['contract', id] })
-      toast.success('Hợp đồng đã được huỷ!')
+      queryClient.invalidateQueries({ queryKey: ['my-contracts'] })
+      queryClient.invalidateQueries({ queryKey: ['my-projects'] })
+
+      toast.success('Hợp đồng đã được huỷ. Dự án mở tuyển trở lại!')
     },
     onError: () => toast.error('Không thể huỷ hợp đồng lúc này.')
   })

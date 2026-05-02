@@ -17,7 +17,7 @@ export interface Project {
   images?: string[]
   budgetMin: number
   budgetMax?: number // Backend trả về có thể thiếu nếu không set
-  status: 'draft' | 'open' | 'closed'
+  status: 'progress' | 'open' | 'closed'
   likes: number
   listLike: string[]
   createdAt: string
@@ -32,7 +32,7 @@ export interface ProjectCreateParams {
   skills?: string[]
   budgetMin: number
   budgetMax?: number
-  status?: 'draft' | 'open' | 'closed'
+  status?: 'progress' | 'open' | 'closed'
   images?: string[]
 }
 
@@ -44,7 +44,7 @@ export interface ProjectQueryParams {
   sortOrder?: 'asc' | 'desc'
   contractorId?: string
   category?: string
-  status?: 'draft' | 'open' | 'closed'
+  status?: 'progress' | 'open' | 'closed'
   keyword?: string
   budgetMin?: number | string
   budgetMax?: number | string

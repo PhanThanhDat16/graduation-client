@@ -16,6 +16,7 @@ export default function ProjectCard({ project, onToggleLike }: ProjectCardProps)
   const isLiked = project.listLike?.includes(CURRENT_USER._id)
   const hot = isHot(project)
   const [isViewingImage, setIsViewingImage] = useState(false)
+  console.log(project)
 
   const firstImage = project.images && project.images.length > 0 ? project.images[0] : null
   const extraImagesCount = project.images ? project.images.length - 1 : 0

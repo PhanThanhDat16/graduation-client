@@ -37,8 +37,9 @@ export default function ProjectApplicationsPage() {
 
   // MUTATION CẬP NHẬT TRẠNG THÁI
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'accepted' | 'rejected' }) =>
-      applicationService.updateApplicationStatus(id, status),
+    mutationFn: async ({ id, status }: { id: string; status: 'accepted' | 'rejected' }) => {
+      applicationService.updateApplicationStatus(id, status)
+    },
     onMutate: (variables) => setProcessingId(variables.id),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project-applications', projectId] })

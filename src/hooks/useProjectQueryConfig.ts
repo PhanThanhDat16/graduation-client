@@ -8,7 +8,7 @@ export type QueryConfig = {
   sortOrder?: 'asc' | 'desc'
   contractorId?: string
   category?: string
-  status?: 'draft' | 'open' | 'closed'
+  status?: 'progress' | 'open' | 'closed'
   keyword?: string
   budgetMin?: string
   budgetMax?: string
