@@ -158,7 +158,8 @@ export default function ManageProjectCard({ project }: ManageProjectCardProps) {
           </div>
 
           <button
-            onClick={() => navigate(`/manage-projects/${project._id}`)}
+            onClick={() => navigate(`/manage-projects/${project._id}/applications`)}
+
             className={`w-full sm:w-auto px-6 py-2.5 text-sm font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${
               project.status === 'closed'
                 ? 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'

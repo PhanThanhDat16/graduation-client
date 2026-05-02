@@ -148,7 +148,6 @@ export default function ProjectsPage() {
               <EmptyState onReset={() => navigate(location.pathname)} />
             ) : (
               projects.map((project: any) => {
-                console.log(project)
                 return <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
               })
             )}

@@ -1,14 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, XCircle, DollarSign, FileText, Mail, MessageSquare, PenTool } from 'lucide-react'
+import { CheckCircle2, XCircle, DollarSign, FileText, Mail, MessageSquare, PenTool, ExternalLink } from 'lucide-react'
 import { formatBudget } from '@/utils/fomatters'
 import type { Application } from '@/types/application'
 
 const getStatusUI = (status: string) => {
   switch (status) {
     case 'accepted':
-      return { label: 'Đã trúng thầu', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+      return { label: 'Đã trúng thầu', class: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm' }
     case 'rejected':
-      return { label: 'Đã từ chối', class: 'bg-red-50 text-red-600 border-red-200' }
+      return { label: 'Đã từ chối', class: 'bg-red-50 text-red-600 border-red-100' }
     case 'pending':
     default:
       return { label: 'Chưa xử lý', class: 'bg-amber-50 text-amber-700 border-amber-200' }
@@ -22,9 +22,8 @@ interface ContractorAppCardProps {
 }
 
 export default function ContractorAppCard({ app, processingId, onUpdateStatus }: ContractorAppCardProps) {
-  // Thêm hook điều hướng
   const navigate = useNavigate()
-
+  console.log(app)
   const statusUI = getStatusUI(app.status)
   const isRejected = app.status === 'rejected'
   const isAccepted = app.status === 'accepted'
@@ -41,34 +40,46 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
 
   return (
     <div
-      className={`relative bg-white border rounded-2xl p-6 sm:p-8 shadow-sm transition-all ${isRejected ? 'border-slate-200 opacity-75' : isAccepted ? 'border-emerald-200 shadow-emerald-100' : 'border-slate-200 hover:shadow-md'}`}
+      className={`relative bg-white border rounded-2xl p-6 sm:p-8 transition-all duration-300 ${
+        isRejected
+          ? 'border-slate-200 opacity-60 grayscale-[30%] bg-slate-50'
+          : isAccepted
+            ? 'border-emerald-300 shadow-[0_8px_30px_rgba(16,185,129,0.12)] ring-1 ring-emerald-50'
+            : 'border-slate-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-indigo-200'
+      }`}
     >
+      {/* Lớp phủ loading khi đang call API */}
       {isProcessing && (
         <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] rounded-2xl z-10 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
         </div>
       )}
 
-      {/* THÔNG TIN FREELANCER */}
+      {/* ── THÔNG TIN FREELANCER ── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 mb-6">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 min-w-0">
+          {' '}
+          {/* min-w-0 chống tràn */}
           <img
             src={fAvatar}
             alt={fName}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-slate-100 shrink-0"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-slate-100 shrink-0 shadow-sm"
           />
-          <div>
+          <div className="min-w-0 flex-1">
+            {' '}
+            {/* Thêm flex-1 và min-w-0 */}
             <Link
               to={`/freelancers/${fId}`}
-              className="font-extrabold text-lg sm:text-xl text-slate-900 hover:text-indigo-600 transition-colors"
+              className="font-extrabold text-lg sm:text-xl text-slate-900 hover:text-indigo-600 transition-colors truncate block"
+              title={fName}
             >
               {fName}
             </Link>
             <p className="text-sm font-medium text-slate-500 mt-0.5 mb-2">Freelancer</p>
-
             {fEmail && (
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100 w-fit">
-                <Mail className="w-3.5 h-3.5" /> {fEmail}
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-md border border-slate-200/60 w-fit max-w-full">
+                <Mail className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{fEmail}</span>
               </div>
             )}
           </div>
@@ -87,8 +98,10 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
         </div>
       </div>
 
-      {/* THÔNG TIN BÁO GIÁ */}
-      <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 mb-6">
+      {/* ── THÔNG TIN BÁO GIÁ ── */}
+      <div
+        className={`rounded-xl p-5 mb-6 border ${isAccepted ? 'bg-emerald-50/30 border-emerald-100' : 'bg-slate-50/50 border-slate-100'}`}
+      >
         <div className="flex flex-wrap items-center gap-x-8 gap-y-4 mb-4 pb-4 border-b border-slate-200/60">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mức giá đề xuất</p>
@@ -103,42 +116,57 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5" /> Thư chào giá
           </p>
-          <p className="text-[15px] text-slate-700 leading-relaxed italic whitespace-pre-line">"{app.proposal}"</p>
+          {/* FIX TRÀN CHỮ NẰM Ở ĐÂY: break-words */}
+          <div className="p-4 bg-white border border-slate-200/60 rounded-lg rounded-tl-none relative">
+            <div className="absolute -top-3 left-0 w-3 h-3 bg-white border-t border-l border-slate-200/60"></div>
+            <p className="text-[14px] text-slate-700 leading-relaxed italic whitespace-pre-line break-words">
+              "{app.proposal}"
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* HÀNH ĐỘNG */}
+      {/* ── HÀNH ĐỘNG ── */}
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
         {isRejected ? (
           <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-xl">
             <XCircle className="w-4 h-4" /> Đã từ chối ứng viên này
           </span>
         ) : isAccepted ? (
-          <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-bold rounded-xl">
-            <CheckCircle2 className="w-5 h-5" /> Ứng viên đã trúng thầu
-          </span>
+          // NÚT XEM HỢP ĐỒNG KHI ĐÃ TRÚNG THẦU
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-100">
+              <CheckCircle2 className="w-4 h-4" /> Trúng thầu
+            </span>
+            <button
+              // Note: Nếu API báo giá của bạn có trả về contractId thì dùng app.contractId, không thì chuyển hướng về trang /contracts chung
+              onClick={() => navigate((app as any).contractId ? `/contracts/${(app as any).contractId}` : '/contracts')}
+              className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white text-sm font-extrabold rounded-xl shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+            >
+              Xem Hợp Đồng <ExternalLink className="w-4 h-4" />
+            </button>
+          </div>
         ) : (
           <>
             <button
               onClick={() => onUpdateStatus(app._id, 'rejected')}
               disabled={isProcessing}
-              className="w-full sm:w-auto px-5 py-2.5 border-2 border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto px-5 py-2.5 text-slate-500 text-sm font-bold rounded-xl hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <XCircle className="w-4 h-4" /> Từ chối
             </button>
 
             <button
               onClick={() => (window.location.href = `mailto:${fEmail}`)}
-              className="w-full sm:w-auto px-5 py-2.5 bg-blue-50 text-blue-700 text-sm font-bold rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-4 h-4" /> Liên hệ
             </button>
 
-            {/* ĐÃ SỬA: Đẩy thẳng sang trang Khởi tạo hợp đồng (Gửi kèm ID của báo giá) */}
             <button
               onClick={() => navigate(`/contracts/create/${app._id}`)}
               disabled={isProcessing}
-              className="w-full sm:w-auto px-8 py-2.5 bg-slate-900 text-white text-sm font-extrabold rounded-xl shadow-md hover:bg-indigo-600 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-extrabold rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:transform-none"
             >
               <PenTool className="w-4 h-4" /> Tạo Hợp Đồng
             </button>
