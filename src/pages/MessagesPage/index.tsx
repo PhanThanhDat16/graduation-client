@@ -193,7 +193,7 @@ export default function MessagesPage() {
     setCreatingGroup(true)
     try {
       const res = await chatService.createGroup({
-        type: 'user_support',
+        type: 'userSupport',
         memberIds: []
       })
 
@@ -467,7 +467,7 @@ export default function MessagesPage() {
                       : 'Hỗ trợ khách hàng'}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    {activeGroup.type === 'contract_chat' ? 'Thảo luận hợp đồng' : 'Yêu cầu hỗ trợ'}
+                    {activeGroup.type === 'contrac_chat' ? 'Thảo luận hợp đồng' : 'Yêu cầu hỗ trợ'}
                   </p>
                 </div>
               </div>

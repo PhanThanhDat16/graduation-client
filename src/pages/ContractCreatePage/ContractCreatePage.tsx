@@ -41,7 +41,7 @@ export default function ContractCreatePage() {
     formState: { errors }
   } = useForm<ContractSchema>({
     resolver: yupResolver(contractSchema),
-    defaultValues: { contractor_terms: '', deadline: '', agreeToTerms: false }
+    defaultValues: { contractorTerms: '', deadline: '', agreeToTerms: false }
   })
   console.log(appData)
 
@@ -69,13 +69,13 @@ export default function ContractCreatePage() {
       //t thêm 3 cái as string cho hết lỗi type, còn cái dưới nớ truyền thiếu nên nó báo lỗi hay ren á
       chatService
         .createGroup({ type: 'contract_chat', memberIds: [appData?.freelancerId._id as string, user?._id as string] })
-        .then((group) => {
-          // Gửi tin nhắn hệ thống vào group chat mới tạo
-          chatService.sendMessage(group._id, {
-            content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
-            userId: user?._id as string
-          })
-        })
+        // .then((group) => {
+        //   // Gửi tin nhắn hệ thống vào group chat mới tạo
+        //   chatService.sendMessage(group._id, {
+        //     content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
+        //     userId: user?._id as string
+        //   })
+        // })
         .catch((err) => console.error('Lỗi tạo chat:', err))
       // 3. Hiển thị thông báo & Chuyển trang
       toast.success('Khởi tạo hợp đồng thành công! Dự án đã chuyển sang Đang thực hiện.')
@@ -96,15 +96,14 @@ export default function ContractCreatePage() {
   const onSubmit = (formData: ContractSchema) => {
     if (!appData) return
     const payload = {
-      project_id: appData.projectId._id,
-      application_id: appData._id,
-      freelancer_id:
-        typeof appData.freelancerId === 'string' ? appData.freelancerId : (appData.freelancerId as any)._id,
-      contractor_terms: formData.contractor_terms,
+      projectId: appData.projectId._id,
+      applicationId: appData._id,
+      freelancerId: (appData.freelancerId as any)._id,
+      contractorTerms: formData.contractorTerms,
       deadline: new Date(formData.deadline).toISOString(),
-      total_amount: proposedBudget,
-      admin_fee: adminFee,
-      freelancer_deposit: 0
+      totalAmount: proposedBudget,
+      adminFee: adminFee,
+      freelancerDeposit: 0
     }
     createContractMutation.mutate(payload)
   }
@@ -201,14 +200,14 @@ export default function ContractCreatePage() {
                     rows={5}
                     placeholder="VD: Yêu cầu Freelancer bàn giao đầy đủ source code, tài liệu hướng dẫn..."
                     className={`w-full bg-slate-50 border rounded-xl p-4 text-sm text-slate-900 focus:bg-white focus:ring-1 outline-none resize-none transition-all ${
-                      errors.contractor_terms
+                      errors.contractorTerms
                         ? 'border-red-500 focus:ring-red-500'
                         : 'border-slate-200 focus:ring-indigo-600 focus:border-indigo-600'
                     }`}
-                    {...register('contractor_terms')}
+                    {...register('contractorTerms')}
                   />
-                  {errors.contractor_terms && (
-                    <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.contractor_terms.message}</p>
+                  {errors.contractorTerms && (
+                    <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.contractorTerms.message}</p>
                   )}
                 </div>
 

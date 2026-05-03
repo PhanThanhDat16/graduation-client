@@ -30,10 +30,10 @@ const formatTimeAgo = (dateString: string) => {
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'contract_created':
-    case 'contract_signed':
+    case 'contractCreated':
+    case 'contractSigned':
       return <FileSignature className="w-5 h-5 text-indigo-600" />
-    case 'project_applied':
+    case 'projectApplied':
       return <Briefcase className="w-5 h-5 text-emerald-600" />
     default:
       return <BellRing className="w-5 h-5 text-blue-600" />
@@ -55,7 +55,7 @@ export default function NotificationListPage() {
       notificationService.getNotifications({
         page,
         limit,
-        is_read: filter === 'unread' ? false : undefined
+        isRead: filter === 'unread' ? false : undefined
       })
   })
 
@@ -100,7 +100,7 @@ export default function NotificationListPage() {
 
   // HANDLERS
   const handleNotifClick = (notif: Notification) => {
-    if (!notif.is_read) {
+    if (!notif.isRead) {
       markAsReadMutation.mutate(notif._id)
     }
     // Ở đây sau này sẽ gọi hàm redirect sang trang tương ứng
@@ -201,11 +201,11 @@ export default function NotificationListPage() {
                   key={notif._id}
                   onClick={() => handleNotifClick(notif)}
                   className={`group relative p-5 transition-colors hover:bg-slate-50 cursor-pointer flex gap-5 items-start ${
-                    !notif.is_read ? 'bg-indigo-50/20' : 'bg-white'
+                    !notif.isRead ? 'bg-indigo-50/20' : 'bg-white'
                   }`}
                 >
                   {/* Chấm xanh */}
-                  {!notif.is_read && (
+                  {!notif.isRead && (
                     <span className="absolute top-1/2 -translate-y-1/2 left-3 w-2 h-2 rounded-full bg-indigo-600"></span>
                   )}
 
@@ -217,7 +217,7 @@ export default function NotificationListPage() {
 
                   <div className="flex-1 min-w-0 pr-12">
                     <p
-                      className={`text-base mb-1.5 ${!notif.is_read ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}
+                      className={`text-base mb-1.5 ${!notif.isRead ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}
                     >
                       {notif.title}
                     </p>

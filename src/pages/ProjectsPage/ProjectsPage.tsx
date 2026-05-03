@@ -18,9 +18,9 @@ import SortDropdown from '@/components/SortDropDown'
 // IMPORT COMPONENT SORT MỚI
 
 const SORT_OPTIONS = [
-  { label: 'Mới nhất', value: 'createdAt_desc' },
-  { label: 'Ngân sách: Cao → Thấp', value: 'budgetMax_desc' },
-  { label: 'Nhiều lượt thích', value: 'likes_desc' }
+  { label: 'Mới nhất', value: 'createdAtDesc' },
+  { label: 'Ngân sách: Cao → Thấp', value: 'budgetMaxDesc' },
+  { label: 'Nhiều lượt thích', value: 'likesDesc' }
 ]
 
 export default function ProjectsPage() {

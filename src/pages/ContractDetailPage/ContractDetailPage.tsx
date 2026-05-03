@@ -43,8 +43,8 @@ export default function ContractDetailPage() {
   const userRole = user?.role || 'freelancer'
   const isContractor = userRole === 'contractor'
 
-  const hasAgreed = isContractor ? contract?.contractor_agreed : contract?.freelancer_agreed
-  const partnerAgreed = isContractor ? contract?.freelancer_agreed : contract?.contractor_agreed
+  const hasAgreed = isContractor ? contract?.contractorAgreed : contract?.freelancerAgreed
+  const partnerAgreed = isContractor ? contract?.freelancerAgreed : contract?.contractorAgreed
 
   // 3. MUTATIONS (CÁC HÀNH ĐỘNG CẬP NHẬT TRẠNG THÁI)
   const agreeMutation = useMutation({
@@ -63,7 +63,7 @@ export default function ContractDetailPage() {
       await contractService.cancelContract(id as string)
 
       // 2. Gọi API Cập nhật Dự án về trạng thái 'open'
-      const projectId = contract?.project_id._id as string
+      const projectId = contract?.projectId._id as string
       await projectService.updateProject(projectId, { status: 'open' })
     },
     onSuccess: () => {
@@ -112,10 +112,10 @@ export default function ContractDetailPage() {
 
   // 5. RENDER LOGIC: NÚT ACTION TRÊN TOOLBAR
   const renderActionButtons = () => {
-    if (contract?.status === 'waiting_payment') {
+    if (contract?.status === 'waitingPayment') {
       const needToPay = isContractor
-        ? contract.payment_info?.contractor_must_pay > 0
-        : contract.payment_info?.freelancer_must_pay > 0
+        ? contract.paymentInfo?.contractorMustPay > 0
+        : contract.paymentInfo?.freelancerMustPay > 0
 
       if (needToPay) {
         return (
@@ -168,8 +168,8 @@ export default function ContractDetailPage() {
 
   if (!contract) return <div className="text-center py-20 font-bold text-slate-500">Không tìm thấy hợp đồng</div>
 
-  const contractorInfo = contract.contractor_id as any
-  const freelancerInfo = contract.freelancer_id as any
+  const contractorInfo = contract.contractorId as any
+  const freelancerInfo = contract.freelancerId as any
 
   return (
     <div className="bg-slate-100 min-h-screen font-body pb-24 text-slate-800">
@@ -216,7 +216,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {(contract.status === 'draft' || contract.status === 'pending_agreement') && (
+        {(contract.status === 'draft' || contract.status === 'pendingAgreement') && (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -232,7 +232,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {contract.status === 'waiting_payment' && (
+        {contract.status === 'waitingPayment' && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -350,7 +350,7 @@ export default function ContractDetailPage() {
             <div>
               <h3 className="font-bold text-lg mb-2">Điều 1: Nội dung công việc</h3>
               <div className="mt-3 p-4 bg-slate-50 border-l-4 border-slate-300 italic whitespace-pre-line rounded-r-xl">
-                {contract.contractor_terms}
+                {contract.contractorTerms}
               </div>
             </div>
 
@@ -372,7 +372,7 @@ export default function ContractDetailPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>
                   Tổng thù lao Bên A đồng ý thanh toán cho Bên B là:{' '}
-                  <strong>{formatBudget(contract.total_amount)} VNĐ</strong>.
+                  <strong>{formatBudget(contract.totalAmount)} VNĐ</strong>.
                 </li>
                 <li>Khoản tiền này sẽ được giữ an toàn bởi hệ thống Escrow trong suốt quá trình thực hiện dự án.</li>
                 <li>Tiền chỉ được giải ngân cho Bên B khi Bên A xác nhận nghiệm thu sản phẩm đạt yêu cầu.</li>
@@ -387,7 +387,7 @@ export default function ContractDetailPage() {
                 <h4 className="font-bold text-lg uppercase text-slate-900">Đại diện Bên A</h4>
                 <p className="text-sm text-slate-500 mb-8">(Khách hàng)</p>
 
-                {contract.contractor_agreed ? (
+                {contract.contractorAgreed ? (
                   <div className="inline-block p-4 border-2 border-emerald-500 rounded-lg bg-emerald-50 text-emerald-700 animate-in zoom-in">
                     <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
                     <p className="font-bold uppercase">Đã xác nhận</p>
@@ -421,7 +421,7 @@ export default function ContractDetailPage() {
                 <h4 className="font-bold text-lg uppercase text-slate-900">Đại diện Bên B</h4>
                 <p className="text-sm text-slate-500 mb-8">(Freelancer)</p>
 
-                {contract.freelancer_agreed ? (
+                {contract.freelancerAgreed ? (
                   <div className="inline-block p-4 border-2 border-emerald-500 rounded-lg bg-emerald-50 text-emerald-700 animate-in zoom-in">
                     <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
                     <p className="font-bold uppercase">Đã xác nhận</p>
@@ -454,7 +454,7 @@ export default function ContractDetailPage() {
         </div>
 
         {/* NÚT HUỶ HỢP ĐỒNG */}
-        {!hasAgreed && contract.status !== 'cancelled' && contract.status !== 'waiting_payment' && (
+        {!hasAgreed && contract.status !== 'cancelled' && contract.status !== 'waitingPayment' && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={handleCancel}

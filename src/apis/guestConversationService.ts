@@ -8,21 +8,21 @@ import axiosInstance from '@/utils/axiosInstance'
 export interface CreateGuestConversationResponse {
   message: string
   data: {
-    group_id: string
-    member_id: string
-    guest_name: string
-    created_at: string
+    groupId: string
+    memberId: string
+    guestName: string
+    createdAt: string
   }
 }
 
 export interface ConversationResponse {
   message: string
   data: {
-    group_id: string
-    member_id: string | null
-    owner_id: string | null
-    guest_name: string | null
-    created_at: string
+    groupId: string
+    memberId: string | null
+    ownerId: string | null
+    guestName: string | null
+    createdAt: string
   }
 }
 

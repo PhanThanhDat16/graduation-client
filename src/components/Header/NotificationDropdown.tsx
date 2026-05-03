@@ -74,7 +74,7 @@ export default function NotificationDropdown() {
   })
 
   const handleNotifClick = (notif: Notification) => {
-    if (!notif.is_read) {
+    if (!notif.isRead) {
       markAsReadMutation.mutate(notif._id)
     }
   }
@@ -112,10 +112,10 @@ export default function NotificationDropdown() {
             {notifications.map((notif) => (
               <div
                 key={notif._id}
-                className={`group relative p-4 transition-colors hover:bg-slate-50 cursor-pointer flex gap-4 ${!notif.is_read ? 'bg-indigo-50/30' : 'bg-white'}`}
+                className={`group relative p-4 transition-colors hover:bg-slate-50 cursor-pointer flex gap-4 ${!notif.isRead ? 'bg-indigo-50/30' : 'bg-white'}`}
                 onClick={() => handleNotifClick(notif)}
               >
-                {!notif.is_read && (
+                {!notif.isRead && (
                   <span className="absolute top-5 left-2 w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
                 )}
                 <div className="shrink-0 mt-0.5">
@@ -125,7 +125,7 @@ export default function NotificationDropdown() {
                 </div>
                 <div className="flex-1 min-w-0 pr-6">
                   <p
-                    className={`text-sm mb-1 line-clamp-2 ${!notif.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}
+                    className={`text-sm mb-1 line-clamp-2 ${!notif.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}
                   >
                     {notif.title}
                   </p>

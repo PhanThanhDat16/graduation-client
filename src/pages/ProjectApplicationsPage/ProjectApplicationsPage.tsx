@@ -13,8 +13,8 @@ import { toast } from 'react-toastify'
 const SORT_OPTIONS = [
   { label: 'Nộp gần đây', value: 'newest' },
   { label: 'Nộp lâu nhất', value: 'oldest' },
-  { label: 'Giá thấp đến cao', value: 'lowest_budget' },
-  { label: 'Giá cao đến thấp', value: 'highest_budget' }
+  { label: 'Giá thấp đến cao', value: 'lowestBudget' },
+  { label: 'Giá cao đến thấp', value: 'highestBudget' }
 ]
 
 export default function ProjectApplicationsPage() {
@@ -74,8 +74,8 @@ export default function ProjectApplicationsPage() {
 
   const sortedApps = useMemo(() => {
     return [...filteredApps].sort((a, b) => {
-      if (sortOrder === 'lowest_budget') return (a.proposedBudget || 0) - (b.proposedBudget || 0)
-      if (sortOrder === 'highest_budget') return (b.proposedBudget || 0) - (a.proposedBudget || 0)
+      if (sortOrder === 'lowestBudget') return (a.proposedBudget || 0) - (b.proposedBudget || 0)
+      if (sortOrder === 'highestBudget') return (b.proposedBudget || 0) - (a.proposedBudget || 0)
 
       const dateA = new Date(a.appliedAt).getTime()
       const dateB = new Date(b.appliedAt).getTime()

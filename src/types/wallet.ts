@@ -2,34 +2,34 @@
 
 export type Page = 'wallet' | 'add-funds' | 'withdraw' | 'withdraw-requests' | 'bank-accounts'
 
-export type TransactionType = 'deposit' | 'withdraw' | 'escrow_release' | 'admin_fee' | 'escrow_deposit' | 'refund'
+export type TransactionType = 'deposit' | 'withdraw' | 'escrowRelease' | 'adminFee' | 'escrowDeposit' | 'refund'
 export type PaymentMethod = 'vnpay' | 'momo' | 'wallet'
 export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'cancelled'
 export type WithdrawStatus = 'pending' | 'approved' | 'rejected' | 'paid'
 
 export interface Transaction {
   _id: string
-  wallet_id: string
+  walletId: string
   amount: number
   type: TransactionType
-  method_payment: PaymentMethod
+  methodPayment: PaymentMethod
   status: TransactionStatus
-  user_id?: string
-  contract_id?: string
-  payer_type?: 'contractor' | 'freelancer' | 'admin'
+  userId?: string
+  contractId?: string
+  payerType?: 'contractor' | 'freelancer' | 'admin'
   description?: string
   createdAt: string
-  payment_order_id?: string
-  payment_request_id?: string
-  payment_order_info?: string
-  vnp_ResponseCode?: string
-  vnp_TransactionNo?: string
-  vnp_PayDate?: string
+  paymentOrderId?: string
+  paymentRequestId?: string
+  paymentOrderInfo?: string
+  vnpResponseCode?: string
+  vnpTransactionNo?: string
+  vnpPayDate?: string
 }
 
 export interface Wallet {
   _id: string
-  user_id: string
+  userId: string
   balance: number
   createdAt: string
   updatedAt: string
@@ -64,32 +64,32 @@ export interface PopulatedAccount {
 
 export interface WithdrawRequest {
   _id: string
-  account_id: PopulatedAccount | string
+  accountId: PopulatedAccount | string
   amount: number
   amountReceived: number
   status: WithdrawStatus
-  admin_id?: string
+  adminId?: string
   createdAt: string
-  processed_at?: string
+  processedAt?: string
 }
 
 // ─── Request Types ────────────────────────────────────────────────────────────
 
 export interface DepositRequest {
   amount: number
-  method_payment: PaymentMethod
+  methodPayment: PaymentMethod
 }
 
 export interface CreateWithdrawRequest {
   amount: number
-  account_id: string
+  accountId: string
 }
 
 export interface TransactionFilter {
   page?: number
   limit?: number
   type?: TransactionType
-  method_payment?: PaymentMethod
+  methodPayment?: PaymentMethod
   status?: TransactionStatus
 }
 
