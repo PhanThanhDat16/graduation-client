@@ -1,6 +1,6 @@
 export const emitJoinConversation = (socket: any, groupId: string) => {
   if (socket) {
-    socket.emit('joinConversation', { groupId })
+    socket.emit('join_conversation', { groupId })
   }
 }
 
@@ -11,11 +11,11 @@ export function listenNewConversation(socket: any, fnc: () => void | Promise<voi
     await fnc()
   }
 
-  socket.on('newConversation', handler)
+  socket.on('new_conversation', handler)
 
   // return cleanup
   return () => {
-    socket.off('newConversation', handler)
+    socket.off('new_conversation', handler)
   }
 }
 
@@ -28,7 +28,7 @@ export function listenNewConversation(socket: any, fnc: () => void | Promise<voi
 // Emit guest join conversation (triggers 'new_conversation' event to staff)
 export const emitGuestJoinConversation = (socket: any, groupId: string) => {
   if (socket) {
-    socket.emit('guestJoinConversation', { groupId })
+    socket.emit('guest_join_conversation', { groupId })
   }
 }
 
@@ -36,9 +36,9 @@ export const emitGuestJoinConversation = (socket: any, groupId: string) => {
 export function listenNewMessage(socket: any, fnc: (message: any) => void) {
   if (!socket) return
 
-  socket.on('newMessage', fnc)
+  socket.on('new_message', fnc)
 
   return () => {
-    socket.off('newMessage', fnc)
+    socket.off('new_message', fnc)
   }
 }

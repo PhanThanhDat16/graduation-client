@@ -17,10 +17,10 @@ import { emitJoinConversation, listenNewConversation, listenNewMessage } from '@
 import dayjs from 'dayjs'
 import type { ChatGroup, MessageListResponse, MessageResponse } from '@/types/chat'
 
-type TabType = 'userSupport' | 'contractChat'
+type TabType = 'user_support' | 'contract_chat'
 
 export default function MessagesPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('userSupport')
+  const [activeTab, setActiveTab] = useState<TabType>('user_support')
   const [groups, setGroups] = useState<ChatGroup[]>([])
   const [activeGroup, setActiveGroup] = useState<ChatGroup | null>(null)
   const [messages, setMessages] = useState<MessageResponse[]>([])
@@ -282,7 +282,7 @@ export default function MessagesPage() {
   }
 
   // Check if user_support groups exist (to show/hide + button)
-  const hasUserSupportGroup = activeTab === 'userSupport' && groups.length > 0
+  const hasUserSupportGroup = activeTab === 'user_support' && groups.length > 0
 
   // Filter groups by search
   const filteredGroups = groups.filter((g) => {
@@ -304,9 +304,9 @@ export default function MessagesPage() {
           <div className="p-3 bg-white border-b border-slate-200 shrink-0">
             <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
               <button
-                onClick={() => handleTabChange('userSupport')}
+                onClick={() => handleTabChange('user_support')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'userSupport'
+                  activeTab === 'user_support'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -315,9 +315,9 @@ export default function MessagesPage() {
                 Hỗ trợ
               </button>
               <button
-                onClick={() => handleTabChange('contractChat')}
+                onClick={() => handleTabChange('contract_chat')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'contractChat'
+                  activeTab === 'contract_chat'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -341,7 +341,7 @@ export default function MessagesPage() {
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-100 border-transparent rounded-xl text-sm focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none transition-all"
                 />
               </div>
-              {activeTab === 'userSupport' && !hasUserSupportGroup && (
+              {activeTab === 'user_support' && !hasUserSupportGroup && (
                 <button
                   onClick={handleCreateSupportGroup}
                   disabled={creatingGroup}
@@ -366,7 +366,7 @@ export default function MessagesPage() {
                   <MessageSquare className="w-7 h-7 text-slate-300" />
                 </div>
                 <p className="mb-1 text-sm text-slate-500">Chưa có cuộc trò chuyện nào</p>
-                {activeTab === 'userSupport' && (
+                {activeTab === 'user_support' && (
                   <p className="text-xs text-slate-400">Nhấn nút + để tạo yêu cầu hỗ trợ</p>
                 )}
               </div>
@@ -385,10 +385,10 @@ export default function MessagesPage() {
                   <div className="relative mt-1 shrink-0">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        group.type === 'contractChat' ? 'bg-amber-100' : 'bg-indigo-100'
+                        group.type === 'contract_chat' ? 'bg-amber-100' : 'bg-indigo-100'
                       }`}
                     >
-                      {group.type === 'contractChat' ? (
+                      {group.type === 'contract_chat' ? (
                         <FileText className="w-5 h-5 text-amber-600" />
                       ) : (
                         <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
@@ -404,7 +404,7 @@ export default function MessagesPage() {
                           group.unreadCount > 0 ? 'font-extrabold text-slate-900' : 'font-bold text-slate-700'
                         }`}
                       >
-                        {group.type === 'contractChat' ? `Hợp đồng #${group._id.slice(-6)}` : 'Hỗ trợ khách hàng'}
+                        {group.type === 'contract_chat' ? `Hợp đồng #${group._id.slice(-6)}` : 'Hỗ trợ khách hàng'}
                       </h3>
                       <span
                         className={`text-[10px] shrink-0 ${
@@ -451,10 +451,10 @@ export default function MessagesPage() {
                 </button>
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    activeGroup.type === 'contractChat' ? 'bg-amber-100' : 'bg-indigo-100'
+                    activeGroup.type === 'contract_chat' ? 'bg-amber-100' : 'bg-indigo-100'
                   }`}
                 >
-                  {activeGroup.type === 'contractChat' ? (
+                  {activeGroup.type === 'contract_chat' ? (
                     <FileText className="w-5 h-5 text-amber-600" />
                   ) : (
                     <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
@@ -462,12 +462,12 @@ export default function MessagesPage() {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
-                    {activeGroup.type === 'contractChat'
+                    {activeGroup.type === 'contract_chat'
                       ? `Hợp đồng #${activeGroup._id.slice(-6)}`
                       : 'Hỗ trợ khách hàng'}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    {activeGroup.type === 'contractChat' ? 'Thảo luận hợp đồng' : 'Yêu cầu hỗ trợ'}
+                    {activeGroup.type === 'contrac_chat' ? 'Thảo luận hợp đồng' : 'Yêu cầu hỗ trợ'}
                   </p>
                 </div>
               </div>

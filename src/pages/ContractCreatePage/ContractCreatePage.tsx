@@ -68,14 +68,14 @@ export default function ContractCreatePage() {
 
       //t thêm 3 cái as string cho hết lỗi type, còn cái dưới nớ truyền thiếu nên nó báo lỗi hay ren á
       chatService
-        .createGroup({ type: 'contractChat', memberIds: [appData?.freelancerId._id as string, user?._id as string] })
-        .then((group) => {
-          // Gửi tin nhắn hệ thống vào group chat mới tạo
-          chatService.sendMessage(group._id, {
-            content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
-            userId: user?._id as string
-          })
-        })
+        .createGroup({ type: 'contract_chat', memberIds: [appData?.freelancerId._id as string, user?._id as string] })
+        // .then((group) => {
+        //   // Gửi tin nhắn hệ thống vào group chat mới tạo
+        //   chatService.sendMessage(group._id, {
+        //     content: 'Chào bạn! Chúng ta đã tạo một hợp đồng mới.',
+        //     userId: user?._id as string
+        //   })
+        // })
         .catch((err) => console.error('Lỗi tạo chat:', err))
       // 3. Hiển thị thông báo & Chuyển trang
       toast.success('Khởi tạo hợp đồng thành công! Dự án đã chuyển sang Đang thực hiện.')

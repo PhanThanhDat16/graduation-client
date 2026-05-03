@@ -32,8 +32,8 @@ export const useStoreSocketIO = create<ISocketSore>((set) => ({
         failedAttempts = 0
       })
 
-      socket.on('connectError', () => {
-        console.error('connectError', failedAttempts)
+      socket.on('connect_error', () => {
+        console.error('connect_error', failedAttempts)
         failedAttempts += 1
         if (failedAttempts >= 10) {
           socket.disconnect()

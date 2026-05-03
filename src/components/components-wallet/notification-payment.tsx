@@ -9,17 +9,17 @@ export default function PaymentResultPage() {
   const resultCode = params.get('resultCode') || ''
   const message = params.get('message') || ''
   const amount = Number(params.get('amount') || 0)
-  const method_payment = params.get('methodPayment') || ''
-  const author_payment = params.get('authorPayment') || ''
+  const methodPayment = params.get('methodPayment') || ''
+  const authorPayment = params.get('authorPayment') || ''
   const email = params.get('email') || ''
 
   const isSuccess = resultCode === '0' || resultCode === '00'
   const type = isSuccess ? 'success' : 'fail'
 
-  const title_payment = method_payment === 'momo' ? 'Thanh toán qua MoMo' : 'Thanh toán qua ZaloPay'
+  const titlePayment = methodPayment === 'momo' ? 'Thanh toán qua MoMo' : 'Thanh toán qua ZaloPay'
 
   const logo =
-    method_payment === 'momo'
+    methodPayment === 'momo'
       ? 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square-300x300.png'
       : 'https://i.pinimg.com/736x/f9/5e/a2/f95ea23c297af3170d9d75173bed9d7e.jpg'
 
@@ -39,7 +39,7 @@ export default function PaymentResultPage() {
           <div className="w-10 h-10 rounded-[10px] bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
             <img src={logo} className="w-[26px] h-[26px] object-contain" />
           </div>
-          <span className="text-[15px] text-gray-400 font-medium">{method_payment} Payment</span>
+          <span className="text-[15px] text-gray-400 font-medium">{methodPayment} Payment</span>
         </div>
 
         {/* Icon */}
@@ -60,7 +60,7 @@ export default function PaymentResultPage() {
             <>
               Giao dịch của bạn đã được xử lý thành công.
               <br />
-              Cảm ơn bạn đã sử dụng dịch vụ {title_payment}
+              Cảm ơn bạn đã sử dụng dịch vụ {titlePayment}
             </>
           ) : (
             <>
@@ -78,7 +78,7 @@ export default function PaymentResultPage() {
 
         {/* Rows */}
         <Row label="Mã đơn hàng" value={orderId || '—'} />
-        <Row label="Người thanh toán" value={author_payment} />
+        <Row label="Người thanh toán" value={authorPayment || '—'} />
         <Row label="Email" value={email} />
         <Row label="Số tiền" value={amount.toLocaleString('vi-VN')} />
 
