@@ -1,5 +1,11 @@
 import type { ApiResponse, PaginatedResponse } from '@/types/utils'
-import type { Contract, ContractCreateParams, ContractQueryParams, ContractUpdateParams } from '@/types/contract'
+import type {
+  Contract,
+  ContractCreateParams,
+  ContractQueryParams,
+  ContractUpdateParams,
+  SubmitContractPayload
+} from '@/types/contract'
 import axiosInstance from '@/utils/axiosInstance'
 
 export const contractService = {
@@ -33,10 +39,9 @@ export const contractService = {
   },
 
   // Freelancer nộp sản phẩm
-  submitContract: async (id: string) => {
-    return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/submit`)
+  submitContract: (id: string, data: SubmitContractPayload) => {
+    axiosInstance.post(`/contracts/${id}/submit`, data)
   },
-
   // Khách hàng nghiệm thu (Giải ngân)
   completeContract: async (id: string) => {
     return await axiosInstance.post<ApiResponse<null>>(`/contracts/${id}/complete`)

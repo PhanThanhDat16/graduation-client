@@ -20,10 +20,10 @@ const formatTimeAgo = (dateString: string) => {
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'contract_created':
-    case 'contract_signed':
+    case 'contractCreated':
+    case 'contractSigned':
       return <FileSignature className="w-5 h-5 text-indigo-600" />
-    case 'project_applied':
+    case 'projectApplied':
       return <Briefcase className="w-5 h-5 text-emerald-600" />
     default:
       return <BellRing className="w-5 h-5 text-blue-600" />
@@ -159,14 +159,14 @@ export default function NotificationDropdown() {
 
   return (
     <Popover placement="bottom-end" offsetValue={10} renderPopover={renderDropdown}>
-      <button className="relative p-2.5 rounded-full transition-colors text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer outline-none">
+      <div className="relative p-2.5 rounded-full transition-colors text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer outline-none">
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
-      </button>
+      </div>
     </Popover>
   )
 }

@@ -15,13 +15,13 @@ const STATUS_MAP: Record<string, { label: string; dot: string; badge: string; ba
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     bar: 'bg-amber-400'
   },
-  pendingAgreement: {
+  pending_agreement: {
     label: 'Chờ chữ ký',
     dot: 'bg-amber-400',
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     bar: 'bg-amber-400'
   },
-  waitingPayment: {
+  waiting_payment: {
     label: 'Chờ thanh toán',
     dot: 'bg-blue-400',
     badge: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -50,6 +50,12 @@ const STATUS_MAP: Record<string, { label: string; dot: string; badge: string; ba
     dot: 'bg-red-400',
     badge: 'bg-red-50 text-red-600 border-red-200',
     bar: 'bg-red-400'
+  },
+  dispute: {
+    label: 'Đang khiếu nại',
+    dot: 'bg-yellow-400',
+    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    bar: 'bg-yellow-400'
   }
 }
 
@@ -70,7 +76,7 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
     ? contract.freelancerId?.fullName
     : contract.contractorId?.fullName || 'Chưa cập nhật'
   const status = getStatus(contract.status)
-
+  console.log(contract.status)
   return (
     <div className="group relative bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
       {/* Top color bar */}
