@@ -14,7 +14,8 @@ import {
   PlayCircle,
   ShieldAlert,
   MessageSquare,
-  Handshake
+  Handshake,
+  CalendarClock
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -276,14 +277,20 @@ export default function ContractDetailPage() {
 
   // 7. RENDER LOGIC: KHU VỰC THƯƠNG LƯỢNG (Chỉ hiện khi Admin đã vào - negotiating)
   const renderNegotiationArea = () => {
-    if (currentDispute?.status !== 'negotiating') return null
+    // Chỉ hiện khi Admin đã Join (negotiating) hoặc đang chờ Review
+    if (!['negotiating', 'admin_review'].includes(currentDispute?.status)) return null
 
-    const proposal = currentDispute.proposedResolution
-    const hasProposal = proposal && proposal.type
+    // Kiểm tra xem ĐÃ CÓ ĐỀ XUẤT CHƯA: Dựa vào việc resolutionType có tồn tại hay không
+    const hasProposal = !!currentDispute.resolutionType
 
-    // Đã có đề xuất
     if (hasProposal) {
-      const isMyProposal = proposal.proposedBy === user?._id
+      // Xác định ai là người đề xuất:
+      // Nếu mình là Contractor và contractorAgreed=true, freelancerAgreed=false => Mình là người đề xuất
+      // Nếu mình là Freelancer và freelancerAgreed=true, contractorAgreed=false => Mình là người đề xuất
+      const iAmAgreed = isContractor ? currentDispute.contractorAgreed : currentDispute.freelancerAgreed
+      const partnerAgreed = isContractor ? currentDispute.freelancerAgreed : currentDispute.contractorAgreed
+
+      const isMyProposal = iAmAgreed && !partnerAgreed
       const amountFormat = (val: number) => new Intl.NumberFormat('vi-VN').format(val) + ' ₫'
 
       return (
@@ -295,49 +302,72 @@ export default function ContractDetailPage() {
             </h3>
 
             <div className="bg-white rounded-xl p-4 border border-blue-100 mb-5">
-              <p className="text-sm text-slate-600 font-medium mb-2">
+              <p className="text-sm text-slate-600 font-medium mb-3">
                 Người đề xuất: <strong className="text-slate-900">{isMyProposal ? 'Bạn' : 'Đối phương'}</strong>
               </p>
 
-              {proposal.type === 'cancel' && (
-                <p className="font-bold text-red-600">Hủy hợp đồng (Khách hàng nhận lại 100% tiền)</p>
-              )}
-              {proposal.type === 'extend' && (
-                <p className="font-bold text-amber-600">
-                  Gia hạn Deadline đến: {new Date(proposal.newDeadline).toLocaleDateString('vi-VN')}
-                </p>
-              )}
-              {proposal.type === 'split' && (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-2">
-                  <div className="text-sm">
-                    <span className="text-slate-500">Freelancer nhận:</span>{' '}
-                    <strong className="text-indigo-600">{amountFormat(proposal.freelancerAmount || 0)}</strong>
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                {currentDispute.resolutionType === 'cancel' && (
+                  <p className="font-bold text-red-600 flex items-center gap-2">
+                    <XCircle className="w-4 h-4" /> Hủy hợp đồng (Hoàn tiền 100% cho Khách)
+                  </p>
+                )}
+                {currentDispute.resolutionType === 'extend' && (
+                  <p className="font-bold text-amber-600 flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4" /> Gia hạn thêm đến:{' '}
+                    {new Date(currentDispute.newDeadline).toLocaleDateString('vi-VN')}
+                  </p>
+                )}
+                {currentDispute.resolutionType === 'split' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Freelancer nhận</span>
+                      <strong className="text-indigo-600 text-lg">
+                        {amountFormat(currentDispute.freelancerAmount || 0)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Khách được hoàn</span>
+                      <strong className="text-emerald-600 text-lg">
+                        {amountFormat(currentDispute.contractorAmount || 0)}
+                      </strong>
+                    </div>
                   </div>
-                  <div className="text-sm">
-                    <span className="text-slate-500">Khách được hoàn:</span>{' '}
-                    <strong className="text-emerald-600">{amountFormat(proposal.contractorAmount || 0)}</strong>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
+            {/* Nút hành động */}
             {isMyProposal ? (
-              <p className="text-sm font-bold text-blue-600 animate-pulse flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-600 rounded-full"></span> Đang chờ đối phương xem xét...
-              </p>
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-bold text-blue-600 animate-pulse flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full"></span> Đang chờ đối phương xác nhận đề xuất này...
+                </p>
+                <button
+                  onClick={() => setShowNegotiationModal(true)}
+                  className="w-fit text-xs font-bold text-slate-500 hover:text-blue-600 underline"
+                >
+                  Thay đổi đề xuất khác
+                </button>
+              </div>
             ) : (
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
-                    if (window.confirm('Bạn có chắc chắn ĐỒNG Ý với đề xuất này? Tranh chấp sẽ được đóng lại.')) {
+                    if (
+                      window.confirm(
+                        'Bạn có chắc chắn ĐỒNG Ý với đề xuất này? Tiền sẽ được chia và tranh chấp kết thúc.'
+                      )
+                    ) {
                       agreeResolutionMutation.mutate()
                     }
                   }}
                   disabled={agreeResolutionMutation.isPending}
                   className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all disabled:opacity-50"
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Đồng ý đề xuất
+                  <CheckCircle2 className="w-4 h-4" /> Đồng ý & Chốt hồ sơ
                 </button>
+
                 <button
                   onClick={() => setShowNegotiationModal(true)}
                   className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-blue-600 bg-white border border-blue-200 hover:bg-blue-50 rounded-xl transition-all"
@@ -351,21 +381,21 @@ export default function ContractDetailPage() {
       )
     }
 
-    // Chưa có ai đề xuất gì
+    // Nếu chưa có ai đề xuất gì
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-8 animate-in fade-in">
         <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center">
           <Handshake className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <h3 className="font-bold text-slate-700 mb-1">Thương lượng trực tiếp</h3>
-          <p className="text-sm text-slate-500 mb-5 max-w-lg mx-auto">
-            Bạn có thể đưa ra đề xuất chia tiền, gia hạn hoặc hủy hợp đồng để đối phương xem xét trước khi Admin quyết
-            định.
+          <h3 className="font-bold text-slate-700 mb-1 text-lg">Bàn Thương Lượng</h3>
+          <p className="text-sm text-slate-500 mb-5 max-w-md mx-auto leading-relaxed">
+            Staff đã tham gia. Bây giờ hai bên có thể đưa ra đề xuất chia tiền hoặc gia hạn để tự giải quyết nhanh
+            chóng.
           </p>
           <button
             onClick={() => setShowNegotiationModal(true)}
-            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-lg"
           >
-            Đưa ra đề xuất
+            Đưa ra đề xuất giải quyết
           </button>
         </div>
       </div>
