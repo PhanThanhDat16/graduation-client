@@ -4,8 +4,8 @@ import type { UserProfile } from './user'
 // Các trạng thái của Hợp đồng
 export type ContractStatus =
   | 'draft' // Bản nháp (Đang soạn)
-  | 'pendingAgreement' // Chờ 2 bên đồng ý
-  | 'waitingPayment' // Chờ thanh toán cọc
+  | 'pending_agreement' // Chờ 2 bên đồng ý
+  | 'waiting_payment' // Chờ thanh toán cọc
   | 'running' // Đang thực hiện
   | 'submitted' // Freelancer đã nộp bài
   | 'completed' // Đã hoàn thành (Nghiệm thu)
@@ -81,6 +81,11 @@ export interface ContractCreateParams {
 // Params để Update Hợp đồng
 export type ContractUpdateParams = Partial<Omit<ContractCreateParams, 'projectId' | 'applicationId' | 'freelancerId'>>
 
+//Nộp sản phẩm
+export interface SubmitContractPayload {
+  githubLink?: string
+  webLink?: string
+}
 // Params Query khi lấy danh sách
 export interface ContractQueryParams {
   page?: number

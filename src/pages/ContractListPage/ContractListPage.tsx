@@ -7,8 +7,8 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 // Import các Component dùng chung
 import ContractCard from './components/ContractCard'
-import StatusTabs, { type TabItem } from '@/components/StatusTabs/StatusTabs' // Đường dẫn của bạn
-import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDropdown' // Component mới của bạn
+import StatusTabs, { type TabItem } from '@/components/StatusTabs/StatusTabs'
+import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDropdown'
 
 // Định nghĩa các tuỳ chọn sắp xếp
 const SORT_OPTIONS: SortOption[] = [
@@ -32,28 +32,31 @@ export default function ContractListPage() {
     queryFn: () => contractService.getMyContracts()
   })
   const contracts = axiosResponse?.data?.data || []
-
+  console.log(contracts)
   // LOGIC ĐẾM SỐ LƯỢNG CHO TỪNG TAB
   const counts = {
     all: contracts.length,
-    pending: contracts.filter((c) => ['draft', 'pendingAgreement', 'waitingPayment'].includes(c.status)).length,
+    pending: contracts.filter((c) => ['draft', 'pending_agreement', 'waiting_payment'].includes(c.status)).length,
     running: contracts.filter((c) => ['running', 'submitted', 'dispute'].includes(c.status)).length,
-    completed: contracts.filter((c) => ['completed', 'cancelled'].includes(c.status)).length
+    completed: contracts.filter((c) => ['completed', 'cancelled'].includes(c.status)).length,
+    dispute: contracts.filter((c) => c.status === 'dispute').length
   }
 
   const TAB_CONFIG: TabItem[] = [
     { id: 'all', label: 'Tất cả', count: counts.all },
     { id: 'pending', label: 'Cần xử lý', count: counts.pending },
     { id: 'running', label: 'Đang thực hiện', count: counts.running },
-    { id: 'completed', label: 'Đã đóng', count: counts.completed }
+    { id: 'completed', label: 'Đã đóng', count: counts.completed },
+    { id: 'dispute', label: 'Đang khiếu nại', count: counts.dispute }
   ]
 
   // LOGIC LỌC DỮ LIỆU (Filter by Status)
   const filteredContracts = contracts.filter((contract) => {
     if (activeTab === 'all') return true
-    if (activeTab === 'pending') return ['draft', 'pendingAgreement', 'waitingPayment'].includes(contract.status)
+    if (activeTab === 'pending') return ['draft', 'pending_agreement', 'waiting_payment'].includes(contract.status)
     if (activeTab === 'running') return ['running', 'submitted', 'dispute'].includes(contract.status)
     if (activeTab === 'completed') return ['completed', 'cancelled'].includes(contract.status)
+    if (activeTab === 'dispute') return contract.status === 'dispute'
     return true
   })
 

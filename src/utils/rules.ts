@@ -127,10 +127,37 @@ export const profileSchema = yup
     description: yup.string().max(500, 'Giới thiệu không vượt quá 500 ký tự').optional()
   })
   .required()
-
+export const negotiationSchema = yup.object({
+  resolutionType: yup.string().oneOf(['extend', 'cancel', 'split']).required('Vui lòng chọn loại đề xuất'),
+  freelancerAmount: yup
+    .number()
+    .transform((val) => (isNaN(val) ? undefined : val))
+    .optional(),
+  contractorAmount: yup
+    .number()
+    .transform((val) => (isNaN(val) ? undefined : val))
+    .optional(),
+  newDeadline: yup.string().optional()
+})
+export const submitSchema = yup.object({
+  githubLink: yup
+    .string()
+    .transform((v) => (v === '' ? null : v))
+    .url('Vui lòng nhập đường link hợp lệ (http/https).')
+    .nullable()
+    .default(''),
+  webLink: yup
+    .string()
+    .transform((v) => (v === '' ? null : v))
+    .url('Vui lòng nhập đường link hợp lệ (http/https).')
+    .nullable()
+    .default('')
+})
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
 export type ProposalSchema = yup.InferType<typeof proposalSchema>
 export type ProjectSchema = yup.InferType<typeof projectSchema>
 export type ContractSchema = yup.InferType<typeof contractSchema>
+export type SubmitSchema = yup.InferType<typeof submitSchema>
 export type ProfileSchema = yup.InferType<typeof profileSchema>
+export type NegotiationSchema = yup.InferType<typeof negotiationSchema>

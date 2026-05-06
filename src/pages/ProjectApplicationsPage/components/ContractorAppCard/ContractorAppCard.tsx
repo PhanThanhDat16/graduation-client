@@ -119,7 +119,7 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
           {/* FIX TRÀN CHỮ NẰM Ở ĐÂY: break-words */}
           <div className="p-4 bg-white border border-slate-200/60 rounded-lg rounded-tl-none relative">
             <div className="absolute -top-3 left-0 w-3 h-3 bg-white border-t border-l border-slate-200/60"></div>
-            <p className="text-[14px] text-slate-700 leading-relaxed italic whitespace-pre-line break-words">
+            <p className="text-[14px] text-slate-700 leading-relaxed italic whitespace-pre-line break-all">
               "{app.proposal}"
             </p>
           </div>

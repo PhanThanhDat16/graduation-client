@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -11,15 +11,25 @@ import {
   Wallet,
   Send,
   CheckSquare,
-  PlayCircle
+  PlayCircle,
+  ShieldAlert,
+  MessageSquare,
+  Handshake
 } from 'lucide-react'
-import { toast } from 'react-toastify' // Thay alert bằng toast cho chuyên nghiệp
+import { toast } from 'react-toastify'
 
 import { contractService } from '@/apis/contractService'
+import { disputeService } from '@/apis/disputeService'
+import { projectService } from '@/apis/projectService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { formatBudget } from '@/utils/fomatters'
-import PaymentModal from './components/PaymentModal' // Đảm bảo bạn đã tạo file này theo code tôi gửi lúc nãy
-import { projectService } from '@/apis/projectService'
+import { useCountdown } from '@/hooks/useCountdown'
+
+import PaymentModal from './components/PaymentModal'
+import DisputeModal from './components/DisputeModal'
+import SubmitWorkModal from './components/SubmitWorkModal'
+import DisputeDossier from './components/DisputeDossier'
+import NegotiationModal from './components/NegotiationModal'
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -27,26 +37,56 @@ export default function ContractDetailPage() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
 
+  // --- STATES ---
   const [signature, setSignature] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [showDisputeModal, setShowDisputeModal] = useState(false)
+  const [showNegotiationModal, setShowNegotiationModal] = useState(false)
 
-  // 1. FETCH DỮ LIỆU HỢP ĐỒNG
-  const { data: axiosResponse, isLoading } = useQuery({
+  // 1. FETCH DATA
+  const { data: axiosResponse, isLoading: isContractLoading } = useQuery({
     queryKey: ['contract', id],
     queryFn: () => contractService.getContractById(id as string),
     enabled: !!id
   })
 
-  const contract = axiosResponse?.data?.data
+  const { data: disputeRes } = useQuery({
+    queryKey: ['dispute-contract', id],
+    queryFn: () => disputeService.getDisputeByContract(id as string),
+    enabled: !!id
+  })
 
-  // 2. NHẬN DIỆN VAI TRÒ & TRẠNG THÁI
-  const userRole = user?.role || 'freelancer'
-  const isContractor = userRole === 'contractor'
+  const contract = axiosResponse?.data?.data
+  const currentDispute = disputeRes?.data?.data
+
+  // 2. ROLE CHECK (Nhận diện Khách hàng / Freelancer bằng ID)
+  const contractorIdStr =
+    typeof contract?.contractorId === 'string' ? contract?.contractorId : contract?.contractorId?._id
+
+  const isContractor = user?._id === contractorIdStr
+  const userRole = isContractor ? 'contractor' : 'freelancer'
 
   const hasAgreed = isContractor ? contract?.contractorAgreed : contract?.freelancerAgreed
   const partnerAgreed = isContractor ? contract?.freelancerAgreed : contract?.contractorAgreed
 
-  // 3. MUTATIONS (CÁC HÀNH ĐỘNG CẬP NHẬT TRẠNG THÁI)
+  // 3. COUNTDOWN LOGIC
+  const { minutes, seconds, isExpired } = useCountdown(currentDispute?.reasonDeadline)
+
+  const checkDeadlineMutation = useMutation({
+    mutationFn: () => disputeService.checkDeadline(currentDispute._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
+    }
+  })
+
+  useEffect(() => {
+    if (isExpired && currentDispute?.status === 'pending_reasons') {
+      checkDeadlineMutation.mutate()
+    }
+  }, [isExpired, currentDispute?.status])
+
+  // 4. MUTATIONS (Các hành động cập nhật trạng thái)
   const agreeMutation = useMutation({
     mutationFn: () => contractService.agreeToContract(id as string),
     onSuccess: () => {
@@ -57,32 +97,18 @@ export default function ContractDetailPage() {
   })
 
   const cancelMutation = useMutation({
-    // Đổi mutationFn thành hàm async để gọi 2 API
     mutationFn: async () => {
-      // 1. Gọi API Hủy Hợp đồng
       await contractService.cancelContract(id as string)
-
-      // 2. Gọi API Cập nhật Dự án về trạng thái 'open'
-      const projectId = contract?.projectId._id as string
-      await projectService.updateProject(projectId, { status: 'open' })
+      const projectId = typeof contract?.projectId === 'string' ? contract?.projectId : contract?.projectId?._id
+      await projectService.updateProject(projectId as string, { status: 'open' })
     },
     onSuccess: () => {
-      // Load lại thông tin Hợp đồng
       queryClient.invalidateQueries({ queryKey: ['contract', id] })
       queryClient.invalidateQueries({ queryKey: ['my-contracts'] })
       queryClient.invalidateQueries({ queryKey: ['my-projects'] })
-
       toast.success('Hợp đồng đã được huỷ. Dự án mở tuyển trở lại!')
     },
     onError: () => toast.error('Không thể huỷ hợp đồng lúc này.')
-  })
-
-  const submitMutation = useMutation({
-    mutationFn: () => contractService.submitContract(id as string),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contract', id] })
-      toast.success('Đã nộp sản phẩm cho Khách hàng!')
-    }
   })
 
   const completeMutation = useMutation({
@@ -93,7 +119,27 @@ export default function ContractDetailPage() {
     }
   })
 
-  // 4. HANDLERS
+  const escalateMutation = useMutation({
+    mutationFn: () => disputeService.escalateDispute(currentDispute._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
+      queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      toast.success('Đã đẩy khiếu nại lên Ban Quản Trị!')
+    },
+    onError: () => toast.error('Lỗi khi yêu cầu Admin.')
+  })
+
+  const agreeResolutionMutation = useMutation({
+    mutationFn: () => disputeService.agreeResolution(currentDispute._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
+      queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      toast.success('Đã đồng ý với đề xuất! Tranh chấp đã được giải quyết.')
+    },
+    onError: () => toast.error('Lỗi khi xác nhận đồng ý.')
+  })
+
+  // 5. HANDLERS
   const handleAgree = () => {
     if (signature.trim().length < 2) {
       toast.warning('Vui lòng nhập đầy đủ Họ và Tên để làm chữ ký điện tử.')
@@ -110,18 +156,70 @@ export default function ContractDetailPage() {
     }
   }
 
-  // 5. RENDER LOGIC: NÚT ACTION TRÊN TOOLBAR
+  // 6. RENDER LOGIC: NÚT ACTION TRÊN TOOLBAR
   const renderActionButtons = () => {
-    if (contract?.status === 'waitingPayment') {
+    const isDisputeActive =
+      currentDispute && !['resolved', 'auto_closed', 'staff_cancelled'].includes(currentDispute.status)
+
+    // --- A. LUỒNG TRANH CHẤP ---
+    if (isDisputeActive) {
+      const myReason = isContractor ? currentDispute.contractorReason : currentDispute.freelancerReason
+      const iHaveSubmittedReason = myReason && myReason.trim().length > 0
+
+      if (currentDispute.status === 'pending_reasons') {
+        if (!iHaveSubmittedReason) {
+          return (
+            <button
+              onClick={() => setShowDisputeModal(true)}
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors"
+            >
+              <AlertTriangle className="w-4 h-4" /> Bổ sung lời khai
+            </button>
+          )
+        } else {
+          return (
+            <button
+              disabled
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-slate-500 bg-slate-200 rounded-xl cursor-not-allowed"
+            >
+              <AlertTriangle className="w-4 h-4" /> Đang chờ đối tác...
+            </button>
+          )
+        }
+      }
+
+      if (currentDispute.status === 'waiting_escalation') {
+        return (
+          <button
+            onClick={() => escalateMutation.mutate()}
+            disabled={escalateMutation.isPending}
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors disabled:opacity-50"
+          >
+            <ShieldAlert className="w-4 h-4" /> Yêu cầu Admin phân xử
+          </button>
+        )
+      }
+
+      return (
+        <button
+          onClick={() => navigate(`/messages`)}
+          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-sm transition-colors"
+        >
+          <MessageSquare className="w-4 h-4" /> Vào Box Chat
+        </button>
+      )
+    }
+
+    // --- B. LUỒNG BÌNH THƯỜNG ---
+    if (contract?.status === 'waiting_payment') {
       const needToPay = isContractor
         ? contract.paymentInfo?.contractorMustPay > 0
         : contract.paymentInfo?.freelancerMustPay > 0
-
       if (needToPay) {
         return (
           <button
             onClick={() => setShowPaymentModal(true)}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors"
           >
             <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
           </button>
@@ -129,35 +227,153 @@ export default function ContractDetailPage() {
       }
     }
 
-    if (contract?.status === 'running' && !isContractor) {
+    if (contract?.status === 'running') {
       return (
-        <button
-          onClick={() => submitMutation.mutate()}
-          disabled={submitMutation.isPending}
-          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
-        >
-          <Send className="w-4 h-4" /> {submitMutation.isPending ? 'Đang gửi...' : 'Nộp sản phẩm'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowDisputeModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm"
+          >
+            <AlertTriangle className="w-4 h-4" /> Khiếu nại
+          </button>
+          {!isContractor && (
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
+            >
+              <Send className="w-4 h-4" /> Nộp sản phẩm
+            </button>
+          )}
+        </div>
       )
     }
 
-    if (contract?.status === 'submitted' && isContractor) {
+    if (contract?.status === 'submitted') {
       return (
-        <button
-          onClick={() => completeMutation.mutate()}
-          disabled={completeMutation.isPending}
-          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
-        >
-          <CheckSquare className="w-4 h-4" /> {completeMutation.isPending ? 'Đang xử lý...' : 'Nghiệm thu & Giải ngân'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowDisputeModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm"
+          >
+            <AlertTriangle className="w-4 h-4" /> Khiếu nại
+          </button>
+          {isContractor && (
+            <button
+              onClick={() => completeMutation.mutate()}
+              disabled={completeMutation.isPending}
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors disabled:opacity-70"
+            >
+              <CheckSquare className="w-4 h-4" />{' '}
+              {completeMutation.isPending ? 'Đang xử lý...' : 'Nghiệm thu & Giải ngân'}
+            </button>
+          )}
+        </div>
       )
     }
 
     return null
   }
 
-  // UI LOADING & LỖI
-  if (isLoading) {
+  // 7. RENDER LOGIC: KHU VỰC THƯƠNG LƯỢNG (Chỉ hiện khi Admin đã vào - negotiating)
+  const renderNegotiationArea = () => {
+    if (currentDispute?.status !== 'negotiating') return null
+
+    const proposal = currentDispute.proposedResolution
+    const hasProposal = proposal && proposal.type
+
+    // Đã có đề xuất
+    if (hasProposal) {
+      const isMyProposal = proposal.proposedBy === user?._id
+      const amountFormat = (val: number) => new Intl.NumberFormat('vi-VN').format(val) + ' ₫'
+
+      return (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-8 animate-in fade-in slide-in-from-bottom-4">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 shadow-sm">
+            <h3 className="font-black text-blue-900 text-lg mb-3 flex items-center gap-2">
+              <Handshake className="w-5 h-5 text-blue-600" />
+              Đề xuất giải quyết hiện tại
+            </h3>
+
+            <div className="bg-white rounded-xl p-4 border border-blue-100 mb-5">
+              <p className="text-sm text-slate-600 font-medium mb-2">
+                Người đề xuất: <strong className="text-slate-900">{isMyProposal ? 'Bạn' : 'Đối phương'}</strong>
+              </p>
+
+              {proposal.type === 'cancel' && (
+                <p className="font-bold text-red-600">Hủy hợp đồng (Khách hàng nhận lại 100% tiền)</p>
+              )}
+              {proposal.type === 'extend' && (
+                <p className="font-bold text-amber-600">
+                  Gia hạn Deadline đến: {new Date(proposal.newDeadline).toLocaleDateString('vi-VN')}
+                </p>
+              )}
+              {proposal.type === 'split' && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-2">
+                  <div className="text-sm">
+                    <span className="text-slate-500">Freelancer nhận:</span>{' '}
+                    <strong className="text-indigo-600">{amountFormat(proposal.freelancerAmount || 0)}</strong>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-slate-500">Khách được hoàn:</span>{' '}
+                    <strong className="text-emerald-600">{amountFormat(proposal.contractorAmount || 0)}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {isMyProposal ? (
+              <p className="text-sm font-bold text-blue-600 animate-pulse flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-600 rounded-full"></span> Đang chờ đối phương xem xét...
+              </p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    if (window.confirm('Bạn có chắc chắn ĐỒNG Ý với đề xuất này? Tranh chấp sẽ được đóng lại.')) {
+                      agreeResolutionMutation.mutate()
+                    }
+                  }}
+                  disabled={agreeResolutionMutation.isPending}
+                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Đồng ý đề xuất
+                </button>
+                <button
+                  onClick={() => setShowNegotiationModal(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-blue-600 bg-white border border-blue-200 hover:bg-blue-50 rounded-xl transition-all"
+                >
+                  Đưa ra đề xuất khác
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // Chưa có ai đề xuất gì
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-8 animate-in fade-in">
+        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center">
+          <Handshake className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+          <h3 className="font-bold text-slate-700 mb-1">Thương lượng trực tiếp</h3>
+          <p className="text-sm text-slate-500 mb-5 max-w-lg mx-auto">
+            Bạn có thể đưa ra đề xuất chia tiền, gia hạn hoặc hủy hợp đồng để đối phương xem xét trước khi Admin quyết
+            định.
+          </p>
+          <button
+            onClick={() => setShowNegotiationModal(true)}
+            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition-all shadow-sm"
+          >
+            Đưa ra đề xuất
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ====================== RENDERING ======================
+  if (isContractLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 gap-4">
         <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -170,6 +386,8 @@ export default function ContractDetailPage() {
 
   const contractorInfo = contract.contractorId as any
   const freelancerInfo = contract.freelancerId as any
+  const isDisputeActive =
+    currentDispute && !['resolved', 'auto_closed', 'staff_cancelled'].includes(currentDispute.status)
 
   return (
     <div className="bg-slate-100 min-h-screen font-body pb-24 text-slate-800">
@@ -197,8 +415,6 @@ export default function ContractDetailPage() {
             <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
               <Printer className="w-4 h-4" /> In PDF
             </button>
-
-            {/* Hiển thị Action Button tương ứng với Trạng thái */}
             {renderActionButtons()}
           </div>
         </div>
@@ -206,7 +422,37 @@ export default function ContractDetailPage() {
 
       {/* ── STATUS BANNER ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8">
-        {contract.status === 'cancelled' && (
+        {/* BANNER TRANH CHẤP */}
+        {isDisputeActive && (
+          <div className="bg-red-50 border-2 border-red-200 text-red-900 p-5 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-5 mb-6 shadow-sm">
+            <div className="flex items-start gap-3 flex-1 w-full">
+              <ShieldAlert className="w-6 h-6 shrink-0 text-red-600 mt-0.5" />
+              <div>
+                <p className="font-black text-lg">Dự án đang xảy ra tranh chấp!</p>
+                <p className="text-sm mt-1 text-red-700 font-medium leading-relaxed">
+                  {currentDispute.status === 'pending_reasons'
+                    ? 'Hai bên có thời gian để điền biểu mẫu bổ sung lời khai / bằng chứng bảo vệ quyền lợi của mình.'
+                    : currentDispute.status === 'waiting_escalation'
+                      ? 'Đã thu thập đủ lời khai. Vui lòng bấm "Yêu cầu Admin phân xử" ở thanh công cụ phía trên.'
+                      : 'Hồ sơ khiếu nại đã được chuyển lên Ban Quản Trị. Quản trị viên sẽ sớm tham gia vào nhóm chat để hỗ trợ giải quyết.'}
+                </p>
+              </div>
+            </div>
+
+            {/* ĐỒNG HỒ ĐẾM NGƯỢC */}
+            {currentDispute.status === 'pending_reasons' && (
+              <div className="bg-white border-2 border-red-200 rounded-xl px-4 py-2 text-center shadow-sm min-w-[140px] shrink-0 w-full md:w-auto">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Thời gian còn lại</p>
+                <div className="font-mono text-2xl font-black text-red-600 flex justify-center items-center gap-1 animate-pulse">
+                  {isExpired ? '00:00' : `${minutes}:${seconds}`}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CÁC BANNER BÌNH THƯỜNG KHÁC */}
+        {!isDisputeActive && contract.status === 'cancelled' && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-start gap-3 mb-6">
             <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -216,7 +462,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {(contract.status === 'draft' || contract.status === 'pendingAgreement') && (
+        {!isDisputeActive && (contract.status === 'draft' || contract.status === 'pending_agreement') && (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -232,7 +478,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {contract.status === 'waitingPayment' && (
+        {!isDisputeActive && contract.status === 'waiting_payment' && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -246,7 +492,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {contract.status === 'running' && (
+        {!isDisputeActive && contract.status === 'running' && (
           <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <PlayCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -260,7 +506,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {contract.status === 'submitted' && (
+        {!isDisputeActive && contract.status === 'submitted' && (
           <div className="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <Send className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -274,7 +520,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        {contract.status === 'completed' && (
+        {!isDisputeActive && contract.status === 'completed' && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
@@ -285,12 +531,21 @@ export default function ContractDetailPage() {
         )}
       </div>
 
+      {/* ── HỒ SƠ TRANH CHẤP & THƯƠNG LƯỢNG ── */}
+      {isDisputeActive && <DisputeDossier currentDispute={currentDispute} />}
+      {renderNegotiationArea()}
+
       {/* ── BẢN HỢP ĐỒNG ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-12">
         <div className="bg-white rounded-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-8 sm:p-16 border border-slate-200 relative overflow-hidden">
           {contract.status === 'cancelled' && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-              <span className="text-9xl font-black text-red-600 -rotate-45">CANCELLED</span>
+              <span className="text-9xl font-black text-red-600 -rotate-45 uppercase">Cancelled</span>
+            </div>
+          )}
+          {isDisputeActive && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+              <span className="text-9xl font-black text-red-600 -rotate-45 uppercase tracking-tighter">Disputed</span>
             </div>
           )}
 
@@ -454,7 +709,7 @@ export default function ContractDetailPage() {
         </div>
 
         {/* NÚT HUỶ HỢP ĐỒNG */}
-        {!hasAgreed && contract.status !== 'cancelled' && contract.status !== 'waitingPayment' && (
+        {!hasAgreed && contract.status !== 'cancelled' && contract.status !== 'waiting_payment' && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={handleCancel}
@@ -468,12 +723,47 @@ export default function ContractDetailPage() {
         )}
       </div>
 
-      {/* NHÚNG MODAL THANH TOÁN */}
+      {/* ── CÁC MODAL ── */}
       {showPaymentModal && (
         <PaymentModal
           contract={contract}
           userRole={userRole as 'contractor' | 'freelancer'}
           onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+
+      {showSubmitModal && (
+        <SubmitWorkModal
+          isOpen={showSubmitModal}
+          onClose={() => setShowSubmitModal(false)}
+          contractId={contract._id}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['contract', id] })}
+        />
+      )}
+
+      {showDisputeModal && (
+        <DisputeModal
+          isOpen={showDisputeModal}
+          onClose={() => setShowDisputeModal(false)}
+          contractId={contract._id}
+          disputeId={currentDispute?._id || null}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
+            queryClient.invalidateQueries({ queryKey: ['contract', id] })
+          }}
+        />
+      )}
+
+      {showNegotiationModal && (
+        <NegotiationModal
+          isOpen={showNegotiationModal}
+          onClose={() => setShowNegotiationModal(false)}
+          disputeId={currentDispute?._id}
+          totalEscrowAmount={contract.totalAmount}
+          currentDeadline={contract.deadline}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
+          }}
         />
       )}
     </div>
