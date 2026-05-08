@@ -68,7 +68,7 @@ export interface WithdrawRequest {
   amount: number
   amountReceived: number
   status: WithdrawStatus
-  adminId?: string
+  staffId?: string
   createdAt: string
   processedAt?: string
 }

@@ -1,7 +1,7 @@
 import { Filter } from 'lucide-react'
 import { createSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { Controller, useForm } from 'react-hook-form'
-import InputNumber from '@/components/InputNumber'
+import CurrencyInput from '@/components/CurrencyInput/CurrencyInput'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { schema, type Schema } from '@/utils/rules'
 import { omitBy, isUndefined } from 'lodash'
@@ -131,15 +131,15 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
               name="budgetMin"
               render={({ field }) => {
                 return (
-                  <InputNumber
+                  <CurrencyInput
                     type="text"
                     placeholder="₫ TỪ"
                     className="grow"
                     classNameError="hidden" // Tạm ẩn lỗi đơn để gộp chung
                     classNameInput="p-2 w-full outline-none border text-sm border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     {...field}
-                    onChange={(event) => {
-                      field.onChange(event)
+                    onChange={(value) => {
+                      field.onChange(value)
                       trigger('budgetMax')
                     }}
                   />
@@ -152,15 +152,15 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
               name="budgetMax"
               render={({ field }) => {
                 return (
-                  <InputNumber
+                  <CurrencyInput
                     type="text"
                     placeholder="₫ ĐẾN"
                     className="grow"
                     classNameError="hidden"
                     classNameInput="p-2 w-full outline-none border text-sm border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     {...field}
-                    onChange={(event) => {
-                      field.onChange(event)
+                    onChange={(value) => {
+                      field.onChange(value)
                       trigger('budgetMin')
                     }}
                   />

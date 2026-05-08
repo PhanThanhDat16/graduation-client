@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Briefcase, AlignLeft, Tags, DollarSign, CheckCircle2, X, Image as ImageIcon, UploadCloud } from 'lucide-react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useWatch, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 import { projectSchema, type ProjectSchema } from '@/utils/rules'
 import Input from '@/components/Input/Input'
+import CurrencyInput from '@/components/CurrencyInput/CurrencyInput'
 
 const CATEGORIES = ['Lập trình Web', 'Mobile App', 'UI/UX Design', 'Marketing', 'Viết lách & Dịch thuật', 'Data / AI']
 const SUGGESTED_SKILLS = ['ReactJS', 'NodeJS', 'Figma', 'SEO', 'Content Writing', 'Python', 'Flutter', 'MongoDB']
@@ -377,16 +378,21 @@ export default function ProjectForm({
               Ngân sách tối thiểu <span className="text-red-500">*</span>
             </label>
             <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
-            <Input
-              type="number"
+            <Controller
+              control={control}
               name="budgetMin"
-              register={register}
-              errorMessage={errors.budgetMin?.message}
-              placeholder="VD: 5000000"
-              classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                errors.budgetMin ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
-              }`}
-              classNameError="text-red-500 text-xs mt-1.5 font-medium"
+              render={({ field }) => (
+                <CurrencyInput
+                  errorMessage={errors.budgetMin?.message}
+                  placeholder="VD: 5.000.000"
+                  classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                    errors.budgetMin ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
+                  }`}
+                  classNameError="text-red-500 text-xs mt-1.5 font-medium"
+                  {...field}
+                  onChange={(value) => field.onChange(value)}
+                />
+              )}
             />
           </div>
 
@@ -395,16 +401,21 @@ export default function ProjectForm({
               Ngân sách tối đa <span className="text-red-500">*</span>
             </label>
             <span className="absolute left-4 top-[38px] font-bold text-slate-400 z-10">₫</span>
-            <Input
-              type="number"
+            <Controller
+              control={control}
               name="budgetMax"
-              register={register}
-              errorMessage={errors.budgetMax?.message}
-              placeholder="VD: 15000000"
-              classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
-                errors.budgetMax ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
-              }`}
-              classNameError="text-red-500 text-xs mt-1.5 font-medium"
+              render={({ field }) => (
+                <CurrencyInput
+                  errorMessage={errors.budgetMax?.message}
+                  placeholder="VD: 15.000.000"
+                  classNameInput={`w-full bg-slate-50 focus:bg-white border rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 font-bold focus:ring-1 outline-none transition-all ${
+                    errors.budgetMax ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-indigo-600'
+                  }`}
+                  classNameError="text-red-500 text-xs mt-1.5 font-medium"
+                  {...field}
+                  onChange={(value) => field.onChange(value)}
+                />
+              )}
             />
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   ShieldCheck
 } from 'lucide-react'
+import CurrencyInput from '@/components/CurrencyInput/CurrencyInput'
 
 // --- MOCK DATA ---
 const CATEGORIES = ['Tất cả', 'Lập trình Web', 'Mobile App', 'UI/UX Design', 'Marketing', 'Data / AI']
@@ -70,6 +71,8 @@ const MOCK_FREELANCERS = [
 export default function FreelancersPage() {
   const [activeCategory, setActiveCategory] = useState('Tất cả')
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
 
   const formatMoney = (amount: number) => amount.toLocaleString('vi-VN')
 
@@ -130,16 +133,20 @@ export default function FreelancersPage() {
               <div className="mb-6">
                 <h3 className="font-semibold text-sm text-text-main mb-3">Giá theo giờ (VND)</h3>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
+                  <CurrencyInput
+                    value={minPrice}
+                    onChange={(v) => setMinPrice(v)}
                     placeholder="Từ"
-                    className="w-full bg-page border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary transition-colors"
+                    classNameInput="w-full bg-page border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary transition-colors"
+                    classNameError="hidden"
                   />
                   <span className="text-text-muted">-</span>
-                  <input
-                    type="number"
+                  <CurrencyInput
+                    value={maxPrice}
+                    onChange={(v) => setMaxPrice(v)}
                     placeholder="Đến"
-                    className="w-full bg-page border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary transition-colors"
+                    classNameInput="w-full bg-page border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary transition-colors"
+                    classNameError="hidden"
                   />
                 </div>
               </div>

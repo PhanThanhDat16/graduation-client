@@ -82,16 +82,32 @@ export const projectSchema = yup.object({
     .of(yup.string().required())
     .required('Vui lòng chọn kỹ năng')
     .min(1, 'Vui lòng chọn ít nhất 1 kỹ năng'),
-  budgetMin: yup.string().required('Bắt buộc nhập giá tối thiểu').test({
-    name: 'price-not-allowed',
-    message: 'Ngân sách tối thiểu không hợp lệ',
-    test: testPriceMinMax
-  }),
-  budgetMax: yup.string().required('Bắt buộc nhập giá tối đa').test({
-    name: 'price-not-allowed',
-    message: 'Ngân sách tối đa phải lớn hơn hoặc bằng tối thiểu',
-    test: testPriceMinMax
-  })
+  budgetMin: yup
+    .string()
+    .required('Bắt buộc nhập giá tối thiểu')
+    .test('limit-value', 'số tiền dự án tối đa là 100.000.000đ và min dự án sẽ là 500.000đ', (value) => {
+      if (!value) return true
+      const num = Number(value)
+      return num >= 500000 && num <= 100000000
+    })
+    .test({
+      name: 'price-not-allowed',
+      message: 'Ngân sách tối thiểu không hợp lệ',
+      test: testPriceMinMax
+    }),
+  budgetMax: yup
+    .string()
+    .required('Bắt buộc nhập giá tối đa')
+    .test('limit-value', 'số tiền dự án tối đa là 100.000.000đ và min dự án sẽ là 500.000đ', (value) => {
+      if (!value) return true
+      const num = Number(value)
+      return num >= 500000 && num <= 100000000
+    })
+    .test({
+      name: 'price-not-allowed',
+      message: 'Ngân sách tối đa phải lớn hơn hoặc bằng tối thiểu',
+      test: testPriceMinMax
+    })
 })
 export const contractSchema = yup
   .object({
