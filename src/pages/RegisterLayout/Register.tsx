@@ -70,7 +70,7 @@ export default function RegisterPage() {
           </svg>
         </div>
         <span className="font-heading font-bold text-xl text-indigo-950">
-          Freelance<span className="text-amber-500">VN</span>
+          Free<span className="text-amber-500">Work</span>
         </span>
       </Link>
 

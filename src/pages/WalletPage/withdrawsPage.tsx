@@ -36,7 +36,7 @@ function WithdrawPage() {
     setLocalError('')
     setSuccess('')
 
-    if (!parsedAmount || parsedAmount <= 0) {
+    if (!parsedAmount || parsedAmount < 100000) {
       setLocalError('Vui lòng nhập số tiền hợp lệ')
       return
     }
@@ -49,7 +49,7 @@ function WithdrawPage() {
       return
     }
 
-    const ok = await createWithdrawRequest({ amount: parsedAmount, account_id: bank })
+    const ok = await createWithdrawRequest({ amount: parsedAmount, accountId: bank })
     if (ok) {
       setSuccess(
         `Yêu cầu rút ${formatCurrency(parsedAmount)} đã được tạo thành công! Giao dịch sẽ được xử lý sớm nhất.`
@@ -125,7 +125,7 @@ function WithdrawPage() {
                   <AmountInput
                     value={amount}
                     onChange={setAmount}
-                    presets={[100000, 500000, 1000000, balance]}
+                    presets={[100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000]}
                     purpose="rút"
                     color="indigo"
                   />
@@ -190,7 +190,7 @@ function WithdrawPage() {
                             {acc.bankShortName}
                           </span>
                           <span className="text-xs text-slate-500 font-medium mt-0.5 line-clamp-1">
-                            Tài khoản: ****{acc._id.slice(-4)}
+                            Tài khoản: ****{acc.accountNumber.slice(-4)}
                           </span>
                         </div>
 
@@ -226,7 +226,14 @@ function WithdrawPage() {
 
                 <button
                   onClick={handleWithdraw}
-                  disabled={walletLoading || !amount || !bank || parsedAmount > balance}
+                  disabled={
+                    walletLoading ||
+                    !amount ||
+                    !bank ||
+                    parsedAmount > balance ||
+                    parsedAmount < 100000 ||
+                    parsedAmount > 10000000
+                  }
                   className="group relative w-full overflow-hidden bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-200 text-white font-bold py-4 px-6 rounded-2xl shadow-[0_8px_20px_rgb(99,102,241,0.25)] hover:shadow-[0_10px_25px_rgb(99,102,241,0.35)] disabled:shadow-none flex items-center justify-center gap-3 text-lg"
                 >
                   {walletLoading ? (

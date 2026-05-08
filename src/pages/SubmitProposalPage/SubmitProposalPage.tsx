@@ -17,12 +17,12 @@ import {
 
 import { projectService } from '@/apis/projectService'
 import { applicationService } from '@/apis/applicationService'
-import InputNumber from '@/components/InputNumber'
+import CurrencyInput from '@/components/CurrencyInput/CurrencyInput'
 import { formatBudget } from '@/utils/fomatters'
 import { proposalSchema, type ProposalSchema } from '@/utils/rules'
 import { toast } from 'react-toastify'
 
-const SERVICE_FEE_PERCENT = 0.1
+const SERVICE_FEE_PERCENT = 0.05
 
 const DURATION_OPTIONS = [
   { value: 'less than 1 month', label: 'Dưới 1 tháng', sub: '< 4 tuần' },
@@ -193,7 +193,7 @@ export default function SubmitProposalPage() {
                           control={control}
                           name="proposedBudget"
                           render={({ field }) => (
-                            <InputNumber
+                            <CurrencyInput
                               className="w-full"
                               classNameInput={`w-full pl-14 pr-4 py-3.5 border-2 rounded-xl font-bold text-base text-slate-900 outline-none transition-all bg-slate-50 focus:bg-white ${
                                 errors.proposedBudget
@@ -218,7 +218,7 @@ export default function SubmitProposalPage() {
                   <div className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden divide-y divide-slate-100">
                     <div className="flex items-center justify-between px-5 py-4 text-base">
                       <span className="flex items-center gap-2 text-slate-600 font-medium">
-                        <BadgePercent className="w-4 h-4" /> Phí nền tảng (10%)
+                        <BadgePercent className="w-4 h-4" /> Phí nền tảng (5%)
                       </span>
                       <span className="font-bold text-red-500">– {formatBudget(serviceFee)} ₫</span>
                     </div>

@@ -17,7 +17,7 @@ function AddFundsPage() {
 
   const handleDeposit = async () => {
     const parsedAmount = parseFloat(amount)
-    if (!parsedAmount || parsedAmount <= 0) return
+    if (!parsedAmount || parsedAmount < 100000) return
 
     clearError()
 
@@ -85,7 +85,7 @@ function AddFundsPage() {
                     <AmountInput
                       value={amount}
                       onChange={setAmount}
-                      presets={[50000, 100000, 500000, 1000000]}
+                      presets={[100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000]}
                       purpose="nạp"
                       color="emerald"
                     />
@@ -97,7 +97,7 @@ function AddFundsPage() {
                   <textarea
                     value={desc}
                     onChange={(e) => setDesc(e.target.value)}
-                    placeholder="Ví dụ: Nạp tiền thanh toán đơn hàng..."
+                    placeholder="Ví dụ: Nạp tiền vào tài khoản ví cá nhân..."
                     rows={3}
                     className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl p-4 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-50/50 focus:border-emerald-300 focus:bg-white transition-all duration-200 resize-none text-base"
                   />
@@ -178,7 +178,7 @@ function AddFundsPage() {
 
                 <button
                   onClick={handleDeposit}
-                  disabled={loading || !amount}
+                  disabled={loading || !amount || parseFloat(amount) < 100000 || parseFloat(amount) > 10000000}
                   className="group relative w-full overflow-hidden bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-200 text-white font-bold py-4 px-6 rounded-2xl shadow-[0_8px_20px_rgb(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgb(16,185,129,0.35)] disabled:shadow-none flex items-center justify-center gap-3 text-lg"
                 >
                   {loading ? (
