@@ -32,6 +32,13 @@ export const emitGuestJoinConversation = (socket: any, groupId: string) => {
   }
 }
 
+// Emit new conversation created by logged-in user (triggers 'new_conversation' event to staff)
+export const emitNewConversation = (socket: any, groupId: string) => {
+  if (socket) {
+    socket.emit('user_new_conversation', { groupId })
+  }
+}
+
 // Listen for new messages in conversation (real-time)
 export function listenNewMessage(socket: any, fnc: (message: any) => void) {
   if (!socket) return

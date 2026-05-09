@@ -8,16 +8,23 @@ import {
   Plus,
   Loader,
   HeadphonesIcon,
-  FileText
+  FileText,
+  Bot
 } from 'lucide-react'
 import { chatService } from '@/apis/chatService'
+import { aiService } from '@/apis/aiService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useStoreSocketIO } from '@/store/useStoreSocketIO'
-import { emitJoinConversation, listenNewConversation, listenNewMessage } from '@/services/socketConversation'
+import {
+  emitJoinConversation,
+  emitNewConversation,
+  listenNewConversation,
+  listenNewMessage
+} from '@/services/socketConversation'
 import dayjs from 'dayjs'
 import type { ChatGroup, MessageListResponse, MessageResponse } from '@/types/chat'
 
-type TabType = 'user_support' | 'contract_chat'
+type TabType = 'user_support' | 'contract_chat' | 'ai_chat'
 
 export default function MessagesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('user_support')
@@ -32,6 +39,7 @@ export default function MessagesPage() {
   const [sendingMessage, setSendingMessage] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [aiThinking, setAiThinking] = useState(false)
 
   const user = useAuthStore((state) => state.user)
   const { socket } = useStoreSocketIO()
@@ -184,6 +192,8 @@ export default function MessagesPage() {
     setActiveGroup(null)
     setMessages([])
     setPagination(null)
+    setGroups([])
+    setLoadingGroups(true)
   }
 
   // Create user_support group with default message
@@ -193,7 +203,7 @@ export default function MessagesPage() {
     setCreatingGroup(true)
     try {
       const res = await chatService.createGroup({
-        type: 'userSupport',
+        type: 'user_support',
         memberIds: []
       })
 
@@ -209,9 +219,9 @@ export default function MessagesPage() {
           guestName: 'user'
         })
 
-        // Join room when created (to receive the new_message event for the default message)
+        // Join room + notify staff about the new conversation
         if (socket) {
-          emitJoinConversation(socket, newGroup._id)
+          emitNewConversation(socket, newGroup._id)
         }
       }
 
@@ -223,6 +233,29 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error('[MessagesPage] Error creating support group:', error)
+    } finally {
+      setCreatingGroup(false)
+    }
+  }
+
+  // Open or create AI chat (only 1 per user)
+  const handleOpenAIChat = async () => {
+    if (!user || creatingGroup) return
+    setCreatingGroup(true)
+    try {
+      // Try to find existing ai_chat group
+      let group = await aiService.findExistingGroup()
+      if (!group) {
+        // Create new ai_chat group
+        group = await aiService.createGroup()
+      }
+      if (group) {
+        await fetchGroups()
+        setActiveGroup(group)
+        await fetchMessages(group._id, 1)
+      }
+    } catch (error: any) {
+      console.error('[MessagesPage] Error opening AI chat:', error)
     } finally {
       setCreatingGroup(false)
     }
@@ -271,6 +304,54 @@ export default function MessagesPage() {
 
       // Refresh group list silently to update lastMessage order
       fetchGroups(true)
+
+      // If this is an AI chat group, trigger AI response
+      if (activeGroup.type === 'ai_chat') {
+        setAiThinking(true)
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+        try {
+          const aiRes = await aiService.sendMessage({
+            message: content,
+            groupId: activeGroup._id,
+            userId: user._id,
+            userType: (user as any).role || 'freelancer'
+          })
+          // Append AI response directly instead of re-fetching all messages
+          const aiMsg: MessageResponse = {
+            _id: 'ai-' + Date.now(),
+            groupId: activeGroup._id,
+            senderId: { _id: 'ai-bot', fullName: 'AI Assistant', avatar: '' },
+            senderName: 'AI Assistant',
+            senderType: 'ai',
+            type: 'text',
+            content: aiRes.message,
+            createdAt: new Date().toISOString()
+          }
+          setMessages((prev) => [...prev, aiMsg])
+          fetchGroups(true)
+        } catch (aiError) {
+          console.error('[MessagesPage] AI response error:', aiError)
+          // Show error message in chat
+          const errorMsg: MessageResponse = {
+            _id: 'ai-error-' + Date.now(),
+            groupId: activeGroup._id,
+            senderId: { _id: 'ai-bot', fullName: 'AI Assistant', avatar: '' },
+            senderName: 'AI Assistant',
+            senderType: 'ai',
+            type: 'text',
+            content: 'Xin lỗi, tôi không thể trả lời lúc này. Vui lòng thử lại sau.',
+            createdAt: new Date().toISOString()
+          }
+          setMessages((prev) => [...prev, errorMsg])
+        } finally {
+          setAiThinking(false)
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        }
+      }
     } catch (error) {
       console.error('[MessagesPage] Error sending message:', error)
       // Remove optimistic message on failure
@@ -282,7 +363,9 @@ export default function MessagesPage() {
   }
 
   // Check if user_support groups exist (to show/hide + button)
-  const hasUserSupportGroup = activeTab === 'user_support' && groups.length > 0
+  // Also hide create button while loading to prevent flashing during tab switch
+  const hasUserSupportGroup = activeTab === 'user_support' && (loadingGroups || groups.length > 0)
+  const hasAiChatGroup = activeTab === 'ai_chat' && (loadingGroups || groups.length > 0)
 
   // Filter groups by search
   const filteredGroups = groups.filter((g) => {
@@ -325,6 +408,15 @@ export default function MessagesPage() {
                 <FileText className="w-3.5 h-3.5" />
                 Hợp đồng
               </button>
+              <button
+                onClick={() => handleTabChange('ai_chat')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'ai_chat' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                AI Chat
+              </button>
             </div>
           </div>
 
@@ -351,6 +443,16 @@ export default function MessagesPage() {
                   {creatingGroup ? <Loader className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 </button>
               )}
+              {activeTab === 'ai_chat' && !hasAiChatGroup && (
+                <button
+                  onClick={handleOpenAIChat}
+                  disabled={creatingGroup}
+                  className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:bg-slate-300 shrink-0"
+                  title="Bắt đầu trò chuyện với AI"
+                >
+                  {creatingGroup ? <Loader className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                </button>
+              )}
             </div>
           </div>
 
@@ -369,6 +471,7 @@ export default function MessagesPage() {
                 {activeTab === 'user_support' && (
                   <p className="text-xs text-slate-400">Nhấn nút + để tạo yêu cầu hỗ trợ</p>
                 )}
+                {activeTab === 'ai_chat' && <p className="text-xs text-slate-400">Nhấn nút AI để bắt đầu trò chuyện</p>}
               </div>
             ) : (
               filteredGroups.map((group) => (
@@ -385,11 +488,17 @@ export default function MessagesPage() {
                   <div className="relative mt-1 shrink-0">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        group.type === 'contract_chat' ? 'bg-amber-100' : 'bg-indigo-100'
+                        group.type === 'contract_chat'
+                          ? 'bg-amber-100'
+                          : group.type === 'ai_chat'
+                            ? 'bg-purple-100'
+                            : 'bg-indigo-100'
                       }`}
                     >
                       {group.type === 'contract_chat' ? (
                         <FileText className="w-5 h-5 text-amber-600" />
+                      ) : group.type === 'ai_chat' ? (
+                        <Bot className="w-5 h-5 text-purple-600" />
                       ) : (
                         <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
                       )}
@@ -404,7 +513,11 @@ export default function MessagesPage() {
                           group.unreadCount > 0 ? 'font-extrabold text-slate-900' : 'font-bold text-slate-700'
                         }`}
                       >
-                        {group.type === 'contract_chat' ? `Hợp đồng #${group._id.slice(-6)}` : 'Hỗ trợ khách hàng'}
+                        {group.type === 'contract_chat'
+                          ? `Hợp đồng #${group._id.slice(-6)}`
+                          : group.type === 'ai_chat'
+                            ? 'AI Assistant'
+                            : 'Hỗ trợ khách hàng'}
                       </h3>
                       <span
                         className={`text-[10px] shrink-0 ${
@@ -451,11 +564,17 @@ export default function MessagesPage() {
                 </button>
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    activeGroup.type === 'contract_chat' ? 'bg-amber-100' : 'bg-indigo-100'
+                    activeGroup.type === 'contract_chat'
+                      ? 'bg-amber-100'
+                      : activeGroup.type === 'ai_chat'
+                        ? 'bg-purple-100'
+                        : 'bg-indigo-100'
                   }`}
                 >
                   {activeGroup.type === 'contract_chat' ? (
                     <FileText className="w-5 h-5 text-amber-600" />
+                  ) : activeGroup.type === 'ai_chat' ? (
+                    <Bot className="w-5 h-5 text-purple-600" />
                   ) : (
                     <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
                   )}
@@ -464,10 +583,16 @@ export default function MessagesPage() {
                   <h2 className="text-base font-bold text-slate-900">
                     {activeGroup.type === 'contract_chat'
                       ? `Hợp đồng #${activeGroup._id.slice(-6)}`
-                      : 'Hỗ trợ khách hàng'}
+                      : activeGroup.type === 'ai_chat'
+                        ? 'AI Assistant'
+                        : 'Hỗ trợ khách hàng'}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    {activeGroup.type === 'contrac_chat' ? 'Thảo luận hợp đồng' : 'Yêu cầu hỗ trợ'}
+                    {activeGroup.type === 'contract_chat'
+                      ? 'Thảo luận hợp đồng'
+                      : activeGroup.type === 'ai_chat'
+                        ? 'Trợ lý AI thông minh'
+                        : 'Yêu cầu hỗ trợ'}
                   </p>
                 </div>
               </div>
@@ -512,7 +637,11 @@ export default function MessagesPage() {
                       <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         {!isMe && (
                           <span className="text-[10px] text-slate-400 mb-1 ml-1">
-                            {msg.senderType === 'staff' ? 'Nhân viên hỗ trợ' : msg.senderId?.fullName || 'Hỗ trợ'}
+                            {msg.senderType === 'ai'
+                              ? 'AI Assistant'
+                              : msg.senderType === 'staff'
+                                ? 'Nhân viên hỗ trợ'
+                                : msg.senderId?.fullName || 'Hỗ trợ'}
                           </span>
                         )}
                         <div
@@ -536,6 +665,31 @@ export default function MessagesPage() {
                     </div>
                   )
                 })
+              )}
+              {/* AI Thinking Bubble */}
+              {aiThinking && (
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] text-slate-400 mb-1 ml-1">AI Assistant</span>
+                  <div className="max-w-[85%] sm:max-w-[70%] flex flex-col items-start">
+                    <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-white border border-slate-200 shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '0ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '150ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '300ms' }}
+                        />
+                        <span className="ml-2 text-xs text-slate-400">Thinking...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
