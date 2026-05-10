@@ -11,8 +11,6 @@ const axiosInstance = axios.create({
   }
 })
 
-// axiosInstance.defaults.withCredentials = true
-
 // gắn access vào header req
 axiosInstance.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState()
@@ -29,19 +27,18 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config
-    // những api không cần check
+
+    // những api không cần retry refresh
     if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh-token')) {
       return Promise.reject(error)
     }
 
-    originalRequest._retryCount = originalRequest._retryCount || 0
-
-    if (error.response?.status === 403 && originalRequest._retryCount < 4) {
-      originalRequest._retryCount += 1
+    // Chỉ retry 1 lần khi access token hết hạn (401 hoặc 403)
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+      originalRequest._retry = true
 
       try {
         const res = await axiosInstance.post('/auth/refresh-token')
-        // console.log(res)
         const newAccessToken = res.data.data.accessToken
 
         useAuthStore.getState().setAccessToken(newAccessToken)
