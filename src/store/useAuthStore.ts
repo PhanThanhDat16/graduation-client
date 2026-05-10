@@ -6,16 +6,22 @@ import type { UserProfile } from '@/types/user'
 import { userService } from '@/apis/userService'
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
+  accessToken: localStorage.getItem('accessToken'),
   user: null,
   loading: false,
   updating: false,
 
   setAccessToken: (accessToken) => {
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken)
+    } else {
+      localStorage.removeItem('accessToken')
+    }
     set({ accessToken })
   },
 
   clearState: () => {
+    localStorage.removeItem('accessToken')
     set({ accessToken: null, user: null, loading: false })
   },
   register: async (body: BodyRegister) => {
@@ -69,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const res = await authService.logIn(email, password)
       console.log(res)
       get().setAccessToken(res.data.data.accessToken)
+
       message.success('Đăng nhập thành công!')
       // console.log(res)
       // console.log(res.data.data.accessToken)
