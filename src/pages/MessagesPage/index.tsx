@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type JSX } from 'react'
 import {
   Search,
   Send,
@@ -22,9 +22,92 @@ import {
   listenNewMessage
 } from '@/services/socketConversation'
 import dayjs from 'dayjs'
+import ReactMarkdown from 'react-markdown'
 import type { ChatGroup, MessageListResponse, MessageResponse } from '@/types/chat'
 
 type TabType = 'user_support' | 'contract_chat' | 'ai_chat'
+
+/** Detect URLs in plain text and render them as clickable links (for user messages) */
+function renderPlainTextWithLinks(content: string, isMe: boolean) {
+  const urlRegex = /(https?:\/\/[^\s<>]+[^\s<>.,;:!?)\]'"])/g
+  const result: (string | JSX.Element)[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = urlRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(content.slice(lastIndex, match.index))
+    }
+    const url = match[0]
+    result.push(
+      <a
+        key={match.index}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`underline break-all ${isMe ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
+      >
+        {url}
+      </a>
+    )
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < content.length) {
+    result.push(content.slice(lastIndex))
+  }
+
+  return result.length > 0 ? result : content
+}
+
+/** Render message content — markdown for AI messages, plain text with links for others */
+function renderMessageContent(content: string, isMe: boolean, senderType?: string) {
+  // Use markdown rendering for AI messages
+  if (senderType === 'ai') {
+    return (
+      <ReactMarkdown
+        components={{
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 underline break-all hover:text-indigo-800"
+            >
+              {children}
+            </a>
+          ),
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+          ul: ({ children }) => <ul className="ml-4 mb-2 list-disc last:mb-0">{children}</ul>,
+          ol: ({ children }) => <ol className="ml-4 mb-2 list-decimal last:mb-0">{children}</ol>,
+          li: ({ children }) => <li className="mb-0.5">{children}</li>,
+          h1: ({ children }) => <h1 className="text-base font-bold mb-1">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-sm font-bold mb-1">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
+          hr: () => <hr className="my-2 border-slate-200" />,
+          code: ({ children, className }) => {
+            const isBlock = className?.includes('language-')
+            if (isBlock) {
+              return (
+                <code className="block bg-slate-100 text-slate-800 rounded-lg p-3 my-2 text-xs overflow-x-auto whitespace-pre">
+                  {children}
+                </code>
+              )
+            }
+            return <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs">{children}</code>
+          },
+          pre: ({ children }) => <>{children}</>
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    )
+  }
+
+  // For user/staff messages, use plain text with URL linkifier
+  return renderPlainTextWithLinks(content, isMe)
+}
 
 export default function MessagesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('user_support')
@@ -648,13 +731,13 @@ export default function MessagesPage() {
                           className={`max-w-[85%] sm:max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                         >
                           <div
-                            className={`px-4 py-3 rounded-2xl text-sm ${
+                            className={`px-4 py-3 rounded-2xl text-sm ${msg.senderType !== 'ai' ? 'whitespace-pre-wrap' : ''} ${
                               isMe
                                 ? 'bg-indigo-600 text-white rounded-br-sm'
                                 : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm'
                             }`}
                           >
-                            {msg.content}
+                            {renderMessageContent(msg.content, isMe, msg.senderType)}
                           </div>
                           <div className="flex items-center gap-1 px-1 mt-1">
                             <span className="text-[10px] text-slate-400">{dayjs(msg.createdAt).format('HH:mm')}</span>
