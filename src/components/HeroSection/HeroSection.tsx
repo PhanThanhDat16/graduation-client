@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 interface HeroSectionProps {
   title: string
@@ -11,7 +11,7 @@ interface HeroSectionProps {
 export default function HeroSection({ title, highlightWord, subtitle, icon, children }: HeroSectionProps) {
   return (
     // Padding ép mỏng tối đa: pt-8, pb-12
-    <div className="bg-slate-900 pt-8 pb-12 px-4 relative overflow-hidden">
+    <div className="bg-primary pt-8 pb-12 px-4 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute -top-[50%] -right-[10%] w-[60%] h-[150%] bg-gradient-to-b from-blue-500/20 to-transparent rotate-12 blur-3xl" />
         <div className="absolute top-[20%] -left-[10%] w-[40%] h-[100%] bg-gradient-to-b from-indigo-500/20 to-transparent -rotate-12 blur-3xl" />
