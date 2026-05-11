@@ -40,6 +40,7 @@ export default function ProfilePage() {
     enabled: !!targetProfileId,
     staleTime: 1000 * 60 * 5
   })
+  console.log(profileRes)
 
   const profileData = profileRes?.data?.data
 

@@ -6,6 +6,10 @@ export const userService = {
     const res = await axiosInstance.get<PaginatedResponse<UserProfile>>('/users', { params })
     return res
   },
+  getFreelancers: (params: any) => {
+    const res = axiosInstance.get('/users', { params: { role: 'freelancer', ...params } })
+    return res
+  },
 
   getUserById: async (id: string) => {
     const res = await axiosInstance.get<ApiResponse<UserProfile>>(`/users/${id}`)

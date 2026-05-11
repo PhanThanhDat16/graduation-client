@@ -4,8 +4,7 @@ import { Heart, Clock, DollarSign, Image as ImageIcon, Flame, X } from 'lucide-r
 import ContractorInfo from '@/components/ContractorInfo/ContractorInfo'
 import { formatBudget, isHot, timeAgo } from '@/utils/fomatters'
 import type { Project } from '@/types/project'
-
-const CURRENT_USER = { _id: 'user_me_123' }
+import { useAuthStore } from '@/store/useAuthStore'
 
 interface ProjectCardProps {
   project: Project
@@ -13,7 +12,8 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, onToggleLike }: ProjectCardProps) {
-  const isLiked = project.listLike?.includes(CURRENT_USER._id)
+  const { user } = useAuthStore()
+  const isLiked = user?._id && project.listLike?.includes(user?._id)
   const hot = isHot(project)
   const [isViewingImage, setIsViewingImage] = useState(false)
 

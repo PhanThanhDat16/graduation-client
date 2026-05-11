@@ -2,7 +2,9 @@ const path = {
   // public
   HOME_PAGE: '/',
   AUTH_SUCCESS: '/auth/success',
-  // ABOUT: '/about',
+  BLOG: '/blog',
+  ABOUT: '/about',
+  CONTACT: '/contact',
   // CONTACT: '/contact',
 
   LOGIN: '/login',
@@ -19,6 +21,7 @@ const path = {
 
   DASHBOARD: '/dashboard',
   PROFILE: '/profile/:id',
+  SAVED_PROJECTS: '/saved-projects',
   WALLET: '/wallet',
   ADD_FUNDS: '/add-funds',
   WITHDRAW: '/withdraw',

@@ -22,7 +22,8 @@ import {
   Mail,
   Headset,
   LayoutDashboard,
-  Send
+  Send,
+  Heart // Đã thêm icon Heart
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import path from '@/constants/path'
@@ -222,6 +223,15 @@ export default function Header() {
                   )}
                 </div>
 
+                {/* === NÚT DỰ ÁN ĐÃ LƯU (MỚI) === */}
+                <Link
+                  to="/saved-projects"
+                  className="relative p-2 rounded-lg text-text-sub hover:bg-rose-50 hover:text-rose-500 transition-colors hidden sm:flex group"
+                  title="Dự án đã lưu"
+                >
+                  <Heart className="h-5 w-5 group-hover:fill-rose-100 transition-colors" />
+                </Link>
+
                 <Link
                   to="/messages"
                   className="relative p-2 rounded-lg text-text-sub hover:bg-gray-100 hover:text-primary transition-colors hidden sm:flex"
@@ -290,6 +300,15 @@ export default function Header() {
                           <Send className="w-4 h-4 text-text-sub" /> Việc đã nộp
                         </Link>
                       )}
+
+                      {/* === NÚT DỰ ÁN ĐÃ LƯU TRONG DROPDOWN (MỚI) === */}
+                      <Link
+                        to="/saved-projects"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-rose-50 hover:text-rose-600 transition-colors group"
+                      >
+                        <Heart className="w-4 h-4 text-text-sub group-hover:text-rose-500 transition-colors" /> Dự án đã
+                        lưu
+                      </Link>
 
                       <Link
                         to={`/profile/${user?._id}`}
@@ -370,6 +389,14 @@ export default function Header() {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary bg-indigo-50 mt-2"
                 >
                   <LayoutDashboard className="h-4 w-4 text-primary" /> Bảng điều khiển
+                </Link>
+
+                {/* === NÚT DỰ ÁN ĐÃ LƯU TRONG MOBILE MENU (MỚI) === */}
+                <Link
+                  to="/saved-projects"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-main hover:bg-rose-50 hover:text-rose-600 mt-1"
+                >
+                  <Heart className="h-4 w-4 text-text-sub" /> Dự án đã lưu
                 </Link>
 
                 <Link
