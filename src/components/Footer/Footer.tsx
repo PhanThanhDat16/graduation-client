@@ -36,69 +36,69 @@ const LinkedinIcon = ({ className }: { className?: string }) => (
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 pb-8 font-body border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <footer className="pb-8 border-t bg-slate-900 font-body border-slate-800">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6">
         {/* ── TOP SECTION: NEWSLETTER ── */}
-        {/* <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-12 border-b border-slate-800">
+        {/* <div className="flex flex-col items-center justify-between gap-6 pb-12 border-b md:flex-row border-slate-800">
           <div>
-            <h3 className="text-xl font-extrabold text-white mb-2">Đăng ký nhận bản tin</h3>
+            <h3 className="mb-2 text-xl font-extrabold text-white">Đăng ký nhận bản tin</h3>
             <p className="text-sm text-slate-400">
               Nhận những cơ hội việc làm và mẹo phát triển sự nghiệp mới nhất mỗi tuần.
             </p>
           </div>
-          <div className="w-full md:w-auto flex items-center gap-2">
+          <div className="flex items-center w-full gap-2 md:w-auto">
             <div className="relative w-full md:w-80">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Mail className="absolute w-4 h-4 -translate-y-1/2 left-4 top-1/2 text-slate-500" />
               <input
                 type="email"
                 placeholder="Địa chỉ Email của bạn..."
-                className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500"
+                className="w-full py-3 pr-4 text-sm text-white transition-all border bg-slate-800 border-slate-700 rounded-xl pl-11 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-slate-500"
               />
             </div>
-            <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition-colors shrink-0">
+            <button className="px-6 py-3 text-sm font-bold text-white transition-colors bg-indigo-600 hover:bg-indigo-500 rounded-xl shrink-0">
               Đăng ký
             </button>
           </div>
         </div> */}
 
         {/* ── MAIN LINKS GRID ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-12 py-12 border-b border-slate-800">
+        <div className="grid grid-cols-1 py-12 border-b sm:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-12 border-slate-800">
           {/* Cột 1: Brand (Chiếm 2 cột trên Desktop) */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2.5 mb-6 group w-fit">
               <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-indigo-600 shadow-lg group-hover:-translate-y-0.5 transition-transform">
-                <Shield className="h-6 w-6 text-white" />
+                <Shield className="w-6 h-6 text-white" />
               </div>
-              <span className="font-heading text-2xl font-extrabold text-white tracking-tight">
+              <span className="text-2xl font-extrabold tracking-tight text-white font-heading">
                 Free<span className="text-indigo-400">Work</span>
               </span>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6 pr-4">
+            <p className="pr-4 mb-6 text-sm leading-relaxed text-slate-400">
               Nền tảng kết nối nhân tài tự do với các doanh nghiệp hàng đầu Việt Nam. Giao dịch an toàn, làm việc hiệu
               quả, thanh toán đảm bảo qua hệ thống Escrow.
             </p>
             <div className="flex items-center gap-3">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"
+                className="flex items-center justify-center w-10 h-10 transition-all rounded-full bg-slate-800 text-slate-400 hover:bg-indigo-600 hover:text-white"
               >
                 <FacebookIcon className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"
+                className="flex items-center justify-center w-10 h-10 transition-all rounded-full bg-slate-800 text-slate-400 hover:bg-indigo-600 hover:text-white"
               >
                 <TwitterIcon className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"
+                className="flex items-center justify-center w-10 h-10 transition-all rounded-full bg-slate-800 text-slate-400 hover:bg-indigo-600 hover:text-white"
               >
                 <InstagramIcon className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"
+                className="flex items-center justify-center w-10 h-10 transition-all rounded-full bg-slate-800 text-slate-400 hover:bg-indigo-600 hover:text-white"
               >
                 <LinkedinIcon className="w-4 h-4" />
               </a>
@@ -107,36 +107,30 @@ export default function Footer() {
 
           {/* Cột 2: Khách Hàng */}
           <div>
-            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Dành cho Khách hàng</h4>
+            <h4 className="mb-5 text-sm font-bold tracking-wider text-white uppercase">Dành cho Khách hàng</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
                 <Link
                   to="/post-project"
-                  className="hover:text-indigo-400 transition-colors flex items-center gap-2 group"
+                  className="flex items-center gap-2 transition-colors hover:text-indigo-400 group"
                 >
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Đăng dự án mới
                 </Link>
               </li>
               <li>
                 <Link
                   to="/freelancers"
-                  className="hover:text-indigo-400 transition-colors flex items-center gap-2 group"
+                  className="flex items-center gap-2 transition-colors hover:text-indigo-400 group"
                 >
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Tìm kiếm Freelancer
                 </Link>
               </li>
               <li>
-                <Link to="/wallet" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/wallet" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Đảm bảo thanh toán
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
-                  Chính sách hoàn tiền
                 </Link>
               </li>
             </ul>
@@ -144,30 +138,24 @@ export default function Footer() {
 
           {/* Cột 3: Freelancer */}
           <div>
-            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Dành cho Freelancer</h4>
+            <h4 className="mb-5 text-sm font-bold tracking-wider text-white uppercase">Dành cho Freelancer</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
-                <Link to="/projects" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/projects" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Khám phá việc làm
                 </Link>
               </li>
               <li>
-                <Link to="/profile" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/profile" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Tạo hồ sơ chuyên nghiệp
                 </Link>
               </li>
               <li>
-                <Link to="/wallet" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/wallet" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Rút tiền doanh thu
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
-                  Cẩm nang thành công
                 </Link>
               </li>
             </ul>
@@ -175,29 +163,23 @@ export default function Footer() {
 
           {/* Cột 4: Công ty */}
           <div>
-            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Về FreeWork</h4>
+            <h4 className="mb-5 text-sm font-bold tracking-wider text-white uppercase">Về FreeWork</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
-                <Link to="/about" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/about" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Về chúng tôi
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/contact" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Liên hệ hỗ trợ
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
-                  Blog & Tin tức
-                </Link>
-              </li>
-              <li>
-                <Link to="/careers" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/careers" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Tuyển dụng
                 </Link>
               </li>
@@ -206,32 +188,32 @@ export default function Footer() {
 
           {/* Cột 5: Pháp lý */}
           <div>
-            <h4 className="text-white font-bold mb-5 uppercase tracking-wider text-sm">Pháp lý & Điều khoản</h4>
+            <h4 className="mb-5 text-sm font-bold tracking-wider text-white uppercase">Pháp lý & Điều khoản</h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
-                <Link to="/terms" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/terms" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Điều khoản dịch vụ
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/privacy" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Chính sách bảo mật
                 </Link>
               </li>
               <li>
-                <Link to="/cookie" className="hover:text-indigo-400 transition-colors flex items-center gap-2 group">
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                <Link to="/cookie" className="flex items-center gap-2 transition-colors hover:text-indigo-400 group">
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Chính sách Cookie
                 </Link>
               </li>
               <li>
                 <Link
                   to="/guidelines"
-                  className="hover:text-indigo-400 transition-colors flex items-center gap-2 group"
+                  className="flex items-center gap-2 transition-colors hover:text-indigo-400 group"
                 >
-                  <ArrowRight className="w-3 h-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  <ArrowRight className="w-3 h-3 -ml-5 transition-all opacity-0 group-hover:opacity-100 group-hover:ml-0" />{' '}
                   Nguyên tắc cộng đồng
                 </Link>
               </li>
@@ -240,17 +222,17 @@ export default function Footer() {
         </div>
 
         {/* ── BOTTOM SECTION: COPYRIGHT & LOCALE ── */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-sm flex items-center gap-1">
+        <div className="flex flex-col items-center justify-between gap-4 pt-8 md:flex-row">
+          <p className="flex items-center gap-1 text-sm text-slate-500">
             © {new Date().getFullYear()} FreeWork. Coded with{' '}
             <Heart className="w-4 h-4 text-red-500 fill-red-500 mx-0.5" /> in Da Nang.
           </p>
 
           <div className="flex items-center gap-6 text-sm text-slate-400">
-            <button className="flex items-center gap-2 hover:text-white transition-colors">
+            <button className="flex items-center gap-2 transition-colors hover:text-white">
               <Globe className="w-4 h-4" /> Tiếng Việt (VN)
             </button>
-            <button className="flex items-center gap-2 hover:text-white transition-colors font-mono">VND (₫)</button>
+            <button className="flex items-center gap-2 font-mono transition-colors hover:text-white">VND (₫)</button>
           </div>
         </div>
       </div>

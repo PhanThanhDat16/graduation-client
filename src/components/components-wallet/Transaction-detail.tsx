@@ -22,11 +22,20 @@ import type { Transaction } from '@/types/wallet'
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(Math.abs(amount)) + ' ₫'
 
-const formatDatetime = (iso: string) =>
-  new Intl.DateTimeFormat('vi-VN', {
+const formatDatetime = (iso?: string) => {
+  if (!iso) return 'N/A'
+
+  const date = new Date(iso)
+
+  if (isNaN(date.getTime())) {
+    return 'Invalid date'
+  }
+
+  return new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'full',
     timeStyle: 'medium'
-  }).format(new Date(iso))
+  }).format(date)
+}
 
 // ─── Status config ────────────────────────────────────────────────────────────
 

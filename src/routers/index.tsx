@@ -39,7 +39,6 @@ import ContractDetailPage from '@/pages/ContractDetailPage'
 import GoogleAuthSuccessPage from '@/pages/GoogleAuthSuccessPage'
 import MessagesPage from '@/pages/MessagesPage'
 import SavedProjectsPage from '@/pages/SavedProjectsPage/SavedProjectsPage'
-import BlogPage from '@/pages/BlogPage/BlogPage'
 import AboutPage from '@/pages/AboutPage'
 import ContactPage from '@/pages/ContactPage/ContactPage'
 
@@ -54,7 +53,6 @@ const AppRouters = () => {
           <Route path={path.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={path.FREELANCERS} element={<FreelancersPage />} />
           <Route path={path.PAYMENT_RESULT} element={<PaymentResultPage />} />
-          <Route path={path.BLOG} element={<BlogPage />} />
           <Route path={path.ABOUT} element={<AboutPage />} />
           <Route path={path.CONTACT} element={<ContactPage />} />
         </Route>

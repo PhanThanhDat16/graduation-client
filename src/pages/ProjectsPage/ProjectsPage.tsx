@@ -101,7 +101,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="bg-page min-h-screen font-body pb-20">
+    <div className="min-h-screen pb-20 bg-page font-body">
       {/* HERO SECTION */}
       <HeroSection
         icon={<Briefcase size={32} className="text-indigo-400" />}
@@ -119,7 +119,7 @@ export default function ProjectsPage() {
       </HeroSection>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col items-start gap-8 px-4 pt-12 mx-auto max-w-7xl sm:px-6 lg:flex-row">
         {/* SIDEBAR */}
         <div className="w-full lg:w-[280px] shrink-0 sticky top-24">
           <FilterSidebar queryConfig={queryConfig} />
@@ -128,8 +128,8 @@ export default function ProjectsPage() {
         {/* LISTING */}
         <div className="flex-1 w-full min-w-0">
           {/* TOOLBAR */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <span className="text-sm text-text-sub font-medium">
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
+            <span className="text-sm font-medium text-text-sub">
               Tìm thấy <strong className="text-text-main">{totalItems}</strong> dự án
             </span>
 

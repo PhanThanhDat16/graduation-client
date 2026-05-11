@@ -36,7 +36,7 @@ const CONTACT_METHODS = [
 
 export default function ContactPage() {
   return (
-    <div className="bg-slate-50 min-h-screen font-body pb-32">
+    <div className="min-h-screen pb-32 bg-slate-50 font-body">
       {/* ── HERO SECTION ── */}
       <HeroSection
         icon={<MessageCircle size={32} className="text-blue-400" />}
@@ -46,8 +46,8 @@ export default function ContactPage() {
       />
 
       {/* ── MAIN CONTENT (BENTO GRID STYLE) ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      <div className="relative z-20 max-w-6xl px-4 mx-auto -mt-10 sm:px-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
           {CONTACT_METHODS.map((method, index) => (
             <a
               key={index}
@@ -69,20 +69,20 @@ export default function ContactPage() {
               </div>
 
               {/* Text Info */}
-              <h3 className="font-heading font-black text-2xl text-slate-900 mb-3">{method.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-1">{method.description}</p>
+              <h3 className="mb-3 text-2xl font-black font-heading text-slate-900">{method.title}</h3>
+              <p className="flex-1 mb-8 text-sm leading-relaxed text-slate-500">{method.description}</p>
 
               {/* Dữ liệu liên hệ chính (Email/Phone) */}
-              <div className="bg-slate-50 w-full py-4 rounded-xl border border-slate-100 mb-6 group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-colors">
-                <span className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-indigo-700 transition-colors">
+              <div className="w-full p-4 mb-6 transition-colors border bg-slate-50 rounded-xl border-slate-100 group-hover:bg-indigo-50 group-hover:border-indigo-100">
+                <span className="block w-full min-w-0 overflow-hidden text-base font-bold truncate text-slate-800 sm:text-lg group-hover:text-indigo-700">
                   {method.value}
                 </span>
               </div>
 
               {/* Call To Action Text */}
-              <div className="flex items-center gap-2 font-bold text-sm text-slate-400 group-hover:text-indigo-600 transition-colors mt-auto">
+              <div className="flex items-center gap-2 mt-auto text-sm font-bold transition-colors text-slate-400 group-hover:text-indigo-600">
                 {method.actionText}
-                <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={16} className="transition-transform transform group-hover:translate-x-1" />
               </div>
             </a>
           ))}
@@ -90,21 +90,15 @@ export default function ContactPage() {
 
         {/* ── CÂU HỎI THƯỜNG GẶP (FAQ SNIPPET) ── */}
         <div className="mt-20 bg-slate-900 rounded-[2.5rem] p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-64 h-64 translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 -translate-x-1/2 translate-y-1/2 rounded-full bg-indigo-500/10 blur-3xl" />
 
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h3 className="font-heading font-black text-2xl sm:text-3xl text-white mb-4">Bạn cần giải đáp nhanh?</h3>
-            <p className="text-slate-400 text-base mb-8">
+            <h3 className="mb-4 text-2xl font-black text-white font-heading sm:text-3xl">Bạn cần giải đáp nhanh?</h3>
+            <p className="mb-8 text-base text-slate-400">
               Trước khi liên hệ, hãy thử xem qua Trung tâm Hỗ trợ của chúng tôi. 80% các thắc mắc về Ví Escrow, đăng dự
               án và rút tiền đều đã được giải đáp chi tiết tại đây.
             </p>
-            <a
-              href="/faq"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/20 backdrop-blur-sm"
-            >
-              Xem câu hỏi thường gặp
-            </a>
           </div>
         </div>
       </div>
