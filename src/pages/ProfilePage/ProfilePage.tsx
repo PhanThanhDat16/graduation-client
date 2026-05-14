@@ -13,12 +13,14 @@ import ProfileInfo from './components/ProfileInfo'
 import ProfileProjects from './components/ProfileProjects'
 import ProfileReviews from './components/ProfileReviews'
 import EditProfileModal from './components/EditProfileModal'
+import ChangePasswordModal from './components/ChangePasswordModal/ChangePasswordModal'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   const { user: authUser, loading: authLoading, fetchMe, uploadAvatar, updating } = useAuthStore()
 
@@ -29,7 +31,7 @@ export default function ProfilePage() {
   const isOwner = !id || id === authUser?._id
   const targetProfileId = id || authUser?._id
 
-  // 1. Fetch thông tin Profile
+  // Fetch thông tin Profile
   const {
     data: profileRes,
     isLoading: isProfileLoading,
@@ -116,6 +118,7 @@ export default function ProfilePage() {
         updating={updating}
         onAvatarChange={handleAvatarChange}
         onEditClick={() => setShowEditModal(true)}
+        onChangePasswordClick={() => setShowPasswordModal(true)}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
@@ -128,6 +131,7 @@ export default function ProfilePage() {
         <ProfileReviews reviews={reviews} loading={isLoadingReviews} />
       </div>
       {showEditModal && <EditProfileModal profile={displayProfile} onClose={() => setShowEditModal(false)} />}
+      {showPasswordModal && <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />}
     </div>
   )
 }

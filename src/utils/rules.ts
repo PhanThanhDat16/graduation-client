@@ -169,6 +169,22 @@ export const submitSchema = yup.object({
     .nullable()
     .default('')
 })
+
+export const passwordSchema = yup.object().shape({
+  currentPassword: yup.string().required('Mật khẩu hiện tại là bắt buộc'),
+  newPassword: yup
+    .string()
+    .required('Vui lòng nhập mật khẩu mới')
+    .min(8, 'Ít nhất 8 ký tự')
+    .matches(/[A-Z]/, 'Ít nhất 1 chữ hoa')
+    .matches(/[0-9]/, 'Ít nhất 1 số')
+    .matches(/[!@#$%^&*]/, 'Ít nhất 1 ký tự đặc biệt'),
+  confirmPassword: yup
+    .string()
+    .required('Vui lòng xác nhận mật khẩu')
+    .oneOf([yup.ref('newPassword')], 'Mật khẩu xác nhận không khớp')
+})
+
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
 export type ProposalSchema = yup.InferType<typeof proposalSchema>
@@ -177,3 +193,4 @@ export type ContractSchema = yup.InferType<typeof contractSchema>
 export type SubmitSchema = yup.InferType<typeof submitSchema>
 export type ProfileSchema = yup.InferType<typeof profileSchema>
 export type NegotiationSchema = yup.InferType<typeof negotiationSchema>
+export type PasswordSchema = yup.InferType<typeof passwordSchema>

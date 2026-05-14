@@ -41,10 +41,12 @@ import MessagesPage from '@/pages/MessagesPage'
 import SavedProjectsPage from '@/pages/SavedProjectsPage/SavedProjectsPage'
 import AboutPage from '@/pages/AboutPage'
 import ContactPage from '@/pages/ContactPage/ContactPage'
+import ScrollToTop from '@/components/ScrollToTop/ScrollToTop'
 
 const AppRouters = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path={path.AUTH_SUCCESS} element={<GoogleAuthSuccessPage />} />

@@ -48,6 +48,7 @@ export default function ContractDetailPage() {
   // 1. FETCH DATA
   const { data: axiosResponse, isLoading: isContractLoading } = useQuery({
     queryKey: ['contract', id],
+    staleTime: 0,
     queryFn: () => contractService.getContractById(id as string),
     enabled: !!id
   })
@@ -767,7 +768,7 @@ export default function ContractDetailPage() {
           isOpen={showSubmitModal}
           onClose={() => setShowSubmitModal(false)}
           contractId={contract._id}
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['contract', id] })}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['contract', contract._id] })}
         />
       )}
 
