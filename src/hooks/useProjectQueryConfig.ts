@@ -10,6 +10,7 @@ export type QueryConfig = {
   category?: string
   status?: 'progress' | 'open' | 'closed'
   keyword?: string
+  skills?: string
   budgetMin?: string
   budgetMax?: string
   likes?: string
@@ -23,6 +24,7 @@ export default function useProjectQueryConfig() {
       page: queryParams.page || '1',
       limit: queryParams.limit || '20',
       keyword: queryParams.keyword,
+      skills: queryParams.skills,
       category: queryParams.category,
       budgetMin: queryParams.budgetMin,
       budgetMax: queryParams.budgetMax,

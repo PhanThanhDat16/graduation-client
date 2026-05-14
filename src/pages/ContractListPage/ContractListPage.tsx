@@ -29,6 +29,7 @@ export default function ContractListPage() {
   // FETCH DANH SÁCH HỢP ĐỒNG
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['my-contracts'],
+    staleTime: 0,
     queryFn: () => contractService.getMyContracts()
   })
   const contracts = axiosResponse?.data?.data || []

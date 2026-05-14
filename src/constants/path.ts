@@ -39,8 +39,7 @@ const path = {
   CONTRACT_CREATE: '/contracts/create/:applicationId',
   CONTRACT_DETAIL: '/contracts/:id',
   CONTRACTS_AGREEMENT: '/contracts/agreement/:id', // Trang Thỏa thuận & Ký tên 24h
-  CONTRACTS_WORKSPACE: '/contracts/workspace/:id', // Phòng làm việc & Bàn giao (Bước 9, 10)
-  SETTINGS: '/settings'
+  CONTRACTS_WORKSPACE: '/contracts/workspace/:id' // Phòng làm việc & Bàn giao (Bước 9, 10)
 }
 
 export default path

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Camera, MapPin, CheckCircle2, Mail, Briefcase, Edit, Star, Loader2Icon, Clock, X } from 'lucide-react'
+import { Camera, MapPin, CheckCircle2, Edit, Star, Loader2Icon, Clock, X, Lock } from 'lucide-react'
 import type { UserProfile } from '@/types/user'
 
 const translateRole = (role?: string) => {
@@ -24,10 +23,17 @@ interface ProfileHeaderProps {
   updating: boolean
   onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onEditClick?: () => void
+  onChangePasswordClick: () => void
 }
 
-export default function ProfileHeader({ profile, isOwner, updating, onAvatarChange, onEditClick }: ProfileHeaderProps) {
-  const navigate = useNavigate()
+export default function ProfileHeader({
+  profile,
+  isOwner,
+  updating,
+  onAvatarChange,
+  onEditClick,
+  onChangePasswordClick
+}: ProfileHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // State để quản lý việc mở/tắt chế độ xem Avatar full màn hình
@@ -52,8 +58,8 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row gap-5 sm:items-end">
             {/* ── AVATAR ── */}
-            <div className="-mt-16 sm:-mt-20 relative z-10 shrink-0">
-              <div className="w-32 h-32 sm:w-36 sm:h-36 bg-white rounded-full p-1.5 shadow-md relative">
+            <div className="-mt-16 sm:-mt-20 relative z-10 shrink-0 self-start sm:self-auto">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 bg-white rounded-full p-1.5 shadow-md relative mx-auto sm:mx-0">
                 {/* Khung chứa ảnh: Bấm vào đây để XEM ẢNH */}
                 <div
                   className="w-full h-full rounded-full overflow-hidden bg-slate-100 relative border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
@@ -87,9 +93,9 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
             </div>
 
             {/* ── THÔNG TIN HEADER ── */}
-            <div className="flex-1 mt-2 sm:mt-0 sm:pt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+            <div className="flex-1 mt-1 sm:mt-0 sm:pt-4 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-5">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center justify-center sm:justify-start gap-2">
                   {profile.fullName}
                   {profile.isVerified && (
                     <CheckCircle2 size={24} className="text-emerald-500 fill-emerald-50">
@@ -98,10 +104,10 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
                   )}
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-600 font-medium">
+                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-600 font-medium">
                   <span className="font-bold text-indigo-600">{translateRole(profile.role)}</span>
 
-                  <span className="flex items-center gap-1 text-slate-700">
+                  <span className="flex items-center gap-1 text-slate-700 border-l border-slate-300 pl-4">
                     <Star
                       size={16}
                       className={profile.ratingAvg ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}
@@ -116,39 +122,34 @@ export default function ProfileHeader({ profile, isOwner, updating, onAvatarChan
                     )}
                   </span>
 
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 w-full sm:w-auto sm:border-l border-slate-300 sm:pl-4 mt-1 sm:mt-0 justify-center sm:justify-start">
                     <MapPin size={15} className="text-slate-400" /> {profile.address || 'Chưa cập nhật'}
                   </span>
-                  <span className="flex items-center gap-1.5 border-l border-slate-300 pl-4 ml-2">
+                  <span className="flex items-center gap-1.5 w-full sm:w-auto mt-1 sm:mt-0 justify-center sm:justify-start">
                     <Clock size={15} className="text-slate-400" /> Tham gia {joinedDate}
                   </span>
                 </div>
               </div>
 
-              <div className="shrink-0 flex gap-3">
-                {!isOwner && (
-                  <>
-                    <button
-                      onClick={() => navigate('/messages')}
-                      className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
-                    >
-                      <Mail size={18} /> Nhắn tin
-                    </button>
-                    {profile.role === 'freelancer' && (
-                      <button className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm shadow-indigo-200 hover:-translate-y-0.5">
-                        <Briefcase size={18} /> Mời làm việc
-                      </button>
-                    )}
-                  </>
-                )}
+              {/* ── KHU VỰC BUTTONS (ĐÃ ĐƯỢC REDESIGN LẠI) ── */}
+              <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full lg:w-auto shrink-0 justify-center">
                 {isOwner && (
-                  <button
-                    onClick={onEditClick}
-                    className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
-                    title="Chỉnh sửa thông tin"
-                  >
-                    <Edit size={18} />
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={onChangePasswordClick}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-300 transition-all"
+                    >
+                      <Lock className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Đổi mật khẩu</span>
+                    </button>
+                    <button
+                      onClick={onEditClick}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+                    >
+                      <Edit className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Chỉnh sửa hồ sơ</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

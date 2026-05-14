@@ -7,13 +7,14 @@ import { schema, type Schema } from '@/utils/rules'
 import { omitBy, isUndefined } from 'lodash'
 import { type QueryConfig } from '@/hooks/useProjectQueryConfig'
 
-const POPULAR_SKILLS = ['ReactJS', 'NodeJS', 'Figma', 'Python', 'SEO', 'Flutter', 'Vue.js', 'TypeScript']
+const POPULAR_KEYWORDS = ['ReactJS', 'NodeJS', 'Figma', 'Python', 'SEO', 'Flutter', 'Vue.js', 'TypeScript']
+
 const CATEGORIES = [
   { label: 'Tất cả', value: '' },
-  { label: 'Lập trình Web', value: 'web' },
-  { label: 'Mobile App', value: 'mobile' },
-  { label: 'UI/UX Design', value: 'uiux' },
-  { label: 'Data / AI', value: 'data' }
+  { label: 'Lập trình Web', value: 'Lập trình Web' },
+  { label: 'Mobile App', value: 'Mobile App' },
+  { label: 'UI/UX Design', value: 'UI/UX Design' },
+  { label: 'Data / AI', value: 'Data / AI' }
 ]
 
 interface FilterSidebarProps {
@@ -39,45 +40,50 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // --- HÀM CỐT LÕI: ĐẨY MỌI THAY ĐỔI LÊN URL ---
-  const handleFilterChange = (key: string, value: string | undefined) => {
-    // Tạo config mới, nếu value bị xóa (undefined), hàm omitBy phía dưới sẽ tự động gỡ nó khỏi URL
-    const newConfig = { ...queryConfig, [key]: value, page: '1' }
+  // --- HÀM HELPER: Xóa sạch các params rỗng khỏi URL ---
+  const isUndefinedOrEmpty = (value: any) => isUndefined(value) || value === ''
 
-    // Lọc bỏ các key có giá trị undefined
-    const cleanedConfig = omitBy(newConfig, isUndefined)
+  const handleFilterChange = (key: string, value: string | undefined) => {
+    const newConfig = { ...queryConfig, [key]: value, page: '1' }
+    const cleanedConfig = omitBy(newConfig, isUndefinedOrEmpty)
 
     navigate({
       pathname: location.pathname,
-      search: createSearchParams(cleanedConfig).toString()
+      search: createSearchParams(cleanedConfig as any).toString()
     })
   }
 
-  // Xóa toàn bộ bộ lọc, trở về trang /projects mặc định
+  // --- NÚT RESET ---
   const handleReset = () => {
     navigate(location.pathname)
-    reset() // Xóa cả dữ liệu đang nhập dở trong Form Ngân sách
+    reset()
   }
 
-  // TÌM KIẾM THEO KỸ NĂNG (Single-select để khớp với Backend LIKE %keyword%)
-  const handleSkillToggle = (skill: string) => {
-    const isActive = queryConfig.keyword === skill
-    handleFilterChange('keyword', isActive ? undefined : skill)
+  // --- NÚT TỪ KHÓA ---
+  const handleKeywordToggle = (keyword: string) => {
+    const isActive = queryConfig.skills === keyword
+    handleFilterChange('skills', isActive ? undefined : keyword)
   }
 
-  // FORM SUBMIT NGÂN SÁCH
+  // --- SUBMIT NGÂN SÁCH ---
   const onSubmit = handleSubmit((data) => {
+    // Hàm này sẽ biến "1,000,000" thành "1000000" để Backend không bị lỗi
+    const cleanNumber = (val?: string | number) => {
+      if (!val) return undefined
+      return String(val).replace(/\D/g, '')
+    }
+
     navigate({
       pathname: location.pathname,
       search: createSearchParams(
         omitBy(
           {
             ...queryConfig,
-            budgetMin: data.budgetMin ? String(data.budgetMin) : undefined,
-            budgetMax: data.budgetMax ? String(data.budgetMax) : undefined,
+            budgetMin: cleanNumber(data.budgetMin),
+            budgetMax: cleanNumber(data.budgetMax),
             page: '1'
           },
-          isUndefined
+          isUndefinedOrEmpty
         ) as Record<string, string>
       ).toString()
     })
@@ -94,7 +100,7 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
         </button>
       </div>
 
-      {/* --- CATEGORY FILTER --- */}
+      {/* --- DANH MỤC --- */}
       <div className="px-5 py-5 border-b border-border">
         <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Danh mục</div>
         <div className="space-y-1">
@@ -102,7 +108,7 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
             const isActive = (queryConfig.category || '') === cat.value
             return (
               <label
-                key={cat.value}
+                key={cat.label}
                 className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${isActive ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
               >
                 <input
@@ -121,7 +127,7 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
         </div>
       </div>
 
-      {/* --- NGÂN SÁCH FILTER --- */}
+      {/* --- NGÂN SÁCH --- */}
       <div className="px-5 py-5 border-b border-border">
         <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Ngân sách (VND)</div>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
@@ -135,7 +141,7 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
                     type="text"
                     placeholder="₫ TỪ"
                     className="grow"
-                    classNameError="hidden" // Tạm ẩn lỗi đơn để gộp chung
+                    classNameError="hidden"
                     classNameInput="p-2 w-full outline-none border text-sm border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     {...field}
                     onChange={(value) => {
@@ -169,12 +175,10 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
             />
           </div>
 
-          {/* Cảnh báo lỗi khoảng giá */}
           {(errors.budgetMin || errors.budgetMax) && (
             <div className="text-xs font-medium text-danger text-center">Vui lòng nhập khoảng giá hợp lệ</div>
           )}
 
-          {/* NÚT ÁP DỤNG */}
           <button
             type="submit"
             className="w-full py-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white text-xs font-bold rounded-lg transition-colors uppercase tracking-wider"
@@ -184,19 +188,19 @@ export default function FilterSidebar({ queryConfig }: FilterSidebarProps) {
         </form>
       </div>
 
-      {/* --- KỸ NĂNG FILTER --- */}
+      {/* --- TỪ KHÓA (Gửi theo biến skill) --- */}
       <div className="px-5 py-5">
-        <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Kỹ năng phổ biến</div>
+        <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Từ khóa phổ biến</div>
         <div className="flex flex-wrap gap-2">
-          {POPULAR_SKILLS.map((skill) => {
-            const active = queryConfig.keyword === skill
+          {POPULAR_KEYWORDS.map((keyword) => {
+            const active = queryConfig.skills === keyword
             return (
               <button
-                key={skill}
-                onClick={() => handleSkillToggle(skill)}
+                key={keyword}
+                onClick={() => handleKeywordToggle(keyword)}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${active ? 'bg-indigo-50 border-primary/30 text-primary' : 'bg-white border-border text-text-sub hover:border-gray-300'}`}
               >
-                {skill}
+                {keyword}
               </button>
             )
           })}

@@ -19,6 +19,9 @@ export const userService = {
     const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
     return res
   },
+  updatePassword: (data: { currentPassword: string; newPassword: string }) => {
+    return axiosInstance.put('users/password', data)
+  },
 
   // uploadAvatar: async (file: File) => {
   //   const formData = new FormData()
