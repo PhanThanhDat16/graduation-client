@@ -159,12 +159,10 @@ export default function NotificationDropdown() {
 
   return (
     <Popover placement="bottom-end" offsetValue={10} renderPopover={renderDropdown}>
-      <div className="relative p-2.5 rounded-full transition-colors text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer outline-none">
+      <div className="relative p-2 flex items-center justify-center rounded-lg transition-colors text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer outline-none">
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border border-white animate-in zoom-in"></span>
         )}
       </div>
     </Popover>
