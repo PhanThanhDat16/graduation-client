@@ -5,7 +5,6 @@ import {
   ChevronDown,
   User,
   FileText,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -328,12 +327,6 @@ export default function Header() {
                         className="flex md:hidden items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
                       >
                         <Wallet className="w-4 h-4 text-text-sub" /> Ví Escrow
-                      </Link>
-                      <Link
-                        to="/settings"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-text-main hover:bg-page hover:text-primary transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-text-sub" /> Cài đặt
                       </Link>
 
                       <div className="my-1 border-t border-border"></div>
