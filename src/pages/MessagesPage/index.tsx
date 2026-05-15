@@ -458,7 +458,7 @@ export default function MessagesPage() {
   })
 
   return (
-    <div className="w-full max-w-7xl mx-auto animate-in fade-in duration-300 h-[calc(100vh-100px)] flex flex-col">
+    <div className="w-full animate-in fade-in duration-300 h-[calc(100vh-150px)] flex flex-col">
       <div className="flex flex-col flex-1 h-full min-h-0 overflow-hidden bg-white border shadow-sm border-slate-200 rounded-2xl md:flex-row">
         {/* ==========================================
             CỘT TRÁI: DANH SÁCH HỘI THOẠI

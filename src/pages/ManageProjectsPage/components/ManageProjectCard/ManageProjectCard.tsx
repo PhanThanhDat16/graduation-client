@@ -42,7 +42,6 @@ export default function ManageProjectCard({ project }: ManageProjectCardProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const statusUI = getProjectStatusUI(project.status)
-  console.log(project)
   const firstImage = project.images && project.images.length > 0 ? project.images[0] : null
   const extraImagesCount = project.images ? project.images.length - 1 : 0
 
