@@ -4,7 +4,6 @@ import {
   Briefcase,
   FileText,
   Wallet,
-  Settings,
   MessageCircle,
   Send,
   Bell,
@@ -110,13 +109,6 @@ export default function DashboardSidebar() {
           className={`${baseLinkClass} ${isActive('/notifications') ? activeClass : inactiveClass}`}
         >
           <Bell size={20} /> Thông báo
-        </NavLink>
-
-        <NavLink
-          to={path.SETTINGS || '/settings'}
-          className={`${baseLinkClass} ${isActive('/settings') ? activeClass : inactiveClass}`}
-        >
-          <Settings size={20} /> Cài đặt
         </NavLink>
       </nav>
     </aside>
