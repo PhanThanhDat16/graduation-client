@@ -1,23 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet, ChevronDown, User, Settings, LogOut, Shield, MessageSquare, ArrowLeft } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuthStore } from '@/store/useAuthStore'
 import { useWalletStore } from '@/store/useWalletStore'
+import { useStoreSocketIO } from '@/store/useStoreSocketIO'
+import { chatService } from '@/apis/chatService'
+import { listenNewMessage } from '@/services/socketConversation'
+
 import NotificationDropdown from '../Header/NotificationDropdown'
 
 export default function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { user, logOut } = useAuthStore()
 
+  const { user, logOut } = useAuthStore()
   const { balance, fetchBalance } = useWalletStore()
+  const { socket } = useStoreSocketIO()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     fetchBalance()
   }, [fetchBalance])
 
-  const unreadCount = 2
-
+  // Click outside để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -28,10 +35,33 @@ export default function DashboardHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // 1. Fetch TỔNG số lượng TIN NHẮN chưa đọc
+  const { data: chatUnreadCount = 0 } = useQuery({
+    queryKey: ['chat-total-unread-count'],
+    queryFn: () => chatService.getTotalUnreadCount(),
+    // Tự động load lại mỗi 1 phút (60000ms) để sync data
+    refetchInterval: 60000
+  })
+
+  // 2. Lắng nghe socket để cập nhật số tin nhắn realtime
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewMessage = (data: any) => {
+      // Chỉ tăng đếm (gọi lại API) nếu người gửi KHÔNG phải là mình
+      const msgSenderId = typeof data.senderId === 'object' ? data.senderId?._id : data.senderId
+      if (user && msgSenderId !== user._id) {
+        // Có tin nhắn mới từ người khác -> F5 lại cục đếm chưa đọc
+        queryClient.invalidateQueries({ queryKey: ['chat-total-unread-count'] })
+      }
+    }
+
+    listenNewMessage(socket, handleNewMessage)
+  }, [socket, user, queryClient])
+
   return (
-    // Xóa padding tổng ở thẻ header, chuyển vào từng khối con
     <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 h-16 flex items-center">
-      {/* 🌟 KHỐI 1: CHỨA LOGO (Khóa cứng w-64 trên desktop để thẳng hàng với Sidebar) 🌟 */}
+      {/* 🌟 KHỐI 1: CHỨA LOGO 🌟 */}
       <div className="w-auto md:w-64 h-full flex items-center px-4 md:px-5 md:border-r border-slate-200 shrink-0">
         <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
           <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-indigo-600 shadow-sm">
@@ -43,9 +73,9 @@ export default function DashboardHeader() {
         </Link>
       </div>
 
-      {/* 🌟 KHỐI 2: CHỨA ACTIONS (Chiếm toàn bộ không gian còn lại) 🌟 */}
+      {/* 🌟 KHỐI 2: CHỨA ACTIONS 🌟 */}
       <div className="flex-1 h-full px-4 md:px-8 flex items-center justify-between">
-        {/* Nút quay lại (Bên trái của khối 2) */}
+        {/* Nút quay lại */}
         <div>
           <Link
             to="/projects"
@@ -55,25 +85,33 @@ export default function DashboardHeader() {
           </Link>
         </div>
 
-        {/* Các nút Actions (Bên phải của khối 2) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button className="relative p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+        {/* Các nút Actions */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* NÚT TIN NHẮN (MESSAGE) */}
+          <Link
+            to="/messages"
+            title="Tin nhắn"
+            className="relative w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+          >
             <MessageSquare className="w-5 h-5" />
-          </button>
 
-          <button className="relative p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-            {/* <Bell className="w-5 h-5" /> */}
-            <NotificationDropdown />
-
-            {unreadCount > 0 && (
-              <span className="absolute top-4 right-4 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
+            {/* Chấm đỏ đếm số tin nhắn hoạt động dựa trên logic tính tổng */}
+            {chatUnreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
             )}
-          </button>
+          </Link>
 
+          {/* NÚT THÔNG BÁO (BELL) - Component tự xử lý UI bên trong */}
+          <NotificationDropdown />
+
+          {/* NÚT VÍ TIỀN */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-sm">
             <Wallet className="w-4 h-4" /> {balance.toLocaleString('vi-VN')} ₫
           </div>
 
+          {/* DROPDOWN AVATAR */}
           <div className="relative ml-1" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}

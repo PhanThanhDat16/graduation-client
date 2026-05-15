@@ -49,5 +49,21 @@ export const chatService = {
   ) => {
     const res = await axiosInstance.post(`chat/groups/${groupId}/messages`, { ...data })
     return res.data
+  },
+  getTotalUnreadCount: async (): Promise<number> => {
+    try {
+      const res = await axiosInstance.get('conversations/groups')
+      const groups = res.data?.data || []
+
+      // Duyệt qua tất cả các nhóm và cộng dồn thuộc tính unreadCount
+      const totalUnread = groups.reduce((total: number, group: any) => {
+        return total + (group.unreadCount || 0)
+      }, 0)
+
+      return totalUnread
+    } catch (error) {
+      console.error('Error calculating total unread chat count:', error)
+      return 0
+    }
   }
 }
