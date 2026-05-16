@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, XCircle, DollarSign, FileText, Mail, PenTool, ExternalLink } from 'lucide-react'
+import { CheckCircle2, XCircle, DollarSign, FileText, Mail, PenTool, ExternalLink, Lock } from 'lucide-react'
 import { formatBudget } from '@/utils/fomatters'
 import type { Application } from '@/types/application'
 
@@ -19,14 +19,21 @@ interface ContractorAppCardProps {
   app: Application
   processingId: string | null
   onUpdateStatus: (id: string, status: 'accepted' | 'rejected') => void
+  hasAcceptedApplicant?: boolean
 }
 
-export default function ContractorAppCard({ app, processingId, onUpdateStatus }: ContractorAppCardProps) {
+export default function ContractorAppCard({
+  app,
+  processingId,
+  onUpdateStatus,
+  hasAcceptedApplicant = false
+}: ContractorAppCardProps) {
   const navigate = useNavigate()
-  console.log(app)
+
   const statusUI = getStatusUI(app.status)
   const isRejected = app.status === 'rejected'
   const isAccepted = app.status === 'accepted'
+  const isPending = app.status === 'pending'
   const isProcessing = processingId === app._id
 
   // BÓC TÁCH DỮ LIỆU FREELANCER
@@ -58,16 +65,12 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
       {/* ── THÔNG TIN FREELANCER ── */}
       <div className="flex flex-col justify-between gap-5 mb-6 sm:flex-row sm:items-start">
         <div className="flex items-start min-w-0 gap-4">
-          {' '}
-          {/* min-w-0 chống tràn */}
           <img
             src={fAvatar}
             alt={fName}
             className="object-cover border-2 rounded-full shadow-sm w-14 h-14 sm:w-16 sm:h-16 border-slate-100 shrink-0"
           />
           <div className="flex-1 min-w-0">
-            {' '}
-            {/* Thêm flex-1 và min-w-0 */}
             <Link
               to={`/freelancers/${fId}`}
               className="block text-lg font-extrabold truncate transition-colors sm:text-xl text-slate-900 hover:text-indigo-600"
@@ -116,7 +119,6 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5" /> Thư chào giá
           </p>
-          {/* FIX TRÀN CHỮ NẰM Ở ĐÂY: break-words */}
           <div className="relative p-4 bg-white border rounded-lg rounded-tl-none border-slate-200/60">
             <div className="absolute left-0 w-3 h-3 bg-white border-t border-l -top-3 border-slate-200/60"></div>
             <p className="text-[14px] text-slate-700 leading-relaxed italic whitespace-pre-line break-all">
@@ -133,19 +135,22 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
             <XCircle className="w-4 h-4" /> Đã từ chối ứng viên này
           </span>
         ) : isAccepted ? (
-          // NÚT XEM HỢP ĐỒNG KHI ĐÃ TRÚNG THẦU
           <div className="flex flex-col items-center w-full gap-3 sm:flex-row sm:w-auto">
             <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-100">
               <CheckCircle2 className="w-4 h-4" /> Trúng thầu
             </span>
             <button
-              // Note: Nếu API báo giá của bạn có trả về contractId thì dùng app.contractId, không thì chuyển hướng về trang /contracts chung
               onClick={() => navigate((app as any).contractId ? `/contracts/${(app as any).contractId}` : '/contracts')}
               className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white text-sm font-extrabold rounded-xl shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
             >
               Xem Hợp Đồng <ExternalLink className="w-4 h-4" />
             </button>
           </div>
+        ) : hasAcceptedApplicant && isPending ? (
+          // ĐÃ CÓ NGƯỜI TRÚNG THẦU -> Ẩn nút Tạo hợp đồng của những người pending khác
+          <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-xl">
+            <Lock className="w-4 h-4" /> Dự án đã có người thực hiện
+          </span>
         ) : (
           <>
             <button

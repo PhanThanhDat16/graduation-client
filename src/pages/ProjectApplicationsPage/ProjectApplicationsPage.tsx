@@ -25,7 +25,6 @@ export default function ProjectApplicationsPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
   const [processingId, setProcessingId] = useState<string | null>(null)
-
   // FETCH API
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['project-applications', projectId],
@@ -34,6 +33,7 @@ export default function ProjectApplicationsPage() {
   })
 
   const applications: Application[] = axiosResponse?.data?.data || []
+  const hasAcceptedApplicant = applications.some((app) => app.status === 'accepted')
 
   // MUTATION CẬP NHẬT TRẠNG THÁI
   const statusMutation = useMutation({
@@ -120,7 +120,13 @@ export default function ProjectApplicationsPage() {
     return (
       <div className="flex flex-col gap-6">
         {sortedApps.map((app) => (
-          <ContractorAppCard key={app._id} app={app} processingId={processingId} onUpdateStatus={handleUpdateStatus} />
+          <ContractorAppCard
+            key={app._id}
+            app={app}
+            processingId={processingId}
+            onUpdateStatus={handleUpdateStatus}
+            hasAcceptedApplicant={hasAcceptedApplicant}
+          />
         ))}
       </div>
     )

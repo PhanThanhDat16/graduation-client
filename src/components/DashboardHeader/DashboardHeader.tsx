@@ -60,7 +60,7 @@ export default function DashboardHeader() {
   }, [socket, user, queryClient])
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 h-16 flex items-center">
+    <header className="print:hidden sticky top-0 z-50 w-full bg-white border-b border-slate-200 h-16 flex items-center">
       {/* 🌟 KHỐI 1: CHỨA LOGO 🌟 */}
       <div className="w-auto md:w-64 h-full flex items-center px-4 md:px-5 md:border-r border-slate-200 shrink-0">
         <Link to="/" className="flex items-center gap-2.5 shrink-0 group">

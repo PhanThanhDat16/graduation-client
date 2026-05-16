@@ -19,6 +19,11 @@ export const userService = {
     const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
     return res
   },
+  updateRole: async (body: { role: string }) => {
+    const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
+    console.log(res)
+    return res
+  },
   updatePassword: (data: { currentPassword: string; newPassword: string }) => {
     return axiosInstance.put('users/password', data)
   },
