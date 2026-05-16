@@ -22,11 +22,20 @@ import type { Transaction } from '@/types/wallet'
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(Math.abs(amount)) + ' ₫'
 
-const formatDatetime = (iso: string) =>
-  new Intl.DateTimeFormat('vi-VN', {
+const formatDatetime = (iso?: string) => {
+  if (!iso) return 'N/A'
+
+  const date = new Date(iso)
+
+  if (isNaN(date.getTime())) {
+    return 'Invalid date'
+  }
+
+  return new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'full',
     timeStyle: 'medium'
-  }).format(new Date(iso))
+  }).format(date)
+}
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -89,17 +98,17 @@ const typeConfig: Record<Transaction['type'], { label: string; icon: React.React
     icon: <RefreshCcw size={20} />,
     amountColor: 'text-blue-600'
   },
-  escrow_release: {
+  escrowRelease: {
     label: 'Giải phóng ký quỹ',
     icon: <ShieldCheck size={20} />,
     amountColor: 'text-emerald-600'
   },
-  escrow_deposit: {
+  escrowDeposit: {
     label: 'Ký quỹ',
     icon: <ShieldCheck size={20} />,
     amountColor: 'text-slate-600'
   },
-  admin_fee: {
+  adminFee: {
     label: 'Phí dịch vụ',
     icon: <Landmark size={20} />,
     amountColor: 'text-red-500'
@@ -193,7 +202,7 @@ export default function TransactionDetailModal({ transaction, onClose }: Transac
       ? `-${formatCurrency(transaction.amount)}`
       : formatCurrency(0)
 
-  const txId = transaction.payment_order_id || transaction._id.slice(-12).toUpperCase()
+  const txId = transaction.paymentOrderId || transaction._id.slice(-12).toUpperCase()
 
   return (
     /* Overlay */
@@ -232,7 +241,7 @@ export default function TransactionDetailModal({ transaction, onClose }: Transac
 
           {/* Status badge */}
           <span
-            className={`inline-flex items-center font-semibold gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ring-1 ${status.color} ${status.bg} ${status.ring}`}
+            className={`inline-flex items-center font-semibold gap-1.5 px-3 py-1 rounded-full text-sm ring-1 ${status.color} ${status.bg} ${status.ring}`}
           >
             {status.icon}
             {status.label}
@@ -258,7 +267,7 @@ export default function TransactionDetailModal({ transaction, onClose }: Transac
             <InfoRow label="Mã giao dịch" value={txId} mono copyable onCopy={trigger} />
             {transaction._id && <InfoRow label="ID hệ thống" value={transaction._id} mono copyable onCopy={trigger} />}
             <InfoRow label="Thời gian" value={formatDatetime(transaction.createdAt)} />
-            <InfoRow label="Phương thức" value={transaction.method_payment || 'Không xác định'} />
+            <InfoRow label="Phương thức" value={transaction.methodPayment || 'Không xác định'} />
           </div>
 
           {/* Description */}
@@ -275,16 +284,16 @@ export default function TransactionDetailModal({ transaction, onClose }: Transac
             <div className="gap-2 flex items-center border border-slate-200 rounded-lg w-fit">
               {/* Logo */}
               <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center overflow-hidden">
-                {transaction.method_payment === 'momo' ? (
+                {transaction.methodPayment === 'momo' ? (
                   <img
                     src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square-300x300.png"
-                    alt={transaction.method_payment}
+                    alt={transaction.methodPayment}
                     className="w-8 h-8 object-contain"
                   />
-                ) : transaction.method_payment === 'vnpay' ? (
+                ) : transaction.methodPayment === 'vnpay' ? (
                   <img
                     src="https://i.pinimg.com/736x/f9/5e/a2/f95ea23c297af3170d9d75173bed9d7e.jpg"
-                    alt={transaction.method_payment}
+                    alt={transaction.methodPayment}
                     className="w-8 h-8 object-contain"
                   />
                 ) : (
@@ -293,7 +302,7 @@ export default function TransactionDetailModal({ transaction, onClose }: Transac
               </div>
 
               {/* Name */}
-              <span className="text-[15px] font-semibold text-slate-800 mr-3">{transaction.method_payment}</span>
+              <span className="text-[15px] font-semibold text-slate-800 mr-3">{transaction.methodPayment}</span>
             </div>
           </div>
         </div>

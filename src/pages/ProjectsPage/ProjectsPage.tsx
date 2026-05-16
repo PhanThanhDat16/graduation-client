@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { createSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Search, X } from 'lucide-react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { Briefcase } from 'lucide-react'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { omit } from 'lodash'
 
 import { projectService } from '@/apis/projectService'
@@ -14,20 +14,25 @@ import { EmptyState } from '@/components/EmptyState/EmptyState'
 import ProjectCard from '@/components/ProjectCard/ProjectCard'
 import Pagination from '@/components/Pagination/Pagination'
 import SortDropdown from '@/components/SortDropDown'
+import { toast } from 'react-toastify'
+import { useAuthStore } from '@/store/useAuthStore'
+import HeroSection from '@/components/HeroSection/HeroSection'
+import SearchBar from '@/components/SearchBar/SearchBar'
 
 // IMPORT COMPONENT SORT MỚI
 
 const SORT_OPTIONS = [
-  { label: 'Mới nhất', value: 'createdAt_desc' },
-  { label: 'Ngân sách: Cao → Thấp', value: 'budgetMax_desc' },
-  { label: 'Nhiều lượt thích', value: 'likes_desc' }
+  { label: 'Mới nhất', value: 'createdAtDesc' },
+  { label: 'Ngân sách: Cao → Thấp', value: 'budgetMaxDesc' },
+  { label: 'Nhiều lượt thích', value: 'likesDesc' }
 ]
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const queryConfig = useProjectQueryConfig()
-
+  const { user } = useAuthStore()
   const [searchInput, setSearchInput] = useState(queryConfig.keyword || '')
 
   // --- API CALL ---
@@ -36,7 +41,17 @@ export default function ProjectsPage() {
     queryFn: () => projectService.getProjects(queryConfig),
     placeholderData: keepPreviousData
   })
-  // console.log(axiosResponse)
+  const toggleLikeMutation = useMutation({
+    mutationFn: (projectId: string) => projectService.toggleLikeProject(projectId),
+    onSuccess: () => {
+      // Khi thả tim thành công, tự động refetch lại danh sách dự án
+      // để nút Tim cập nhật trạng thái ngay lập tức
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra, vui lòng thử lại sau.')
+    }
+  })
 
   const apiResponse = axiosResponse?.data
   const projects = apiResponse?.data || []
@@ -76,50 +91,35 @@ export default function ProjectsPage() {
     })
   }
 
-  const handleToggleLike = useCallback((projectId: string) => {
-    console.log('Toggle like for project:', projectId)
-    // Implement your mutation here
-  }, [])
+  const handleToggleLike = (projectId: string) => {
+    if (!user) {
+      toast.warning('Vui lòng đăng nhập để lưu dự án bạn nhé!')
+      return
+    }
+
+    toggleLikeMutation.mutate(projectId)
+  }
 
   return (
-    <div className="bg-page min-h-screen font-body pb-20">
+    <div className="min-h-screen pb-20 bg-page font-body">
       {/* HERO SECTION */}
-      <div className="bg-primary pt-12 pb-16 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white mb-3">
-            Tìm dự án freelance <span className="text-[#89CCF5]">phù hợp</span>
-          </h1>
-        </div>
-      </div>
-
-      {/* SEARCH BAR */}
-      <div className="max-w-5xl mx-auto px-4 -mt-7 relative z-20">
-        <div className="bg-white p-2 rounded-2xl shadow-lg border border-border flex items-center gap-2">
-          <Search className="w-5 h-5 text-text-muted ml-3" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-            placeholder="Tìm theo tên dự án, kỹ năng..."
-            className="flex-1 bg-transparent border-none outline-none text-sm text-text-main py-2"
-          />
-          {searchInput && (
-            <button onClick={handleClearSearch} className="p-1 text-text-muted hover:text-danger transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          )}
-          <button
-            onClick={handleSearchSubmit}
-            className="bg-primary hover:bg-primary/90 transition-colors text-white px-6 py-2.5 rounded-xl text-sm font-bold hidden sm:block"
-          >
-            Tìm kiếm
-          </button>
-        </div>
-      </div>
+      <HeroSection
+        icon={<Briefcase size={32} className="text-indigo-400" />}
+        title="Tìm dự án freelance"
+        highlightWord="phù hợp"
+        subtitle="Hàng ngàn cơ hội việc làm mới được cập nhật mỗi ngày từ các khách hàng uy tín."
+      >
+        <SearchBar
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={handleSearchSubmit}
+          onClear={handleClearSearch}
+          placeholder="Tìm theo tên dự án, kỹ năng..."
+        />
+      </HeroSection>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col items-start gap-8 px-4 pt-12 mx-auto max-w-7xl sm:px-6 lg:flex-row">
         {/* SIDEBAR */}
         <div className="w-full lg:w-[280px] shrink-0 sticky top-24">
           <FilterSidebar queryConfig={queryConfig} />
@@ -128,8 +128,8 @@ export default function ProjectsPage() {
         {/* LISTING */}
         <div className="flex-1 w-full min-w-0">
           {/* TOOLBAR */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <span className="text-sm text-text-sub font-medium">
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
+            <span className="text-sm font-medium text-text-sub">
               Tìm thấy <strong className="text-text-main">{totalItems}</strong> dự án
             </span>
 
@@ -148,9 +148,9 @@ export default function ProjectsPage() {
             ) : projects.length === 0 ? (
               <EmptyState onReset={() => navigate(location.pathname)} />
             ) : (
-              projects.map((project: any) => (
-                <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
-              ))
+              projects.map((project: any) => {
+                return <ProjectCard key={project._id} project={project} onToggleLike={handleToggleLike} />
+              })
             )}
           </div>
 

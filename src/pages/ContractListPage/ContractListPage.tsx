@@ -7,15 +7,15 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 // Import các Component dùng chung
 import ContractCard from './components/ContractCard'
-import StatusTabs, { type TabItem } from '@/components/StatusTabs/StatusTabs' // Đường dẫn của bạn
-import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDropdown' // Component mới của bạn
+import StatusTabs, { type TabItem } from '@/components/StatusTabs/StatusTabs'
+import SortDropdown, { type SortOption } from '@/components/SortDropDown/SortDropdown'
 
 // Định nghĩa các tuỳ chọn sắp xếp
 const SORT_OPTIONS: SortOption[] = [
   { label: 'Cập nhật mới nhất', value: 'newest' },
   { label: 'Cũ nhất', value: 'oldest' },
-  { label: 'Giá trị cao nhất', value: 'highest_price' },
-  { label: 'Giá trị thấp nhất', value: 'lowest_price' }
+  { label: 'Giá trị cao nhất', value: 'highestPrice' },
+  { label: 'Giá trị thấp nhất', value: 'lowestPrice' }
 ]
 
 export default function ContractListPage() {
@@ -29,24 +29,26 @@ export default function ContractListPage() {
   // FETCH DANH SÁCH HỢP ĐỒNG
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['my-contracts'],
+    staleTime: 0,
     queryFn: () => contractService.getMyContracts()
   })
   const contracts = axiosResponse?.data?.data || []
-  console.log('contract: ', contracts)
-
+  console.log(contracts)
   // LOGIC ĐẾM SỐ LƯỢNG CHO TỪNG TAB
   const counts = {
     all: contracts.length,
     pending: contracts.filter((c) => ['draft', 'pending_agreement', 'waiting_payment'].includes(c.status)).length,
     running: contracts.filter((c) => ['running', 'submitted', 'dispute'].includes(c.status)).length,
-    completed: contracts.filter((c) => ['completed', 'cancelled'].includes(c.status)).length
+    completed: contracts.filter((c) => ['completed', 'cancelled'].includes(c.status)).length,
+    dispute: contracts.filter((c) => c.status === 'dispute').length
   }
 
   const TAB_CONFIG: TabItem[] = [
     { id: 'all', label: 'Tất cả', count: counts.all },
     { id: 'pending', label: 'Cần xử lý', count: counts.pending },
     { id: 'running', label: 'Đang thực hiện', count: counts.running },
-    { id: 'completed', label: 'Đã đóng', count: counts.completed }
+    { id: 'completed', label: 'Đã đóng', count: counts.completed },
+    { id: 'dispute', label: 'Đang khiếu nại', count: counts.dispute }
   ]
 
   // LOGIC LỌC DỮ LIỆU (Filter by Status)
@@ -55,6 +57,7 @@ export default function ContractListPage() {
     if (activeTab === 'pending') return ['draft', 'pending_agreement', 'waiting_payment'].includes(contract.status)
     if (activeTab === 'running') return ['running', 'submitted', 'dispute'].includes(contract.status)
     if (activeTab === 'completed') return ['completed', 'cancelled'].includes(contract.status)
+    if (activeTab === 'dispute') return contract.status === 'dispute'
     return true
   })
 
@@ -63,10 +66,10 @@ export default function ContractListPage() {
     switch (sortOrder) {
       case 'oldest':
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      case 'highest_price':
-        return b.total_amount - a.total_amount
-      case 'lowest_price':
-        return a.total_amount - b.total_amount
+      case 'highestPrice':
+        return b.totalAmount - a.totalAmount
+      case 'lowestPrice':
+        return a.totalAmount - b.totalAmount
       case 'newest':
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

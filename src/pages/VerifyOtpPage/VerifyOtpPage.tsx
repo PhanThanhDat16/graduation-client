@@ -9,7 +9,6 @@ export default function VerifyOtpPage() {
   const location = useLocation()
   const emailFromState = location.state?.email || ''
   const purpose = location.state.purpose || 'register'
-  console.log(purpose)
   const { loading, verifyOTP, resendOTP, verifyOTPPassword } = useAuthStore()
 
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
@@ -80,7 +79,7 @@ export default function VerifyOtpPage() {
     } else {
       const isSuccess = await verifyOTPPassword(emailFromState, otpCode)
       if (isSuccess) {
-        navigate(path.PASSWORK_SEND, { state: { email: emailFromState } })
+        navigate(path.PASSWORD_SEND, { state: { email: emailFromState } })
       }
     }
   }

@@ -26,7 +26,7 @@ export default function PaymentModal({ contract, userRole, onClose }: PaymentMod
 
   // Lấy số tiền người này cần phải thanh toán từ Backend
   const amountToPay =
-    userRole === 'contractor' ? contract.payment_info.contractor_must_pay : contract.payment_info.freelancer_must_pay
+    userRole === 'contractor' ? contract.paymentInfo.contractorMustPay : contract.paymentInfo.freelancerMustPay
 
   const isEnoughBalance = balance >= amountToPay
 
@@ -72,9 +72,9 @@ export default function PaymentModal({ contract, userRole, onClose }: PaymentMod
             <p className="text-4xl font-black text-indigo-700">
               {formatCurrency(amountToPay)} <span className="text-2xl text-indigo-400">₫</span>
             </p>
-            {userRole === 'contractor' && contract.admin_fee > 0 && (
+            {userRole === 'contractor' && contract.adminFee > 0 && (
               <p className="text-xs text-indigo-500 font-medium mt-2">
-                (Đã bao gồm {formatCurrency(contract.admin_fee)}₫ phí nền tảng)
+                (Đã bao gồm {formatCurrency(contract.adminFee)}₫ phí nền tảng)
               </p>
             )}
           </div>

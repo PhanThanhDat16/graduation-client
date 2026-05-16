@@ -4,7 +4,7 @@ export type BodyRegister = Omit<UserProfile, '_id' | 'createdAt' | 'updatedAt' |
 export type BodyVerifyOtpRegister = {
   email: string
   otp: string
-  purpose: 'register' | 'reset_password'
+  purpose: 'register' | 'resetPassword'
 }
 export type BodyResendOTP = Pick<BodyVerifyOtpRegister, 'email' | 'purpose'>
 export interface AuthState {

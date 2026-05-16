@@ -20,10 +20,10 @@ const formatTimeAgo = (dateString: string) => {
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'contract_created':
-    case 'contract_signed':
+    case 'contractCreated':
+    case 'contractSigned':
       return <FileSignature className="w-5 h-5 text-indigo-600" />
-    case 'project_applied':
+    case 'projectApplied':
       return <Briefcase className="w-5 h-5 text-emerald-600" />
     default:
       return <BellRing className="w-5 h-5 text-blue-600" />
@@ -74,7 +74,7 @@ export default function NotificationDropdown() {
   })
 
   const handleNotifClick = (notif: Notification) => {
-    if (!notif.is_read) {
+    if (!notif.isRead) {
       markAsReadMutation.mutate(notif._id)
     }
   }
@@ -112,10 +112,10 @@ export default function NotificationDropdown() {
             {notifications.map((notif) => (
               <div
                 key={notif._id}
-                className={`group relative p-4 transition-colors hover:bg-slate-50 cursor-pointer flex gap-4 ${!notif.is_read ? 'bg-indigo-50/30' : 'bg-white'}`}
+                className={`group relative p-4 transition-colors hover:bg-slate-50 cursor-pointer flex gap-4 ${!notif.isRead ? 'bg-indigo-50/30' : 'bg-white'}`}
                 onClick={() => handleNotifClick(notif)}
               >
-                {!notif.is_read && (
+                {!notif.isRead && (
                   <span className="absolute top-5 left-2 w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
                 )}
                 <div className="shrink-0 mt-0.5">
@@ -125,7 +125,7 @@ export default function NotificationDropdown() {
                 </div>
                 <div className="flex-1 min-w-0 pr-6">
                   <p
-                    className={`text-sm mb-1 line-clamp-2 ${!notif.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}
+                    className={`text-sm mb-1 line-clamp-2 ${!notif.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}
                   >
                     {notif.title}
                   </p>
@@ -159,14 +159,12 @@ export default function NotificationDropdown() {
 
   return (
     <Popover placement="bottom-end" offsetValue={10} renderPopover={renderDropdown}>
-      <button className="relative p-2.5 rounded-full transition-colors text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer outline-none">
+      <div className="relative p-2 flex items-center justify-center rounded-lg transition-colors text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer outline-none">
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border border-white animate-in zoom-in"></span>
         )}
-      </button>
+      </div>
     </Popover>
   )
 }

@@ -19,7 +19,7 @@ export const authSchema = yup.object({
     .matches(/[0-9]/, 'Phải có số')
     .matches(/[^a-zA-Z0-9]/, 'Phải có ký tự đặc biệt')
     .max(160, 'Độ dài tối đa 50 ký tự'),
-  confirm_password: yup
+  confirmPassword: yup
     .string()
     .required('Nhập lại password là bẳt buộc')
     .oneOf([yup.ref('password')], 'Nhập lại password không khớp'),
@@ -82,20 +82,36 @@ export const projectSchema = yup.object({
     .of(yup.string().required())
     .required('Vui lòng chọn kỹ năng')
     .min(1, 'Vui lòng chọn ít nhất 1 kỹ năng'),
-  budgetMin: yup.string().required('Bắt buộc nhập giá tối thiểu').test({
-    name: 'price-not-allowed',
-    message: 'Ngân sách tối thiểu không hợp lệ',
-    test: testPriceMinMax
-  }),
-  budgetMax: yup.string().required('Bắt buộc nhập giá tối đa').test({
-    name: 'price-not-allowed',
-    message: 'Ngân sách tối đa phải lớn hơn hoặc bằng tối thiểu',
-    test: testPriceMinMax
-  })
+  budgetMin: yup
+    .string()
+    .required('Bắt buộc nhập giá tối thiểu')
+    .test('limit-value', 'số tiền dự án tối đa là 100.000.000đ và min dự án sẽ là 500.000đ', (value) => {
+      if (!value) return true
+      const num = Number(value)
+      return num >= 500000 && num <= 100000000
+    })
+    .test({
+      name: 'price-not-allowed',
+      message: 'Ngân sách tối thiểu không hợp lệ',
+      test: testPriceMinMax
+    }),
+  budgetMax: yup
+    .string()
+    .required('Bắt buộc nhập giá tối đa')
+    .test('limit-value', 'số tiền dự án tối đa là 100.000.000đ và min dự án sẽ là 500.000đ', (value) => {
+      if (!value) return true
+      const num = Number(value)
+      return num >= 500000 && num <= 100000000
+    })
+    .test({
+      name: 'price-not-allowed',
+      message: 'Ngân sách tối đa phải lớn hơn hoặc bằng tối thiểu',
+      test: testPriceMinMax
+    })
 })
 export const contractSchema = yup
   .object({
-    contractor_terms: yup
+    contractorTerms: yup
       .string()
       .required('Vui lòng nhập điều khoản hợp đồng')
       .min(50, 'Điều khoản cần chi tiết hơn (ít nhất 50 ký tự)'),
@@ -127,10 +143,54 @@ export const profileSchema = yup
     description: yup.string().max(500, 'Giới thiệu không vượt quá 500 ký tự').optional()
   })
   .required()
+export const negotiationSchema = yup.object({
+  resolutionType: yup.string().oneOf(['extend', 'cancel', 'split']).required('Vui lòng chọn loại đề xuất'),
+  freelancerAmount: yup
+    .number()
+    .transform((val) => (isNaN(val) ? undefined : val))
+    .optional(),
+  contractorAmount: yup
+    .number()
+    .transform((val) => (isNaN(val) ? undefined : val))
+    .optional(),
+  newDeadline: yup.string().optional()
+})
+export const submitSchema = yup.object({
+  githubLink: yup
+    .string()
+    .transform((v) => (v === '' ? null : v))
+    .url('Vui lòng nhập đường link hợp lệ (http/https).')
+    .nullable()
+    .default(''),
+  webLink: yup
+    .string()
+    .transform((v) => (v === '' ? null : v))
+    .url('Vui lòng nhập đường link hợp lệ (http/https).')
+    .nullable()
+    .default('')
+})
+
+export const passwordSchema = yup.object().shape({
+  currentPassword: yup.string().required('Mật khẩu hiện tại là bắt buộc'),
+  newPassword: yup
+    .string()
+    .required('Vui lòng nhập mật khẩu mới')
+    .min(8, 'Ít nhất 8 ký tự')
+    .matches(/[A-Z]/, 'Ít nhất 1 chữ hoa')
+    .matches(/[0-9]/, 'Ít nhất 1 số')
+    .matches(/[!@#$%^&*]/, 'Ít nhất 1 ký tự đặc biệt'),
+  confirmPassword: yup
+    .string()
+    .required('Vui lòng xác nhận mật khẩu')
+    .oneOf([yup.ref('newPassword')], 'Mật khẩu xác nhận không khớp')
+})
 
 export type AuthSchema = yup.InferType<typeof authSchema>
 export type Schema = yup.InferType<typeof schema>
 export type ProposalSchema = yup.InferType<typeof proposalSchema>
 export type ProjectSchema = yup.InferType<typeof projectSchema>
 export type ContractSchema = yup.InferType<typeof contractSchema>
+export type SubmitSchema = yup.InferType<typeof submitSchema>
 export type ProfileSchema = yup.InferType<typeof profileSchema>
+export type NegotiationSchema = yup.InferType<typeof negotiationSchema>
+export type PasswordSchema = yup.InferType<typeof passwordSchema>

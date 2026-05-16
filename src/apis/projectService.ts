@@ -44,5 +44,20 @@ export const projectService = {
   toggleLikeProject: async (id: string) => {
     const res = await axiosInstance.put<ApiResponse<Project>>(`/projects/like/${id}`)
     return res
+  },
+
+  uploadImages: async (files: File[]) => {
+    const formData = new FormData()
+    files.forEach((file) => {
+      formData.append('images', file)
+    })
+
+    const res = await axiosInstance.post('/upload/images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return res
   }
 }

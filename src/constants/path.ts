@@ -2,7 +2,8 @@ const path = {
   // public
   HOME_PAGE: '/',
   AUTH_SUCCESS: '/auth/success',
-  // ABOUT: '/about',
+  ABOUT: '/about',
+  CONTACT: '/contact',
   // CONTACT: '/contact',
 
   LOGIN: '/login',
@@ -19,6 +20,7 @@ const path = {
 
   DASHBOARD: '/dashboard',
   PROFILE: '/profile/:id',
+  SAVED_PROJECTS: '/saved-projects',
   WALLET: '/wallet',
   ADD_FUNDS: '/add-funds',
   WITHDRAW: '/withdraw',
@@ -37,8 +39,7 @@ const path = {
   CONTRACT_CREATE: '/contracts/create/:applicationId',
   CONTRACT_DETAIL: '/contracts/:id',
   CONTRACTS_AGREEMENT: '/contracts/agreement/:id', // Trang Thỏa thuận & Ký tên 24h
-  CONTRACTS_WORKSPACE: '/contracts/workspace/:id', // Phòng làm việc & Bàn giao (Bước 9, 10)
-  SETTINGS: '/settings'
+  CONTRACTS_WORKSPACE: '/contracts/workspace/:id' // Phòng làm việc & Bàn giao (Bước 9, 10)
 }
 
 export default path

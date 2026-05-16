@@ -74,7 +74,7 @@ export default function RequestWithdrawPage() {
   const filteredRequests = useMemo(
     () =>
       requests.filter((req) => {
-        const account = req.account_id as PopulatedAccount
+        const account = req.accountId as PopulatedAccount
         const matchesStatus = filterStatus === 'all' || req.status === filterStatus
         const q = searchQuery.toLowerCase()
         const matchesSearch =
@@ -245,7 +245,7 @@ export default function RequestWithdrawPage() {
                   </tr>
                 ) : (
                   filteredRequests.map((req) => {
-                    const account = req.account_id as PopulatedAccount
+                    const account = req.accountId as PopulatedAccount
                     return (
                       <tr
                         key={req._id}
@@ -333,7 +333,7 @@ export default function RequestWithdrawPage() {
       <AnimatePresence>
         {selectedRequest &&
           (() => {
-            const account = selectedRequest.account_id as PopulatedAccount
+            const account = selectedRequest.accountId as PopulatedAccount
             const isHighRisk = selectedRequest.amount >= 50_000_000
             const isPending = selectedRequest.status === 'pending'
 
@@ -532,13 +532,13 @@ export default function RequestWithdrawPage() {
                               </p>
                             </div>
                           </div>
-                          {selectedRequest.processed_at && (
+                          {selectedRequest.processedAt && (
                             <div className="flex items-start gap-3">
                               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                               <div>
                                 <p className="text-xs text-slate-500 font-medium">Xử lý lúc</p>
                                 <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                                  {new Date(selectedRequest.processed_at).toLocaleString('vi-VN')}
+                                  {new Date(selectedRequest.processedAt).toLocaleString('vi-VN')}
                                 </p>
                               </div>
                             </div>

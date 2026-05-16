@@ -13,12 +13,14 @@ import ProfileInfo from './components/ProfileInfo'
 import ProfileProjects from './components/ProfileProjects'
 import ProfileReviews from './components/ProfileReviews'
 import EditProfileModal from './components/EditProfileModal'
+import ChangePasswordModal from './components/ChangePasswordModal/ChangePasswordModal'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   const { user: authUser, loading: authLoading, fetchMe, uploadAvatar, updating } = useAuthStore()
 
@@ -29,7 +31,7 @@ export default function ProfilePage() {
   const isOwner = !id || id === authUser?._id
   const targetProfileId = id || authUser?._id
 
-  // 1. Fetch thông tin Profile
+  // Fetch thông tin Profile
   const {
     data: profileRes,
     isLoading: isProfileLoading,
@@ -58,16 +60,17 @@ export default function ProfilePage() {
     staleTime: 1000 * 60 * 5
   })
 
-  // 3. Fetch danh sách Đánh giá MÀ HỌ NHẬN ĐƯỢC (Dùng cho cả Khách hàng & Freelancer)
+  // 3. Fetch danh sách Đánh giá MÀ HỌ NHẬN ĐƯỢC
   const { data: reviewsRes, isLoading: isLoadingReviews } = useQuery({
     queryKey: ['reviews', 'received', profileData?._id],
-    queryFn: () => reviewService.getReviewsByUserId(profileData!._id, true),
+    // Sửa `true` thành `'received'` ở đây nè:
+    queryFn: () => reviewService.getReviewsByUserId(profileData!._id, 'received'),
     enabled: !!profileData?._id,
     staleTime: 1000 * 60 * 5
   })
 
   const projects = projectsRes?.data?.data || []
-  const reviews = reviewsRes?.data?.data || []
+  const reviews = reviewsRes?.data?.data?.received || []
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -114,6 +117,7 @@ export default function ProfilePage() {
         updating={updating}
         onAvatarChange={handleAvatarChange}
         onEditClick={() => setShowEditModal(true)}
+        onChangePasswordClick={() => setShowPasswordModal(true)}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
@@ -126,6 +130,7 @@ export default function ProfilePage() {
         <ProfileReviews reviews={reviews} loading={isLoadingReviews} />
       </div>
       {showEditModal && <EditProfileModal profile={displayProfile} onClose={() => setShowEditModal(false)} />}
+      {showPasswordModal && <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />}
     </div>
   )
 }

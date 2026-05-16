@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge, TypeTag } from '../../components/components-wallet'
 import type { Transaction } from '@/types/wallet'
@@ -15,16 +15,14 @@ import {
   Search,
   CalendarArrowDown,
   Activity,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react'
 
-import Calendar from 'react-calendar'
-import 'react-calendar/dist/Calendar.css'
+import CustomCalendar from '@/components/components-wallet/CustomCalendar'
+import type { DateRange } from '@/components/components-wallet/CustomCalendar'
 import TransactionDetailModal from '@/components/components-wallet/Transaction-detail'
 import path from '@/constants/path'
-
-type ValuePiece = Date | null
-type Value = ValuePiece | [ValuePiece, ValuePiece]
 
 // ─── Page: WalletDashboard ────────────────────────────────────────────────────
 export default function WalletDashboard() {
@@ -39,7 +37,7 @@ export default function WalletDashboard() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('')
-  const [value, onChange] = useState<Value>(new Date())
+  const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null })
   const [showCalendar, setShowCalendar] = useState(false)
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -74,16 +72,66 @@ export default function WalletDashboard() {
     }
   }, [])
 
-  // ── Client-side search (on top of server filters) ─────────────────────────────
-  const filtered = transactions.filter((t) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      (t.description || '').toLowerCase().includes(q) ||
-      (t.payment_order_id || '').toLowerCase().includes(q) ||
-      t._id.toLowerCase().includes(q)
-    )
-  })
+  // ── Collect transaction dates for calendar dots ────────────────────────────────
+  const transactionDates = useMemo(() => transactions.map((t) => t.createdAt), [transactions])
+
+  // ── Client-side search + date range filter ─────────────────────────────────────
+  const filtered = useMemo(() => {
+    return transactions.filter((t) => {
+      // Text search
+      if (search) {
+        const q = search.toLowerCase()
+        const matchText =
+          (t.description || '').toLowerCase().includes(q) ||
+          (t.paymentOrderId || '').toLowerCase().includes(q) ||
+          t._id.toLowerCase().includes(q)
+        if (!matchText) return false
+      }
+      // Date range filter
+      if (dateRange.start) {
+        const txDate = new Date(t.createdAt)
+        const startOfDay = new Date(
+          dateRange.start.getFullYear(),
+          dateRange.start.getMonth(),
+          dateRange.start.getDate()
+        )
+        if (txDate < startOfDay) return false
+        if (dateRange.end) {
+          const endOfDay = new Date(
+            dateRange.end.getFullYear(),
+            dateRange.end.getMonth(),
+            dateRange.end.getDate(),
+            23,
+            59,
+            59,
+            999
+          )
+          if (txDate > endOfDay) return false
+        } else {
+          // Only start selected → match that single day
+          const endOfStart = new Date(
+            dateRange.start.getFullYear(),
+            dateRange.start.getMonth(),
+            dateRange.start.getDate(),
+            23,
+            59,
+            59,
+            999
+          )
+          if (txDate > endOfStart) return false
+        }
+      }
+      return true
+    })
+  }, [transactions, search, dateRange])
+
+  // Helper to format the active date filter label
+  const dateFilterLabel = useMemo(() => {
+    if (!dateRange.start) return null
+    const fmt = (d: Date) => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    if (!dateRange.end || dateRange.end.getTime() === dateRange.start.getTime()) return fmt(dateRange.start)
+    return `${fmt(dateRange.start)} – ${fmt(dateRange.end)}`
+  }, [dateRange])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -201,7 +249,7 @@ export default function WalletDashboard() {
         {/* Transaction History Section */}
         <div>
           <h2 className="text-lg font-extrabold text-slate-800 tracking-tight mb-5">Lịch sử giao dịch</h2>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
             <div className="flex flex-wrap items-center justify-between p-6 border-b border-slate-100 gap-4">
               <div className="relative flex-1 min-w-[280px]">
                 <input
@@ -226,11 +274,11 @@ export default function WalletDashboard() {
                   }}
                 >
                   <option value="">Tất cả loại giao dịch</option>
-                  <option value="escrow_release">Giải ngân Escrow</option>
+                  <option value="escrowRelease">Giải ngân Escrow</option>
                   <option value="withdraw">Rút tiền</option>
                   <option value="deposit">Nạp tiền</option>
-                  <option value="admin_fee">Phí nền tảng</option>
-                  <option value="escrow_deposit">Ký quỹ Escrow</option>
+                  <option value="adminFee">Phí nền tảng</option>
+                  <option value="escrowDeposit">Ký quỹ Escrow</option>
                   <option value="refund">Hoàn tiền</option>
                 </select>
                 <select
@@ -250,6 +298,19 @@ export default function WalletDashboard() {
                   <option value="failed">Thất bại</option>
                   <option value="cancelled">Đã hủy</option>
                 </select>
+                {/* Active date filter badge */}
+                {dateFilterLabel && (
+                  <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl px-3 py-2 text-xs font-semibold">
+                    <CalendarArrowDown size={14} />
+                    <span>{dateFilterLabel}</span>
+                    <button
+                      onClick={() => setDateRange({ start: null, end: null })}
+                      className="ml-1 w-5 h-5 rounded-md bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
                 <div className="relative">
                   <button
                     onClick={() => setShowCalendar(!showCalendar)}
@@ -258,8 +319,13 @@ export default function WalletDashboard() {
                     <CalendarArrowDown size={18} />
                   </button>
                   {showCalendar && (
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 overflow-hidden">
-                      <Calendar onChange={onChange} value={value} className="border-0 font-sans" />
+                    <div className="absolute right-0 top-full mt-2 z-50">
+                      <CustomCalendar
+                        selectedRange={dateRange}
+                        onRangeChange={setDateRange}
+                        onClose={() => setShowCalendar(false)}
+                        transactionDates={transactionDates}
+                      />
                     </div>
                   )}
                 </div>
@@ -302,7 +368,7 @@ export default function WalletDashboard() {
                       >
                         <td className="px-6 py-4">
                           <span className="font-mono text-slate-500 group-hover:text-indigo-600 transition-colors">
-                            {tx.payment_order_id || tx._id.slice(-8).toUpperCase()}
+                            {tx.paymentOrderId || tx._id.slice(-8).toUpperCase()}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
@@ -324,7 +390,7 @@ export default function WalletDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 capitalize">
-                            {tx.method_payment}
+                            {tx.methodPayment}
                           </span>
                         </td>
                         <td className="px-6 py-4">

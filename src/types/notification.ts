@@ -1,13 +1,13 @@
 // Định nghĩa cấu trúc của 1 thông báo
 export interface Notification {
   _id: string
-  user_id: any // Có thể là chuỗi ID hoặc Object User (nếu được populate)
+  userId: any // Có thể là chuỗi ID hoặc Object User (nếu được populate)
   type: string
   title: string
   content: string
-  is_read: boolean
+  isRead: boolean
   createdAt: string
-  updated_at: string
+  updatedAt: string
 }
 
 // Các tham số (query) dùng để lọc và phân trang khi lấy danh sách
@@ -17,7 +17,7 @@ export interface NotificationQueryParams {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   type?: string
-  is_read?: boolean
+  isRead?: boolean
 }
 
 // Kiểu trả về cho API đếm số lượng chưa đọc

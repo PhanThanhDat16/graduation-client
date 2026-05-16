@@ -50,6 +50,12 @@ const STATUS_MAP: Record<string, { label: string; dot: string; badge: string; ba
     dot: 'bg-red-400',
     badge: 'bg-red-50 text-red-600 border-red-200',
     bar: 'bg-red-400'
+  },
+  dispute: {
+    label: 'Đang khiếu nại',
+    dot: 'bg-yellow-400',
+    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    bar: 'bg-yellow-400'
   }
 }
 
@@ -65,12 +71,12 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
   const isContractor = userRole === 'contractor'
   const partnerRole = isContractor ? 'Freelancer' : 'Khách hàng'
 
-  const projectTitle = contract.project_id?.title || 'Hợp đồng Dịch vụ'
+  const projectTitle = contract.projectId?.title || 'Hợp đồng Dịch vụ'
   const partnerName = isContractor
-    ? contract.freelancer_id?.fullName
-    : contract.contractor_id?.fullName || 'Chưa cập nhật'
+    ? contract.freelancerId?.fullName
+    : contract.contractorId?.fullName || 'Chưa cập nhật'
   const status = getStatus(contract.status)
-
+  console.log(contract.status)
   return (
     <div className="group relative bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
       {/* Top color bar */}
@@ -104,7 +110,7 @@ export default function ContractCard({ contract, userRole }: ContractCardProps) 
           <div className="shrink-0 text-right">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Giá trị</p>
             <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
-              {formatBudget(contract.total_amount)} ₫
+              {formatBudget(contract.totalAmount)} ₫
             </p>
           </div>
         </div>

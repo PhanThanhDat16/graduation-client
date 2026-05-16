@@ -11,9 +11,16 @@ export const timeAgo = (isoString: string) => {
 
 export const formatBudget = (num: number | undefined) => {
   if (!num) return 'Thỏa thuận'
-  if (num >= 1000000) return (num / 1000000).toFixed(0) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(0) + 'K'
   return num.toLocaleString('vi-VN')
+}
+
+export const formatNumberMoney = (value: string | number) => {
+  const number = String(value).replace(/\D/g, '')
+  return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+export const parseNumberMoney = (value: string | number) => {
+  return String(value).replace(/\D/g, '')
 }
 
 export const isHot = (project: any) => {

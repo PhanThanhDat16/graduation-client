@@ -27,7 +27,6 @@ import DashboardLayout from '@/layouts/DashboardLayout'
 import ContractsPage from '@/pages/ContractListPage'
 import ContractAgreementPage from '@/pages/ContractAgreementPage'
 import ContractWorkspacePage from '@/pages/ContractWorkspacePage'
-import MessagesPage from '@/pages/MessagesPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SubmitProposalPage from '@/pages/SubmitProposalPage'
 import NotificationListPage from '@/pages/NotificationListPage'
@@ -38,10 +37,16 @@ import PostProjectPage from '@/pages/PostProjectPage'
 import ContractCreatePage from '@/pages/ContractCreatePage'
 import ContractDetailPage from '@/pages/ContractDetailPage'
 import GoogleAuthSuccessPage from '@/pages/GoogleAuthSuccessPage'
+import MessagesPage from '@/pages/MessagesPage'
+import SavedProjectsPage from '@/pages/SavedProjectsPage/SavedProjectsPage'
+import AboutPage from '@/pages/AboutPage'
+import ContactPage from '@/pages/ContactPage/ContactPage'
+import ScrollToTop from '@/components/ScrollToTop/ScrollToTop'
 
 const AppRouters = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path={path.AUTH_SUCCESS} element={<GoogleAuthSuccessPage />} />
@@ -50,6 +55,8 @@ const AppRouters = () => {
           <Route path={path.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={path.FREELANCERS} element={<FreelancersPage />} />
           <Route path={path.PAYMENT_RESULT} element={<PaymentResultPage />} />
+          <Route path={path.ABOUT} element={<AboutPage />} />
+          <Route path={path.CONTACT} element={<ContactPage />} />
         </Route>
 
         <Route element={<PrivateRoute />}>
@@ -59,6 +66,7 @@ const AppRouters = () => {
             <Route path={path.PROFILE} element={<ProfilePage />} />
             <Route path={path.FREELANCER_DETAIL} element={<ProfilePage />} />
             <Route path={path.SUBMIT_PROPOSAL} element={<SubmitProposalPage />} />
+            <Route path={path.SAVED_PROJECTS} element={<SavedProjectsPage />} />
           </Route>
           <Route element={<DashboardLayout />}>
             <Route path={path.DASHBOARD} element={<DashboardPage />} />

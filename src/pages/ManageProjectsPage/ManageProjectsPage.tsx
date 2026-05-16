@@ -19,6 +19,7 @@ export default function ManageProjectsPage() {
 
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['my-projects'],
+    staleTime: 0,
     queryFn: () => projectService.getMyProjects()
   })
 

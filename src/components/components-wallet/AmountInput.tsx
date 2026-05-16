@@ -1,13 +1,6 @@
 import { useMemo } from 'react'
 
-const formatNumber = (value: string) => {
-  const number = value.replace(/\D/g, '')
-  return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-}
-
-const parseNumber = (value: string) => {
-  return value.replace(/\D/g, '')
-}
+import { formatNumberMoney, parseNumberMoney } from '@/utils/fomatters'
 
 export default function AmountInput({
   value,
@@ -22,8 +15,8 @@ export default function AmountInput({
   purpose: string
   color: string
 }) {
-  const formatted = useMemo(() => formatNumber(value), [value])
-  const numericValue = useMemo(() => Number(parseNumber(value)), [value])
+  const formatted = useMemo(() => formatNumberMoney(value), [value])
+  const numericValue = useMemo(() => Number(parseNumberMoney(value)), [value])
 
   return (
     <div>
@@ -39,7 +32,7 @@ export default function AmountInput({
           type="text"
           value={formatted}
           onChange={(e) => {
-            const raw = parseNumber(e.target.value)
+            const raw = parseNumberMoney(e.target.value)
             onChange(raw)
           }}
           placeholder={`Nhập số tiền cần ${purpose}`}

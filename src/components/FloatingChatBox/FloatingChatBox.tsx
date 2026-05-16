@@ -37,7 +37,7 @@ export default function FloatingChatBox() {
       const response = await guestConversationService.getMessages(groupId)
       const convertedMessages: Message[] = (response.data || []).map((msg: any) => ({
         id: msg._id,
-        sender: msg.senderId?.full_name || 'Hỗ trợ',
+        sender: msg.senderId?.fullName || 'Hỗ trợ',
         text: msg.content,
         time: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         isMe: false // Guest messages — we'll determine isMe by comparing senderId with stored memberId
@@ -85,7 +85,7 @@ export default function FloatingChatBox() {
 
         const newMessage: Message = {
           id: data._id || Date.now().toString(),
-          sender: data.senderId?.full_name || 'Hỗ trợ',
+          sender: data.senderId?.fullName || 'Hỗ trợ',
           text: data.content,
           time: new Date(data.createdAt || Date.now()).toLocaleTimeString('vi-VN', {
             hour: '2-digit',
@@ -158,27 +158,27 @@ export default function FloatingChatBox() {
     setIsLoadingGuestConversation(true)
     try {
       const response = await guestConversationService.createGuestConversation(guestName.trim())
-      const { user_id, group_id } = response.data
+      const { userId, groupId } = response.data
 
       // Store in localStorage for persistence (including guest name)
-      guestConversationService.storeGuestConversation(user_id, group_id, guestName.trim())
+      guestConversationService.storeGuestConversation(userId, groupId, guestName.trim())
 
       // Join conversation room + notify staff via socket
       if (socket?.connected) {
-        emitGuestJoinConversation(socket, group_id)
+        emitGuestJoinConversation(socket, groupId)
 
         // Setup new message listener
-        setupNewMessageListener(group_id)
+        setupNewMessageListener(groupId)
       } else {
         console.warn('[FloatingChatBox] Socket not connected, cannot join conversation')
       }
 
-      setGuestGroupId(group_id)
+      setGuestGroupId(groupId)
       setIsGuestMode(true)
       setShowGuestNameInput(false)
 
       // Fetch messages (including the default "tôi cần hỗ trợ" message)
-      await fetchGuestMessages(group_id)
+      await fetchGuestMessages(groupId)
     } catch (error) {
       console.error('[FloatingChatBox] Error creating guest conversation:', error)
       toast.error('Không thể tạo cuộc trò chuyện. Vui lòng thử lại.')

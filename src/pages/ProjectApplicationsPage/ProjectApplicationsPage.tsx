@@ -13,8 +13,8 @@ import { toast } from 'react-toastify'
 const SORT_OPTIONS = [
   { label: 'Nộp gần đây', value: 'newest' },
   { label: 'Nộp lâu nhất', value: 'oldest' },
-  { label: 'Giá thấp đến cao', value: 'lowest_budget' },
-  { label: 'Giá cao đến thấp', value: 'highest_budget' }
+  { label: 'Giá thấp đến cao', value: 'lowestBudget' },
+  { label: 'Giá cao đến thấp', value: 'highestBudget' }
 ]
 
 export default function ProjectApplicationsPage() {
@@ -25,7 +25,6 @@ export default function ProjectApplicationsPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
   const [processingId, setProcessingId] = useState<string | null>(null)
-
   // FETCH API
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['project-applications', projectId],
@@ -34,11 +33,13 @@ export default function ProjectApplicationsPage() {
   })
 
   const applications: Application[] = axiosResponse?.data?.data || []
+  const hasAcceptedApplicant = applications.some((app) => app.status === 'accepted')
 
   // MUTATION CẬP NHẬT TRẠNG THÁI
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'accepted' | 'rejected' }) =>
-      applicationService.updateApplicationStatus(id, status),
+    mutationFn: async ({ id, status }: { id: string; status: 'accepted' | 'rejected' }) => {
+      applicationService.updateApplicationStatus(id, status)
+    },
     onMutate: (variables) => setProcessingId(variables.id),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project-applications', projectId] })
@@ -73,8 +74,8 @@ export default function ProjectApplicationsPage() {
 
   const sortedApps = useMemo(() => {
     return [...filteredApps].sort((a, b) => {
-      if (sortOrder === 'lowest_budget') return (a.proposedBudget || 0) - (b.proposedBudget || 0)
-      if (sortOrder === 'highest_budget') return (b.proposedBudget || 0) - (a.proposedBudget || 0)
+      if (sortOrder === 'lowestBudget') return (a.proposedBudget || 0) - (b.proposedBudget || 0)
+      if (sortOrder === 'highestBudget') return (b.proposedBudget || 0) - (a.proposedBudget || 0)
 
       const dateA = new Date(a.appliedAt).getTime()
       const dateB = new Date(b.appliedAt).getTime()
@@ -119,14 +120,20 @@ export default function ProjectApplicationsPage() {
     return (
       <div className="flex flex-col gap-6">
         {sortedApps.map((app) => (
-          <ContractorAppCard key={app._id} app={app} processingId={processingId} onUpdateStatus={handleUpdateStatus} />
+          <ContractorAppCard
+            key={app._id}
+            app={app}
+            processingId={processingId}
+            onUpdateStatus={handleUpdateStatus}
+            hasAcceptedApplicant={hasAcceptedApplicant}
+          />
         ))}
       </div>
     )
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen font-body pb-24 text-slate-800">
+    <div className="bg-slate-50 min-h-screen font-body pb-24 text-slate-800 overflow-x-hidden">
       {/* ── HEADER ── */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm rounded-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-6">

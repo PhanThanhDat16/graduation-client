@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useStoreSocketIO } from '@/store/useStoreSocketIO'
 
 export default function MainLayout() {
-  const { accessToken, user, refresh, fetchMe } = useAuthStore()
+  const { accessToken, user, fetchMe } = useAuthStore()
   const { connect, disconnect } = useStoreSocketIO()
 
   const [starting, setStarting] = useState(true)
@@ -20,9 +20,10 @@ export default function MainLayout() {
 
     const run = async () => {
       try {
-        if (!accessToken) {
-          await refresh()
-        } else if (!user) {
+        // accessToken đã được persist trong localStorage
+        // Nếu có token nhưng chưa có user data → gọi fetchMe
+        // Nếu token hết hạn → interceptor tự gọi refresh-token
+        if (accessToken && !user) {
           await fetchMe()
         }
       } finally {

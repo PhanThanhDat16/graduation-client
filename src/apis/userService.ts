@@ -6,6 +6,10 @@ export const userService = {
     const res = await axiosInstance.get<PaginatedResponse<UserProfile>>('/users', { params })
     return res
   },
+  getFreelancers: (params: any) => {
+    const res = axiosInstance.get('/users', { params: { role: 'freelancer', ...params } })
+    return res
+  },
 
   getUserById: async (id: string) => {
     const res = await axiosInstance.get<ApiResponse<UserProfile>>(`/users/${id}`)
@@ -14,6 +18,14 @@ export const userService = {
   updateProfile: async (body: Partial<UserProfile>) => {
     const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
     return res
+  },
+  updateRole: async (body: { role: string }) => {
+    const res = await axiosInstance.put<ApiResponse<UserProfile>>('/users/profile', body)
+    console.log(res)
+    return res
+  },
+  updatePassword: (data: { currentPassword: string; newPassword: string }) => {
+    return axiosInstance.put('users/password', data)
   },
 
   // uploadAvatar: async (file: File) => {

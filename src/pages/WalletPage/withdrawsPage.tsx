@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react'
 import { TopBar, AmountInput } from '../../components/components-wallet'
-import { ArrowUpRight, CheckCircle2Icon, Loader2Icon, DollarSign, X, Plus, Building2, Info } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CheckCircle2Icon,
+  Loader2Icon,
+  DollarSign,
+  X,
+  Plus,
+  Building2,
+  Info,
+  ShieldAlert,
+  ChevronRight
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import path from '@/constants/path'
 import { useWalletStore } from '@/store/useWalletStore'
@@ -12,6 +23,9 @@ function WithdrawPage() {
   const [bank, setBank] = useState<string>('')
   const [localError, setLocalError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // STATE: Dùng để bật/tắt Modal Điều Khoản
+  const [showTermsModal, setShowTermsModal] = useState(false)
 
   // ── Zustand ──────────────────────────────────────────────────────────────────
   const { balance, balanceLoading, fetchBalance, createWithdrawRequest, loading: walletLoading } = useWalletStore()
@@ -36,7 +50,7 @@ function WithdrawPage() {
     setLocalError('')
     setSuccess('')
 
-    if (!parsedAmount || parsedAmount <= 0) {
+    if (!parsedAmount || parsedAmount < 100000) {
       setLocalError('Vui lòng nhập số tiền hợp lệ')
       return
     }
@@ -49,7 +63,7 @@ function WithdrawPage() {
       return
     }
 
-    const ok = await createWithdrawRequest({ amount: parsedAmount, account_id: bank })
+    const ok = await createWithdrawRequest({ amount: parsedAmount, accountId: bank })
     if (ok) {
       setSuccess(
         `Yêu cầu rút ${formatCurrency(parsedAmount)} đã được tạo thành công! Giao dịch sẽ được xử lý sớm nhất.`
@@ -62,22 +76,22 @@ function WithdrawPage() {
     <div className="flex-1 flex flex-col h-full bg-[#F8FAFC]">
       <TopBar crumbs={['Tổng quan', 'Ví của tôi', 'Rút tiền']} />
       <div className="flex-1 overflow-auto py-4 md:py-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl">
           {/* Main Card */}
           <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 overflow-hidden flex flex-col lg:flex-row">
-            {/* CỘT TRÁI: Số dư & Nhập liệu (ĐÃ BỎ justify-center) */}
-            <div className="w-full lg:w-3/5 p-8 md:p-12 flex flex-col">
+            {/* CỘT TRÁI: Số dư & Nhập liệu */}
+            <div className="w-full lg:w-3/5 p-6 sm:p-8 md:p-9 flex flex-col">
               {/* Header */}
-              <div className="flex items-start gap-5 mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0 transform -rotate-3 transition-transform hover:rotate-0 duration-300">
-                  <ArrowUpRight size={26} className="text-white" />
+              <div className="flex items-start gap-4 sm:gap-5 mb-8">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0 transform -rotate-3 transition-transform hover:rotate-0 duration-300">
+                  <ArrowUpRight className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-1 sm:mb-2">
                     Rút tiền về thẻ
                   </h1>
-                  <p className="text-slate-500 text-sm md:text-base font-medium">
-                    Chuyển số dư từ hệ thống về tài khoản ngân hàng của bạn.
+                  <p className="text-slate-500 text-xs sm:text-sm md:text-base font-medium">
+                    Chuyển số dư về tài khoản ngân hàng của bạn.
                   </p>
                 </div>
               </div>
@@ -103,7 +117,7 @@ function WithdrawPage() {
 
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
-                    <p className="text-indigo-100 text-sm font-semibold uppercase tracking-wider mb-2">
+                    <p className="text-indigo-100 text-xs sm:text-sm font-semibold uppercase tracking-wider mb-2">
                       Số dư khả dụng
                     </p>
                     <div className="flex items-center gap-3">
@@ -112,8 +126,8 @@ function WithdrawPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0">
-                    <DollarSign size={24} className="text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0">
+                    <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                 </div>
               </div>
@@ -125,7 +139,7 @@ function WithdrawPage() {
                   <AmountInput
                     value={amount}
                     onChange={setAmount}
-                    presets={[100000, 500000, 1000000, balance]}
+                    presets={[100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000]}
                     purpose="rút"
                     color="indigo"
                   />
@@ -133,18 +147,35 @@ function WithdrawPage() {
 
                 {/* Balance warning */}
                 {parsedAmount > balance && balance > 0 && (
-                  <div className="flex items-start gap-2.5 mt-3 px-2 animate-in fade-in">
+                  <div className="flex items-start gap-2.5 px-2 animate-in fade-in">
                     <Info size={16} className="text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-600 font-medium leading-snug">
                       Số tiền yêu cầu vượt quá số dư khả dụng (<strong>{formatCurrency(balance)}</strong>).
                     </p>
                   </div>
                 )}
+
+                {/* --- THANH ĐIỀU KHOẢN SIÊU GỌN CHÈN DƯỚI INPUT --- */}
+                <div className="mt-4 flex items-center justify-between p-3.5 sm:px-5 bg-slate-50 border border-slate-100 rounded-2xl transition-colors hover:bg-slate-100">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <ShieldAlert size={18} className="text-indigo-500" />
+                    <span className="text-[13px] sm:text-sm text-slate-700 font-medium">
+                      Quy định & Điều khoản rút tiền
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowTermsModal(true)}
+                    className="flex items-center gap-1 text-[13px] sm:text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors group"
+                  >
+                    Xem chi tiết
+                    <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* CỘT PHẢI: Ngân hàng & Xác nhận */}
-            <div className="w-full lg:w-2/5 bg-slate-50/80 p-8 md:p-12 lg:border-l border-slate-100/80 flex flex-col justify-between">
+            <div className="w-full lg:w-2/5 bg-slate-50/80 p-6 sm:p-8 md:p-9 lg:border-l border-slate-100/80 flex flex-col justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-5">
                   2. Tài khoản nhận tiền
@@ -185,12 +216,12 @@ function WithdrawPage() {
                         </div>
                         <div className="flex flex-col flex-1">
                           <span
-                            className={`text-base font-bold ${bank === acc._id ? 'text-indigo-700' : 'text-slate-800'}`}
+                            className={`text-base font-bold line-clamp-1 ${bank === acc._id ? 'text-indigo-700' : 'text-slate-800'}`}
                           >
                             {acc.bankShortName}
                           </span>
                           <span className="text-xs text-slate-500 font-medium mt-0.5 line-clamp-1">
-                            Tài khoản: ****{acc._id.slice(-4)}
+                            Tài khoản: ****{acc.accountNumber.slice(-4)}
                           </span>
                         </div>
 
@@ -207,7 +238,7 @@ function WithdrawPage() {
                 )}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-200/60">
+              <div className="mt-8 pt-6 border-t border-slate-200/60">
                 {/* Summary */}
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-6 space-y-3">
                   <div className="flex justify-between items-center text-sm">
@@ -226,7 +257,14 @@ function WithdrawPage() {
 
                 <button
                   onClick={handleWithdraw}
-                  disabled={walletLoading || !amount || !bank || parsedAmount > balance}
+                  disabled={
+                    walletLoading ||
+                    !amount ||
+                    !bank ||
+                    parsedAmount > balance ||
+                    parsedAmount < 100000 ||
+                    parsedAmount > 10000000
+                  }
                   className="group relative w-full overflow-hidden bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-200 text-white font-bold py-4 px-6 rounded-2xl shadow-[0_8px_20px_rgb(99,102,241,0.25)] hover:shadow-[0_10px_25px_rgb(99,102,241,0.35)] disabled:shadow-none flex items-center justify-center gap-3 text-lg"
                 >
                   {walletLoading ? (
@@ -244,7 +282,7 @@ function WithdrawPage() {
                     Thời gian xử lý giao dịch: <span className="text-slate-600">1–2 giờ làm việc</span>
                   </p>
                   <p className="text-[13px] text-slate-400 font-medium">
-                    Hỗ trợ CSKH qua Zalo: <span className="text-indigo-600">0369696969</span>
+                    Hỗ trợ CSKH qua Zalo: <span className="text-indigo-600 font-bold">0369696969</span>
                   </p>
                 </div>
               </div>
@@ -252,6 +290,68 @@ function WithdrawPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── MODAL QUY ĐỊNH (HIỂN THỊ KHI BẤM NÚT) ─── */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] sm:rounded-[32px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            {/* Header Modal */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-50 rounded-[14px] flex items-center justify-center border border-amber-100">
+                  <ShieldAlert className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-lg text-slate-900">Điều khoản rút tiền</h2>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Nội dung Quy định */}
+            <div className="p-6 sm:p-8 bg-amber-50/30">
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3 text-sm text-slate-700 font-medium leading-relaxed">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                  <span>
+                    Tên chủ tài khoản ngân hàng phải <strong className="text-amber-900">trùng khớp hoàn toàn</strong>{' '}
+                    với họ tên trên hồ sơ FreeWork của bạn để đảm bảo tính chính danh (KYC).
+                  </span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700 font-medium leading-relaxed">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                  <span>
+                    Đối với <strong className="text-amber-900">Doanh nghiệp/Công ty</strong>, vui lòng liên hệ trực tiếp
+                    Admin để cung cấp chứng từ kế toán và thực hiện lệnh rút.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700 font-medium leading-relaxed">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                  <span>
+                    Nhằm chống gian lận và rửa tiền (AML), các giao dịch có dấu hiệu bất thường sẽ bị tạm giữ để xác
+                    minh trong vòng 24h - 48h.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="px-6 py-5 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all active:scale-95 shadow-md shadow-slate-900/20"
+              >
+                Tôi đã hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

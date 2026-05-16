@@ -1,3 +1,4 @@
+import { useState } from 'react' // Thêm useState
 import { useNavigate } from 'react-router-dom'
 import { Briefcase, ArrowLeft } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -12,14 +13,14 @@ export default function PostProjectPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // Móc API Create Project
+  // State quản lý việc đang up ảnh
+  const [isUploading, setIsUploading] = useState(false)
+
   const createMutation = useMutation({
     mutationFn: (data: ProjectCreateParams) => projectService.createProject(data),
     onSuccess: () => {
-      // Báo cho React Query biết data đã cũ, cần fetch lại ở trang Danh sách
       queryClient.invalidateQueries({ queryKey: ['my-projects'] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
-
       toast.success('Đăng dự án thành công!')
       navigate('/manage-projects')
     },
@@ -28,20 +29,40 @@ export default function PostProjectPage() {
     }
   })
 
-  // Hàm xử lý khi Form bấm Submit
-  const handleCreateSubmit = (data: ProjectSchema) => {
-    // Ép kiểu dữ liệu ngân sách từ string sang number trước khi gửi API
-    const payload: ProjectCreateParams = {
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      skills: data.skills,
-      budgetMin: Number(data.budgetMin),
-      budgetMax: Number(data.budgetMax),
-      status: 'open' // Mặc định khi tạo là open
-    }
+  const handleCreateSubmit = async (data: ProjectSchema, newFiles: File[]) => {
+    try {
+      let uploadedImageUrls: string[] = []
 
-    createMutation.mutate(payload)
+      // Nếu người dùng có chọn ảnh, gọi API Upload trước
+      if (newFiles.length > 0) {
+        setIsUploading(true) // Bật loading up ảnh
+
+        const uploadRes = await projectService.uploadImages(newFiles)
+
+        // Gắn mảng link ảnh trả về từ Server vào biến
+        uploadedImageUrls = uploadRes.data.data.images || []
+      }
+
+      // Tạo payload gửi lên API Tạo Dự Án
+      const payload: ProjectCreateParams = {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        skills: data.skills,
+        budgetMin: Number(data.budgetMin),
+        budgetMax: Number(data.budgetMax),
+        status: 'open',
+        images: uploadedImageUrls
+      }
+
+      // Gọi API tạo dự án
+      createMutation.mutate(payload)
+    } catch (error) {
+      console.error(error)
+      toast.error('Lỗi khi tải ảnh lên server! Vui lòng kiểm tra lại kích thước ảnh.')
+    } finally {
+      setIsUploading(false) // Tắt loading up ảnh
+    }
   }
 
   return (
@@ -60,7 +81,7 @@ export default function PostProjectPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
                 Khởi tạo công việc
               </p>
-              <h1 className="font-heading font-extrabold text-xl text-slate-900 leading-none">Đăng dự án mới</h1>
+              <h1 className="font-extrabold text-xl text-slate-900 leading-none">Đăng dự án mới</h1>
             </div>
           </div>
           <div className="text-sm font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-lg hidden sm:block border border-slate-200">
@@ -71,12 +92,11 @@ export default function PostProjectPage() {
 
       {/* ── NỘI DUNG ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8">
-        {/* Banner */}
         <div className="bg-gradient-to-r from-indigo-600 to-violet-800 rounded-2xl p-6 text-white shadow-md mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h2 className="font-bold text-lg mb-1">Mô tả rõ ràng, tìm người dễ dàng!</h2>
             <p className="text-indigo-100 text-sm">
-              Các dự án có mô tả chi tiết và kỹ năng rõ ràng thường nhận được báo giá chất lượng hơn 70%.
+              Các dự án có đính kèm hình ảnh mô tả thường nhận được báo giá chất lượng hơn 70%.
             </p>
           </div>
           <Briefcase className="w-12 h-12 text-white/20 shrink-0 hidden sm:block" />
@@ -84,7 +104,7 @@ export default function PostProjectPage() {
 
         {/* Gọi Component Form */}
         <ProjectForm
-          isSubmitting={createMutation.isPending}
+          isSubmitting={createMutation.isPending || isUploading} // Khóa nút nếu đang Up ảnh HOẶC đang Tạo dự án
           onSubmit={handleCreateSubmit}
           submitText="Đăng Dự Án Ngay"
         />
