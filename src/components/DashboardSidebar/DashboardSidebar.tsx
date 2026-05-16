@@ -43,7 +43,7 @@ export default function DashboardSidebar() {
   const inactiveClass = 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'
 
   return (
-    <aside className="w-full md:w-64 bg-white border-r border-slate-200 shrink-0 md:min-h-[calc(100vh-64px)] sticky top-[64px] z-10">
+    <aside className="print:hidden w-full md:w-64 bg-white border-r border-slate-200 shrink-0 md:min-h-[calc(100vh-64px)] sticky top-[64px] z-10">
       <div className="p-5 hidden md:block border-b border-slate-100">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Không gian làm việc</p>
       </div>

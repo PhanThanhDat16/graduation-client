@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Search,
@@ -11,11 +12,16 @@ import {
   ShieldCheck,
   Users,
   DollarSign,
-  Clock
+  Clock,
+  AlertTriangle,
+  UserCircle,
+  CheckCircle2
 } from 'lucide-react'
 import { projectService } from '@/apis/projectService'
 import { userService } from '@/apis/userService'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useAuthStore } from '@/store/useAuthStore'
+import { toast } from 'react-toastify'
 
 // --- MOCK DATA ---
 const POPULAR_CATEGORIES = [
@@ -26,17 +32,24 @@ const POPULAR_CATEGORIES = [
 ]
 
 export default function HomePage() {
+  const { user, fetchMe } = useAuthStore()
+
+  // States cho màn hình cập nhật Role
+  const [selectedRole, setSelectedRole] = useState<'contractor' | 'freelancer' | ''>('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+
+  // Fetch Projects
   const {
     data: projectsResponse,
     isLoading,
     isError
   } = useQuery({
-    queryKey: ['projects', 'latest'], // Từ khóa để React Query lưu cache
+    queryKey: ['projects', 'latest'],
     queryFn: () => projectService.getProjects({ limit: 6, sortBy: 'createdAt', sortOrder: 'desc', status: 'open' })
   })
   const projects = projectsResponse?.data.data || []
 
-  // Fetch top freelancers with highest rating
+  // Fetch top freelancers
   const {
     data: freelancersResponse,
     isLoading: freelancersLoading,
@@ -51,10 +64,195 @@ export default function HomePage() {
         isVerified: true
       })
   })
+  const updateRoleMutation = useMutation({
+    mutationFn: (role: string) => userService.updateRole({ role }),
+    onSuccess: () => {
+      fetchMe()
+      toast.success('Cập nhật vai trò thành công!.')
+    },
+    onError: () => {
+      toast.error('Đã có lỗi xảy ra, vui lòng thử lại!')
+    }
+  })
   const topFreelancers = freelancersResponse?.data.data || []
 
-  // 3. Hàm format tiền
+  // Hàm format tiền
   const formatMoney = (amount: number) => amount.toLocaleString('vi-VN')
+
+  // Xử lý khi bấm nút "Cập nhật" ở màn hình Onboarding
+  const handleInitialSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedRole) return
+    setShowConfirmModal(true) // Mở modal xác nhận
+  }
+
+  // Xử lý khi bấm "Đồng ý" trong Modal
+  const handleConfirmUpdate = async () => {
+    setShowConfirmModal(false)
+    try {
+      updateRoleMutation.mutate(selectedRole)
+    } catch (error) {
+      console.error('Lỗi khi cập nhật role:', error)
+      toast.error('Đã có lỗi xảy ra, vui lòng thử lại!')
+    }
+  }
+
+  if (user && user.role === 'other') {
+    return (
+      <div className="flex items-center justify-center min-h-screen px-4 bg-slate-50 font-body py-10">
+        <div className="w-full max-w-3xl p-8 sm:p-12 bg-white border border-slate-100 shadow-2xl rounded-[2.5rem] text-center relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-indigo-100 rounded-[1.5rem] text-indigo-600 shadow-inner">
+              <Users className="w-10 h-10" />
+            </div>
+            <h3 className="mb-3 text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading tracking-tight">
+              Chào mừng bạn đến với FreeWork!
+            </h3>
+            <p className="mb-10 text-slate-500 text-lg max-w-xl mx-auto">
+              Để tối ưu trải nghiệm và gợi ý các công cụ phù hợp nhất, vui lòng cho chúng tôi biết mục đích chính của
+              bạn khi tham gia nền tảng.
+            </p>
+
+            <form onSubmit={handleInitialSubmit}>
+              {/* RADIO CARDS CHO CHỌN ROLE */}
+              <div className="grid sm:grid-cols-2 gap-5 mb-10 text-left">
+                {/* Card 1: Khách hàng / Nhà tuyển dụng */}
+                <label
+                  className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 flex flex-col gap-4 ${
+                    selectedRole === 'contractor'
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100'
+                      : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value="contractor"
+                    className="hidden"
+                    onChange={(e) => setSelectedRole(e.target.value as any)}
+                  />
+                  <div className="flex justify-between items-start">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedRole === 'contractor' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      <Briefcase className="w-6 h-6" />
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedRole === 'contractor' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}
+                    >
+                      {selectedRole === 'contractor' && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    </div>
+                  </div>
+                  <div>
+                    <h4
+                      className={`text-lg font-bold mb-1 ${selectedRole === 'contractor' ? 'text-indigo-900' : 'text-slate-900'}`}
+                    >
+                      Nhà tuyển dụng
+                    </h4>
+                    <p className="text-sm text-slate-500 font-medium">
+                      Tôi muốn tìm kiếm nhân tài, đăng dự án và thuê Freelancer làm việc.
+                    </p>
+                  </div>
+                </label>
+
+                {/* Card 2: Freelancer */}
+                <label
+                  className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 flex flex-col gap-4 ${
+                    selectedRole === 'freelancer'
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100'
+                      : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value="freelancer"
+                    className="hidden"
+                    onChange={(e) => setSelectedRole(e.target.value as any)}
+                  />
+                  <div className="flex justify-between items-start">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedRole === 'freelancer' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      <UserCircle className="w-6 h-6" />
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedRole === 'freelancer' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}
+                    >
+                      {selectedRole === 'freelancer' && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    </div>
+                  </div>
+                  <div>
+                    <h4
+                      className={`text-lg font-bold mb-1 ${selectedRole === 'freelancer' ? 'text-indigo-900' : 'text-slate-900'}`}
+                    >
+                      Freelancer
+                    </h4>
+                    <p className="text-sm text-slate-500 font-medium">
+                      Tôi là chuyên gia muốn tìm kiếm việc làm, dự án để tăng thu nhập.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!selectedRole}
+                className="w-full sm:w-auto min-w-[240px] px-8 py-4 text-lg font-bold text-white transition-all shadow-lg shadow-indigo-600/30 bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-0.5 rounded-2xl disabled:bg-slate-300 disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed"
+              >
+                Tiếp tục &rarr;
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* --- MODAL XÁC NHẬN TÙY CHỈNH --- */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden transform animate-in zoom-in-95 duration-200">
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-3">Xác nhận vai trò</h3>
+                <p className="text-slate-600 font-medium mb-2">
+                  Bạn đang chọn trở thành{' '}
+                  <strong className="text-indigo-600">
+                    {selectedRole === 'contractor' ? 'Nhà tuyển dụng' : 'Freelancer'}
+                  </strong>
+                  .
+                </p>
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mt-4 text-left">
+                  <p className="text-sm text-amber-800 font-medium flex gap-2">
+                    <span className="text-amber-500 shrink-0">⚠️</span>
+                    Lưu ý: Bạn chỉ có thể chọn vai trò 1 lần duy nhất và KHÔNG THỂ thay đổi về sau. Bạn chắc chắn chứ?
+                  </p>
+                </div>
+              </div>
+              <div className="px-8 py-5 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 px-5 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl transition-colors"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={handleConfirmUpdate}
+                  className="flex-1 px-5 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-md shadow-indigo-600/20"
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-20 bg-page font-body">
       {/* --- HERO SECTION --- */}
@@ -108,7 +306,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Hero Image (Illustrative Placeholder) */}
+          {/* Hero Image */}
           <div className="justify-end hidden lg:flex">
             <div className="relative">
               <img
@@ -216,21 +414,18 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Xử lý trạng thái Loading */}
         {isLoading && (
           <div className="flex justify-center py-12">
             <div className="w-10 h-10 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
           </div>
         )}
 
-        {/* Xử lý trạng thái Lỗi */}
         {isError && (
           <div className="py-12 font-bold text-center text-red-500 bg-red-50 rounded-2xl">
             Đã có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau!
           </div>
         )}
 
-        {/* Hiển thị dữ liệu THẬT */}
         {!isLoading && !isError && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (

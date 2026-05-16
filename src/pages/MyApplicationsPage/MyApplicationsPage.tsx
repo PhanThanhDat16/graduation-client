@@ -35,6 +35,7 @@ export default function MyApplicationsPage() {
 
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['my-applications'],
+    staleTime: 0,
     queryFn: () => applicationService.getMyApplications()
   })
   const applications: Application[] = axiosResponse?.data?.data || []

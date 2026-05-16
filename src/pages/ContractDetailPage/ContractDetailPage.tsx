@@ -15,8 +15,7 @@ import {
   ShieldAlert,
   MessageSquare,
   Handshake,
-  CalendarClock,
-  Star
+  CalendarClock
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -24,16 +23,16 @@ import { contractService } from '@/apis/contractService'
 import { disputeService } from '@/apis/disputeService'
 import { projectService } from '@/apis/projectService'
 import { useAuthStore } from '@/store/useAuthStore'
-import { reviewService } from '@/apis/reviewService'
 import { formatBudget } from '@/utils/fomatters'
 import { useCountdown } from '@/hooks/useCountdown'
+
+import InputNumber from '@/components/InputNumber/InputNumber'
 
 import PaymentModal from './components/PaymentModal'
 import DisputeModal from './components/DisputeModal'
 import SubmitWorkModal from './components/SubmitWorkModal'
 import DisputeDossier from './components/DisputeDossier'
 import NegotiationModal from './components/NegotiationModal'
-import ReviewModal from './components/ReviewModal'
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -47,7 +46,6 @@ export default function ContractDetailPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [showDisputeModal, setShowDisputeModal] = useState(false)
   const [showNegotiationModal, setShowNegotiationModal] = useState(false)
-  const [showReviewModal, setShowReviewModal] = useState(false)
 
   // 1. FETCH DATA
   const { data: axiosResponse, isLoading: isContractLoading } = useQuery({
@@ -56,28 +54,15 @@ export default function ContractDetailPage() {
     queryFn: () => contractService.getContractById(id as string),
     enabled: !!id
   })
-  const contract = axiosResponse?.data?.data
 
   const { data: disputeRes } = useQuery({
     queryKey: ['dispute-contract', id],
     queryFn: () => disputeService.getDisputeByContract(id as string),
     enabled: !!id
   })
-  const currentDispute = disputeRes?.data?.data
 
-  const { data: reviewRes } = useQuery({
-    queryKey: ['review-contract', id],
-    queryFn: () => reviewService.getReviewByContractId(id as string),
-    enabled: !!id && contract?.status === 'completed'
-  })
-  const reviews = reviewRes?.data?.data || []
-  // Tìm review mà MÌNH (Contractor) đã viết
-  const existingReview = Array.isArray(reviews)
-    ? reviews.find((r: any) => {
-        const reviewerId = typeof r.reviewerId === 'string' ? r.reviewerId : r.reviewerId?._id
-        return reviewerId === user?._id
-      })
-    : null
+  const contract = axiosResponse?.data?.data
+  const currentDispute = disputeRes?.data?.data
 
   // 2. ROLE CHECK (Nhận diện Khách hàng / Freelancer bằng ID)
   const contractorIdStr =
@@ -91,16 +76,6 @@ export default function ContractDetailPage() {
 
   // 3. COUNTDOWN LOGIC
   const { minutes, seconds, isExpired } = useCountdown(currentDispute?.reasonDeadline)
-
-  const contractDeadline = (contract?.expandCount || 0) > 0 ? contract?.expandDeadline : contract?.deadline
-  const {
-    days: cDays,
-    hours: cHours,
-    minutes: cMin,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    seconds: cSec,
-    isExpired: cExpired
-  } = useCountdown(contractDeadline)
 
   const checkDeadlineMutation = useMutation({
     mutationFn: () => disputeService.checkDeadline(currentDispute._id),
@@ -169,12 +144,16 @@ export default function ContractDetailPage() {
   })
 
   // 5. HANDLERS
+  const handlePrint = () => {
+    window.print()
+  }
+
   const handleAgree = () => {
-    if (signature.trim().length < 2) {
-      toast.warning('Vui lòng nhập đầy đủ Họ và Tên để làm chữ ký điện tử.')
+    if (signature.trim().length !== 6) {
+      toast.warning('Vui lòng nhập đúng mã PIN bảo mật 6 số để ký điện tử.')
       return
     }
-    if (window.confirm('Bạn có chắc chắn muốn ký và chấp thuận hợp đồng này?')) {
+    if (window.confirm('Xác nhận ký điện tử? Lệnh này mang giá trị pháp lý tương đương chữ ký tay.')) {
       agreeMutation.mutate()
     }
   }
@@ -200,7 +179,7 @@ export default function ContractDetailPage() {
           return (
             <button
               onClick={() => setShowDisputeModal(true)}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors shadow-sm bg-amber-600 hover:bg-amber-700 rounded-xl"
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors"
             >
               <AlertTriangle className="w-4 h-4" /> Bổ sung lời khai
             </button>
@@ -209,7 +188,7 @@ export default function ContractDetailPage() {
           return (
             <button
               disabled
-              className="flex items-center gap-2 px-5 py-2 text-sm font-bold cursor-not-allowed text-slate-500 bg-slate-200 rounded-xl"
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-slate-500 bg-slate-200 rounded-xl cursor-not-allowed"
             >
               <AlertTriangle className="w-4 h-4" /> Đang chờ đối tác...
             </button>
@@ -222,7 +201,7 @@ export default function ContractDetailPage() {
           <button
             onClick={() => escalateMutation.mutate()}
             disabled={escalateMutation.isPending}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors bg-red-600 shadow-sm hover:bg-red-700 rounded-xl disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors disabled:opacity-50"
           >
             <ShieldAlert className="w-4 h-4" /> Yêu cầu Admin phân xử
           </button>
@@ -232,7 +211,7 @@ export default function ContractDetailPage() {
       return (
         <button
           onClick={() => navigate(`/messages`)}
-          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors shadow-sm bg-slate-800 hover:bg-slate-900 rounded-xl"
+          className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-sm transition-colors"
         >
           <MessageSquare className="w-4 h-4" /> Vào Box Chat
         </button>
@@ -241,22 +220,14 @@ export default function ContractDetailPage() {
 
     // --- B. LUỒNG BÌNH THƯỜNG ---
     if (contract?.status === 'waiting_payment') {
-      const hasPaid = isContractor ? contract.contractorPaid : contract.freelancerPaid
       const needToPay = isContractor
-        ? contract.paymentInfo?.contractorRemaining > 0
-        : contract.paymentInfo?.freelancerRemaining > 0
-      if (hasPaid) {
-        return (
-          <div className="flex items-center gap-2 px-4 py-2 text-sm font-bold border text-emerald-600 bg-emerald-50 border-emerald-200 rounded-xl">
-            <CheckCircle2 className="w-4 h-4" /> Bạn đã thanh toán. Chờ đối tác...
-          </div>
-        )
-      }
+        ? contract.paymentInfo?.contractorMustPay > 0
+        : contract.paymentInfo?.freelancerMustPay > 0
       if (needToPay) {
         return (
           <button
             onClick={() => setShowPaymentModal(true)}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors shadow-sm bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors"
           >
             <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
           </button>
@@ -269,14 +240,14 @@ export default function ContractDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowDisputeModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 transition-colors border border-red-200 shadow-sm bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm"
           >
             <AlertTriangle className="w-4 h-4" /> Khiếu nại
           </button>
           {!isContractor && (
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors bg-indigo-600 shadow-sm hover:bg-indigo-700 rounded-xl"
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
             >
               <Send className="w-4 h-4" /> Nộp sản phẩm
             </button>
@@ -290,7 +261,7 @@ export default function ContractDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowDisputeModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 transition-colors border border-red-200 shadow-sm bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-xl"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded-xl transition-colors shadow-sm"
           >
             <AlertTriangle className="w-4 h-4" /> Khiếu nại
           </button>
@@ -298,7 +269,7 @@ export default function ContractDetailPage() {
             <button
               onClick={() => completeMutation.mutate()}
               disabled={completeMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors shadow-sm bg-emerald-600 hover:bg-emerald-700 rounded-xl disabled:opacity-70"
+              className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors disabled:opacity-70"
             >
               <CheckSquare className="w-4 h-4" />{' '}
               {completeMutation.isPending ? 'Đang xử lý...' : 'Nghiệm thu & Giải ngân'}
@@ -308,41 +279,16 @@ export default function ContractDetailPage() {
       )
     }
 
-    if (contract?.status === 'completed') {
-      if (isContractor) {
-        if (existingReview) {
-          return (
-            <div className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-yellow-600 border border-yellow-200 bg-yellow-50 rounded-xl">
-              <Star className="w-4 h-4 fill-yellow-500" /> Đã đánh giá
-            </div>
-          )
-        }
-        return (
-          <button
-            onClick={() => setShowReviewModal(true)}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white transition-colors bg-yellow-500 shadow-sm hover:bg-yellow-600 rounded-xl animate-pulse"
-          >
-            <Star className="w-4 h-4 fill-white" /> Đánh giá Freelancer
-          </button>
-        )
-      }
-    }
-
     return null
   }
 
-  // 7. RENDER LOGIC: KHU VỰC THƯƠNG LƯỢNG (Chỉ hiện khi Admin đã vào - negotiating)
+  // 7. RENDER LOGIC: KHU VỰC THƯƠNG LƯỢNG
   const renderNegotiationArea = () => {
-    // Chỉ hiện khi Admin đã Join (negotiating) hoặc đang chờ Review
     if (!['negotiating', 'admin_review'].includes(currentDispute?.status)) return null
 
-    // Kiểm tra xem ĐÃ CÓ ĐỀ XUẤT CHƯA: Dựa vào việc resolutionType có tồn tại hay không
     const hasProposal = !!currentDispute.resolutionType
 
     if (hasProposal) {
-      // Xác định ai là người đề xuất:
-      // Nếu mình là Contractor và contractorAgreed=true, freelancerAgreed=false => Mình là người đề xuất
-      // Nếu mình là Freelancer và freelancerAgreed=true, contractorAgreed=false => Mình là người đề xuất
       const iAmAgreed = isContractor ? currentDispute.contractorAgreed : currentDispute.freelancerAgreed
       const partnerAgreed = isContractor ? currentDispute.freelancerAgreed : currentDispute.contractorAgreed
 
@@ -350,26 +296,26 @@ export default function ContractDetailPage() {
       const amountFormat = (val: number) => new Intl.NumberFormat('vi-VN').format(val) + ' ₫'
 
       return (
-        <div className="max-w-4xl px-4 mx-auto mb-8 sm:px-6 animate-in fade-in slide-in-from-bottom-4">
-          <div className="p-6 border-2 border-blue-200 shadow-sm bg-blue-50 rounded-2xl">
-            <h3 className="flex items-center gap-2 mb-3 text-lg font-black text-blue-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-8 animate-in fade-in slide-in-from-bottom-4">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 shadow-sm">
+            <h3 className="font-black text-blue-900 text-lg mb-3 flex items-center gap-2">
               <Handshake className="w-5 h-5 text-blue-600" />
               Đề xuất giải quyết hiện tại
             </h3>
 
-            <div className="p-4 mb-5 bg-white border border-blue-100 rounded-xl">
-              <p className="mb-3 text-sm font-medium text-slate-600">
+            <div className="bg-white rounded-xl p-4 border border-blue-100 mb-5">
+              <p className="text-sm text-slate-600 font-medium mb-3">
                 Người đề xuất: <strong className="text-slate-900">{isMyProposal ? 'Bạn' : 'Đối phương'}</strong>
               </p>
 
-              <div className="p-3 border rounded-lg bg-slate-50 border-slate-100">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                 {currentDispute.resolutionType === 'cancel' && (
-                  <p className="flex items-center gap-2 font-bold text-red-600">
+                  <p className="font-bold text-red-600 flex items-center gap-2">
                     <XCircle className="w-4 h-4" /> Hủy hợp đồng (Hoàn tiền 100% cho Khách)
                   </p>
                 )}
                 {currentDispute.resolutionType === 'extend' && (
-                  <p className="flex items-center gap-2 font-bold text-amber-600">
+                  <p className="font-bold text-amber-600 flex items-center gap-2">
                     <CalendarClock className="w-4 h-4" /> Gia hạn thêm đến:{' '}
                     {new Date(currentDispute.newDeadline).toLocaleDateString('vi-VN')}
                   </p>
@@ -378,13 +324,13 @@ export default function ContractDetailPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Freelancer nhận</span>
-                      <strong className="text-lg text-indigo-600">
+                      <strong className="text-indigo-600 text-lg">
                         {amountFormat(currentDispute.freelancerAmount || 0)}
                       </strong>
                     </div>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Khách được hoàn</span>
-                      <strong className="text-lg text-emerald-600">
+                      <strong className="text-emerald-600 text-lg">
                         {amountFormat(currentDispute.contractorAmount || 0)}
                       </strong>
                     </div>
@@ -393,15 +339,14 @@ export default function ContractDetailPage() {
               </div>
             </div>
 
-            {/* Nút hành động */}
             {isMyProposal ? (
               <div className="flex flex-col gap-3">
-                <p className="flex items-center gap-2 text-sm font-bold text-blue-600 animate-pulse">
+                <p className="text-sm font-bold text-blue-600 animate-pulse flex items-center gap-2">
                   <span className="w-2 h-2 bg-blue-600 rounded-full"></span> Đang chờ đối phương xác nhận đề xuất này...
                 </p>
                 <button
                   onClick={() => setShowNegotiationModal(true)}
-                  className="text-xs font-bold underline w-fit text-slate-500 hover:text-blue-600"
+                  className="w-fit text-xs font-bold text-slate-500 hover:text-blue-600 underline"
                 >
                   Thay đổi đề xuất khác
                 </button>
@@ -437,19 +382,18 @@ export default function ContractDetailPage() {
       )
     }
 
-    // Nếu chưa có ai đề xuất gì
     return (
-      <div className="max-w-4xl px-4 mx-auto mb-8 sm:px-6 animate-in fade-in">
-        <div className="p-8 text-center border-2 border-dashed bg-slate-50 border-slate-300 rounded-2xl">
-          <Handshake className="w-10 h-10 mx-auto mb-3 text-slate-400" />
-          <h3 className="mb-1 text-lg font-bold text-slate-700">Bàn Thương Lượng</h3>
-          <p className="max-w-md mx-auto mb-5 text-sm leading-relaxed text-slate-500">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-8 animate-in fade-in">
+        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center">
+          <Handshake className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+          <h3 className="font-bold text-slate-700 mb-1 text-lg">Bàn Thương Lượng</h3>
+          <p className="text-sm text-slate-500 mb-5 max-w-md mx-auto leading-relaxed">
             Staff đã tham gia. Bây giờ hai bên có thể đưa ra đề xuất chia tiền hoặc gia hạn để tự giải quyết nhanh
             chóng.
           </p>
           <button
             onClick={() => setShowNegotiationModal(true)}
-            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-bold text-white transition-all shadow-lg bg-slate-900 hover:bg-slate-800 rounded-xl"
+            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-lg"
           >
             Đưa ra đề xuất giải quyết
           </button>
@@ -461,14 +405,14 @@ export default function ContractDetailPage() {
   // ====================== RENDERING ======================
   if (isContractLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-slate-50">
-        <div className="w-10 h-10 border-4 border-indigo-200 rounded-full border-t-indigo-600 animate-spin"></div>
-        <p className="font-medium text-slate-500">Đang tải tài liệu hợp đồng...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 gap-4">
+        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-medium">Đang tải tài liệu hợp đồng...</p>
       </div>
     )
   }
 
-  if (!contract) return <div className="py-20 font-bold text-center text-slate-500">Không tìm thấy hợp đồng</div>
+  if (!contract) return <div className="text-center py-20 font-bold text-slate-500">Không tìm thấy hợp đồng</div>
 
   const contractorInfo = contract.contractorId as any
   const freelancerInfo = contract.freelancerId as any
@@ -476,14 +420,14 @@ export default function ContractDetailPage() {
     currentDispute && !['resolved', 'auto_closed', 'staff_cancelled'].includes(currentDispute.status)
 
   return (
-    <div className="min-h-screen pb-24 bg-slate-100 font-body text-slate-800">
+    <div className="bg-slate-100 min-h-screen font-body pb-24 text-slate-800 print:bg-white print:pb-0">
       {/* ── TOOLBAR ── */}
-      <div className="bg-white border-b border-slate-200 sticky top-[64px] z-40 shadow-sm">
-        <div className="flex items-center justify-between max-w-5xl px-4 py-4 mx-auto sm:px-6">
+      <div className="bg-white border-b border-slate-200 sticky top-[64px] z-40 shadow-sm print:hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 -ml-2 transition-colors text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl"
+              className="p-2 -ml-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -491,14 +435,17 @@ export default function ContractDetailPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
                 Mã HĐ: #{contract._id.slice(-6).toUpperCase()}
               </p>
-              <h1 className="flex items-center gap-2 text-xl font-extrabold font-heading text-slate-900">
+              <h1 className="font-heading font-extrabold text-xl text-slate-900 flex items-center gap-2">
                 Chi tiết Hợp đồng
               </h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="items-center hidden gap-2 px-4 py-2 text-sm font-bold transition-colors sm:flex text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">
+            <button
+              onClick={handlePrint}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+            >
               <Printer className="w-4 h-4" /> In PDF
             </button>
             {renderActionButtons()}
@@ -507,15 +454,15 @@ export default function ContractDetailPage() {
       </div>
 
       {/* ── STATUS BANNER ── */}
-      <div className="max-w-4xl px-4 mx-auto mt-8 sm:px-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8 print:hidden">
         {/* BANNER TRANH CHẤP */}
         {isDisputeActive && (
-          <div className="flex flex-col items-center gap-5 p-5 mb-6 text-red-900 border-2 border-red-200 shadow-sm bg-red-50 rounded-2xl md:flex-row md:items-start">
-            <div className="flex items-start flex-1 w-full gap-3">
+          <div className="bg-red-50 border-2 border-red-200 text-red-900 p-5 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-5 mb-6 shadow-sm">
+            <div className="flex items-start gap-3 flex-1 w-full">
               <ShieldAlert className="w-6 h-6 shrink-0 text-red-600 mt-0.5" />
               <div>
-                <p className="text-lg font-black">Dự án đang xảy ra tranh chấp!</p>
-                <p className="mt-1 text-sm font-medium leading-relaxed text-red-700">
+                <p className="font-black text-lg">Dự án đang xảy ra tranh chấp!</p>
+                <p className="text-sm mt-1 text-red-700 font-medium leading-relaxed">
                   {currentDispute.status === 'pending_reasons'
                     ? 'Hai bên có thời gian để điền biểu mẫu bổ sung lời khai / bằng chứng bảo vệ quyền lợi của mình.'
                     : currentDispute.status === 'waiting_escalation'
@@ -525,11 +472,10 @@ export default function ContractDetailPage() {
               </div>
             </div>
 
-            {/* ĐỒNG HỒ ĐẾM NGƯỢC */}
             {currentDispute.status === 'pending_reasons' && (
               <div className="bg-white border-2 border-red-200 rounded-xl px-4 py-2 text-center shadow-sm min-w-[140px] shrink-0 w-full md:w-auto">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Thời gian còn lại</p>
-                <div className="flex items-center justify-center gap-1 font-mono text-2xl font-black text-red-600 animate-pulse">
+                <div className="font-mono text-2xl font-black text-red-600 flex justify-center items-center gap-1 animate-pulse">
                   {isExpired ? '00:00' : `${minutes}:${seconds}`}
                 </div>
               </div>
@@ -539,7 +485,7 @@ export default function ContractDetailPage() {
 
         {/* CÁC BANNER BÌNH THƯỜNG KHÁC */}
         {!isDisputeActive && contract.status === 'cancelled' && (
-          <div className="flex items-start gap-3 p-4 mb-6 text-red-700 border border-red-200 bg-red-50 rounded-xl">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-start gap-3 mb-6">
             <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Hợp đồng đã bị huỷ</p>
@@ -549,13 +495,13 @@ export default function ContractDetailPage() {
         )}
 
         {!isDisputeActive && (contract.status === 'draft' || contract.status === 'pending_agreement') && (
-          <div className="flex items-start gap-3 p-4 mb-6 border bg-amber-50 border-amber-200 text-amber-800 rounded-xl">
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Đang chờ chữ ký xác nhận</p>
-              <p className="mt-1 text-sm">
+              <p className="text-sm mt-1">
                 {!hasAgreed
-                  ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy điền chữ ký điện tử ở cuối trang để xác nhận.'
+                  ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy nhập mã PIN xác thực ở cuối trang để ký.'
                   : !partnerAgreed
                     ? 'Bạn đã ký. Đang chờ đối tác kiểm tra và chấp thuận hợp đồng này.'
                     : 'Đang xử lý...'}
@@ -565,198 +511,120 @@ export default function ContractDetailPage() {
         )}
 
         {!isDisputeActive && contract.status === 'waiting_payment' && (
-          <div className="p-4 mb-6 text-blue-800 border border-blue-200 bg-blue-50 rounded-xl">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-bold">Cả 2 bên đã xác nhận! Vui lòng thanh toán cọc để dự án bắt đầu.</p>
-                <div className="flex items-center gap-4 mt-3">
-                  <div
-                    className={`flex items-center gap-1.5 text-sm font-bold ${contract.contractorPaid ? 'text-emerald-600' : 'text-slate-400'}`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Khách hàng {contract.contractorPaid ? 'đã cọc' : 'chưa cọc'}
-                  </div>
-                  <div
-                    className={`flex items-center gap-1.5 text-sm font-bold ${contract.freelancerPaid ? 'text-emerald-600' : 'text-slate-400'}`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Freelancer {contract.freelancerPaid ? 'đã cọc' : 'chưa cọc'}
-                  </div>
-                </div>
-              </div>
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Cả 2 bên đã xác nhận!</p>
+              <p className="text-sm mt-1">
+                {isContractor
+                  ? 'Vui lòng thanh toán số tiền cọc để dự án chính thức bắt đầu.'
+                  : 'Đang chờ Khách hàng thanh toán tiền cọc vào ví Escrow. Sàn sẽ thông báo khi tiền đã an toàn.'}
+              </p>
             </div>
           </div>
         )}
 
         {!isDisputeActive && contract.status === 'running' && (
-          <div className="flex items-start justify-between gap-5 p-4 mb-6 text-indigo-800 border border-indigo-200 bg-indigo-50 rounded-xl">
-            <div className="flex items-start gap-3">
-              <PlayCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">Dự án đang được thực hiện</p>
-                <p className="mt-1 text-sm">
-                  {!isContractor
-                    ? 'Tiền cọc đã được lưu trong ví Escrow an toàn. Hãy bắt đầu công việc và nộp sản phẩm khi hoàn thành nhé!'
-                    : 'Freelancer đang tiến hành công việc. Bạn sẽ nhận được thông báo khi có sản phẩm bàn giao.'}
-                </p>
-              </div>
-            </div>
-
-            {/* COUNTDOWN DEADLINE */}
-            <div className="flex-col items-end hidden md:flex shrink-0">
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Thời hạn còn lại</p>
-              <div className="flex items-center gap-1.5 font-mono">
-                {cExpired ? (
-                  <span className="font-bold text-red-500">Đã quá hạn</span>
-                ) : (
-                  <>
-                    {cDays > 0 && (
-                      <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-indigo-600">{cDays}</span>
-                        <span className="text-[8px] uppercase font-bold text-slate-400 -mt-1">Ngày</span>
-                      </div>
-                    )}
-                    {cDays > 0 && <span className="font-bold text-indigo-300">:</span>}
-                    <div className="flex flex-col items-center">
-                      <span className="text-xl font-black text-indigo-600">{cHours}</span>
-                      <span className="text-[8px] uppercase font-bold text-slate-400 -mt-1">Giờ</span>
-                    </div>
-                    <span className="font-bold text-indigo-300">:</span>
-                    <div className="flex flex-col items-center">
-                      <span className="text-xl font-black text-indigo-600">{cMin}</span>
-                      <span className="text-[8px] uppercase font-bold text-slate-400 -mt-1">Phút</span>
-                    </div>
-                  </>
-                )}
-              </div>
+          <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <PlayCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Dự án đang được thực hiện</p>
+              <p className="text-sm mt-1">
+                {!isContractor
+                  ? 'Tiền cọc đã được lưu trong ví Escrow an toàn. Hãy bắt đầu công việc và nộp sản phẩm khi hoàn thành nhé!'
+                  : 'Freelancer đang tiến hành công việc. Bạn sẽ nhận được thông báo khi có sản phẩm bàn giao.'}
+              </p>
             </div>
           </div>
         )}
 
         {!isDisputeActive && contract.status === 'submitted' && (
-          <div className="flex items-start gap-3 p-4 mb-6 text-purple-800 border border-purple-200 bg-purple-50 rounded-xl">
+          <div className="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <Send className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Đã nộp sản phẩm</p>
-              <p className="mt-1 text-sm">
-                {isContractor ? (
-                  <div className="p-4 border border-indigo-100 bg-indigo-50 rounded-xl">
-                    <p className="text-sm leading-relaxed text-slate-700">
-                      Freelancer đã nộp sản phẩm. Vui lòng kiểm tra và tiến hành nghiệm thu để giải ngân.
-                    </p>
-
-                    <div className="mt-4 space-y-3">
-                      {contract.githubLink && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-slate-700">Github Repository:</span>
-
-                          <a
-                            href={contract.githubLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800"
-                          >
-                            xem tại đây
-                          </a>
-                        </div>
-                      )}
-
-                      {contract.webLink && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-slate-700">Website Demo:</span>
-
-                          <a
-                            href={contract.webLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800"
-                          >
-                            xem tại đây
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  'Sản phẩm đã được gửi thành công. Đang chờ khách hàng nghiệm thu.'
-                )}
+              <p className="text-sm mt-1">
+                {isContractor
+                  ? 'Freelancer đã nộp sản phẩm. Vui lòng kiểm tra và tiến hành nghiệm thu để giải ngân.'
+                  : 'Sản phẩm đã được gửi thành công. Đang chờ khách hàng nghiệm thu.'}
               </p>
             </div>
           </div>
         )}
 
         {!isDisputeActive && contract.status === 'completed' && (
-          <div className="flex items-start gap-3 p-4 mb-6 border bg-emerald-50 border-emerald-200 text-emerald-800 rounded-xl">
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Hợp đồng hoàn tất</p>
-              <p className="mt-1 text-sm">Dự án đã được nghiệm thu và tiền đã được giải ngân thành công.</p>
+              <p className="text-sm mt-1">Dự án đã được nghiệm thu và tiền đã được giải ngân thành công.</p>
             </div>
           </div>
         )}
       </div>
 
       {/* ── HỒ SƠ TRANH CHẤP & THƯƠNG LƯỢNG ── */}
-      {isDisputeActive && <DisputeDossier currentDispute={currentDispute} />}
-      {renderNegotiationArea()}
+      <div className="print:hidden">
+        {isDisputeActive && <DisputeDossier currentDispute={currentDispute} />}
+        {renderNegotiationArea()}
+      </div>
 
       {/* ── BẢN HỢP ĐỒNG ── */}
-      <div className="max-w-4xl px-4 mx-auto mb-12 sm:px-6">
-        <div className="bg-white rounded-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-8 sm:p-16 border border-slate-200 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-12 print:mb-0 print:px-0">
+        <div className="bg-white rounded-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-8 sm:p-16 border border-slate-200 relative overflow-hidden print:shadow-none print:border-none print:p-0">
           {contract.status === 'cancelled' && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-              <span className="font-black text-red-600 uppercase -rotate-45 text-9xl">Cancelled</span>
+              <span className="text-9xl font-black text-red-600 -rotate-45 uppercase">Cancelled</span>
             </div>
           )}
           {isDisputeActive && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-              <span className="font-black tracking-tighter text-red-600 uppercase -rotate-45 text-9xl">Disputed</span>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 print:hidden">
+              <span className="text-9xl font-black text-red-600 -rotate-45 uppercase tracking-tighter">Disputed</span>
             </div>
           )}
 
-          <div className="mb-12 text-center">
+          <div className="text-center mb-12">
             <h2 className="text-lg font-bold uppercase">Cộng hòa Xã hội Chủ nghĩa Việt Nam</h2>
-            <h3 className="mb-8 text-sm font-bold underline uppercase">Độc lập - Tự do - Hạnh phúc</h3>
-            <h1 className="text-2xl font-black tracking-wide uppercase sm:text-3xl text-slate-900">
+            <h3 className="text-sm font-bold uppercase underline mb-8">Độc lập - Tự do - Hạnh phúc</h3>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-wide">
               Hợp Đồng Dịch Vụ Tự Do
             </h1>
-            <p className="mt-2 font-medium text-slate-500">Mã số: {contract._id}</p>
+            <p className="text-slate-500 mt-2 font-medium">Mã số: {contract._id}</p>
           </div>
 
           <div className="space-y-8 mb-10 text-[15px] leading-relaxed">
             <p>Hôm nay, ngày {new Date(contract.createdAt).toLocaleDateString('vi-VN')}. Chúng tôi gồm có:</p>
 
-            <div className="p-6 border bg-slate-50 rounded-xl border-slate-100">
-              <h3 className="mb-3 text-lg font-bold text-indigo-900 uppercase">
+            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 print:border-none print:p-0 print:bg-transparent">
+              <h3 className="font-bold text-lg mb-3 uppercase text-indigo-900">
                 Bên A (Bên thuê dịch vụ / Khách hàng)
               </h3>
               <ul className="space-y-2">
                 <li>
-                  <span className="inline-block w-32 font-bold">Họ và tên:</span> {contractorInfo?.fullName || '---'}
+                  <span className="font-bold w-32 inline-block">Họ và tên:</span> {contractorInfo?.fullName || '---'}
                 </li>
                 <li>
-                  <span className="inline-block w-32 font-bold">Email liên hệ:</span> {contractorInfo?.email || '---'}
+                  <span className="font-bold w-32 inline-block">Email liên hệ:</span> {contractorInfo?.email || '---'}
                 </li>
                 <li>
-                  <span className="inline-block w-32 font-bold">Vai trò:</span> Chủ đầu tư dự án
+                  <span className="font-bold w-32 inline-block">Vai trò:</span> Chủ đầu tư dự án
                 </li>
               </ul>
             </div>
 
-            <div className="p-6 border bg-slate-50 rounded-xl border-slate-100">
-              <h3 className="mb-3 text-lg font-bold text-indigo-900 uppercase">
+            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 print:border-none print:p-0 print:bg-transparent print:mt-4">
+              <h3 className="font-bold text-lg mb-3 uppercase text-indigo-900">
                 Bên B (Bên cung cấp dịch vụ / Freelancer)
               </h3>
               <ul className="space-y-2">
                 <li>
-                  <span className="inline-block w-32 font-bold">Họ và tên:</span> {freelancerInfo?.fullName || '---'}
+                  <span className="font-bold w-32 inline-block">Họ và tên:</span> {freelancerInfo?.fullName || '---'}
                 </li>
                 <li>
-                  <span className="inline-block w-32 font-bold">Email liên hệ:</span> {freelancerInfo?.email || '---'}
+                  <span className="font-bold w-32 inline-block">Email liên hệ:</span> {freelancerInfo?.email || '---'}
                 </li>
                 <li>
-                  <span className="inline-block w-32 font-bold">Vai trò:</span> Chuyên gia thực hiện dự án
+                  <span className="font-bold w-32 inline-block">Vai trò:</span> Chuyên gia thực hiện dự án
                 </li>
               </ul>
             </div>
@@ -769,112 +637,159 @@ export default function ContractDetailPage() {
 
           <div className="space-y-6 text-[15px] leading-relaxed">
             <div>
-              <h3 className="mb-2 text-lg font-bold">Điều 1: Nội dung công việc</h3>
-              <div className="p-4 mt-3 italic whitespace-pre-line border-l-4 bg-slate-50 border-slate-300 rounded-r-xl">
+              <h3 className="font-bold text-lg mb-2">Điều 1: Nội dung công việc</h3>
+              <div className="mt-3 p-4 bg-slate-50 border-l-4 border-slate-300 italic whitespace-pre-line rounded-r-xl print:bg-transparent print:border-l-0 print:p-0 print:pl-4 print:border-slate-800">
                 {contract.contractorTerms}
               </div>
             </div>
 
             <div>
-              <h3 className="mb-2 text-lg font-bold">Điều 2: Thời gian thực hiện</h3>
-              <ul className="space-y-1 list-disc list-inside">
+              <h3 className="font-bold text-lg mb-2">Điều 2: Thời gian thực hiện</h3>
+              <ul className="list-disc list-inside space-y-1">
                 <li>
                   Hợp đồng bắt đầu có hiệu lực kể từ khi Bên A hoàn tất thanh toán tiền cọc vào ví trung gian (Escrow).
                 </li>
                 <li>
                   Thời hạn bàn giao sản phẩm dự kiến (Deadline):{' '}
-                  <strong className={cExpired ? 'text-red-600' : 'text-indigo-600'}>
-                    {contractDeadline ? new Date(contractDeadline).toLocaleDateString('vi-VN') : '---'}
-                  </strong>
-                  {contract.expandCount > 0 && (
-                    <span className="ml-2 text-xs italic font-bold text-amber-600">
-                      (Đã gia hạn {contract.expandCount} lần)
-                    </span>
-                  )}
+                  <strong className="text-red-600">{new Date(contract.deadline).toLocaleDateString('vi-VN')}</strong>.
                 </li>
               </ul>
             </div>
 
-            <div>
-              <h3 className="mb-2 text-lg font-bold">Điều 3: Phí dịch vụ & Thanh toán</h3>
-              <ul className="space-y-1 list-disc list-inside">
+            {/* ĐIỀU 3: THÙ LAO VÀ THANH TOÁN */}
+            <div className="mb-6">
+              <h3 className="font-bold text-lg mb-3 text-slate-900">Điều 3: Thù lao & Phương thức thanh toán</h3>
+              <ul className="list-disc list-inside space-y-2.5 text-slate-700 text-[15px] leading-relaxed print:text-black">
                 <li>
                   Tổng thù lao Bên A đồng ý thanh toán cho Bên B là:{' '}
-                  <strong>{formatBudget(contract.totalAmount)} VNĐ</strong>.
+                  <strong className="text-slate-900">{formatBudget(contract.totalAmount)} VNĐ</strong>.
                 </li>
-                <li>Khoản tiền này sẽ được giữ an toàn bởi hệ thống Escrow trong suốt quá trình thực hiện dự án.</li>
-                <li>Tiền chỉ được giải ngân cho Bên B khi Bên A xác nhận nghiệm thu sản phẩm đạt yêu cầu.</li>
+                <li>
+                  Toàn bộ khoản tiền này sẽ được khóa an toàn bởi hệ thống <strong>Ví Escrow</strong> trong suốt quá
+                  trình thực hiện dự án.
+                </li>
+                <li>
+                  Tiền thù lao chỉ được giải ngân vào ví khả dụng của Bên B sau khi Bên A xác nhận nghiệm thu sản phẩm
+                  đạt yêu cầu trên hệ thống.
+                </li>
+              </ul>
+            </div>
+
+            {/* ĐIỀU 4: PHÍ NỀN TẢNG VÀ CỌC BẢO LÃNH (TÁCH RIÊNG) */}
+            <div className="mb-6">
+              <h3 className="font-bold text-lg mb-3 text-slate-900">Điều 4: Phí nền tảng & Bảo lãnh thực hiện</h3>
+              <ul className="list-disc list-inside space-y-2.5 text-slate-700 text-[15px] leading-relaxed print:text-black">
+                <li>
+                  <strong className="text-indigo-700 print:text-black">Phí duy trì nền tảng (Bên A):</strong> Bên A có
+                  trách nhiệm thanh toán khoản phí dịch vụ tương đương <strong>5%</strong> giá trị hợp đồng, tương ứng
+                  với{' '}
+                  <strong className="text-indigo-700 print:text-black">
+                    {formatBudget(contract.totalAmount * 0.05)} VNĐ
+                  </strong>
+                  .
+                </li>
+                <li>
+                  <strong className="text-emerald-700 print:text-black">Bảo lãnh thực hiện (Bên B):</strong> Để đảm bảo
+                  cam kết tiến độ và chất lượng, Bên B phải đặt cọc số tiền tương đương <strong>15%</strong> giá trị hợp
+                  đồng, tương ứng với{' '}
+                  <strong className="text-emerald-700 print:text-black">
+                    {formatBudget(contract.totalAmount * 0.15)} VNĐ
+                  </strong>
+                  .
+                </li>
+                <li>
+                  Khoản tiền cọc của Bên B sẽ được hệ thống khóa tại Ví Escrow và <strong>tự động hoàn trả 100%</strong>{' '}
+                  vào ví khả dụng cùng với tiền thù lao khi dự án kết thúc tốt đẹp.
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-12 mt-12 border-t-2 border-slate-100">
+          <div className="mt-12 pt-12 border-t-2 border-slate-100 print:break-inside-avoid">
             <div className="grid grid-cols-2 gap-8 text-center">
               {/* CỘT CHỮ KÝ BÊN A */}
               <div>
-                <h4 className="text-lg font-bold uppercase text-slate-900">Đại diện Bên A</h4>
-                <p className="mb-8 text-sm text-slate-500">(Khách hàng)</p>
+                <h4 className="font-bold text-lg uppercase text-slate-900">Đại diện Bên A</h4>
+                <p className="text-sm text-slate-500 mb-8">(Khách hàng)</p>
 
                 {contract.contractorAgreed ? (
-                  <div className="inline-block p-4 border-2 rounded-lg border-emerald-500 bg-emerald-50 text-emerald-700 animate-in zoom-in">
-                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
-                    <p className="font-bold uppercase">Đã xác nhận</p>
-                    <p className="mt-1 text-xs">{contractorInfo?.fullName}</p>
+                  <div className="inline-block p-4 border-2 border-emerald-500 rounded-lg bg-emerald-50 text-emerald-700 animate-in zoom-in print:border-dashed print:bg-transparent print:border-slate-800 print:text-slate-800 w-full max-w-[280px]">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 print:hidden" />
+                    <p className="font-bold uppercase">Đã xác thực Ký số</p>
+                    <p className="text-sm font-bold mt-2">{contractorInfo?.fullName}</p>
+                    <p className="text-[10px] text-emerald-600 mt-1 uppercase tracking-wider print:text-slate-600">
+                      Mã xác thực: ******
+                    </p>
                   </div>
                 ) : isContractor && contract.status !== 'cancelled' ? (
-                  <div className="p-4 text-left border bg-slate-50 rounded-xl border-slate-200">
-                    <p className="mb-2 text-xs font-bold text-slate-500">Gõ tên bạn để ký điện tử:</p>
-                    <input
-                      type="text"
-                      value={signature}
-                      onChange={(e) => setSignature(e.target.value)}
-                      placeholder={user?.fullName}
-                      className="w-full px-3 py-2 mb-3 font-serif text-sm italic border rounded-lg outline-none border-slate-300 focus:border-indigo-500"
-                    />
+                  <div className="text-left bg-slate-50 p-4 rounded-xl border border-slate-200 print:hidden">
+                    <p className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                      Mã PIN bảo mật 6 số:
+                    </p>
+                    <div className="mb-4">
+                      <InputNumber
+                        value={signature}
+                        onChange={(e) => setSignature(e.target.value)}
+                        placeholder="● ● ● ● ● ●"
+                        maxLength={6}
+                        classNameInput="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-center tracking-[0.5em] font-mono text-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                        classNameError="hidden"
+                      />
+                    </div>
                     <button
                       onClick={handleAgree}
                       disabled={agreeMutation.isPending}
-                      className="w-full py-2 text-sm font-bold text-white transition-colors rounded-lg bg-slate-900 hover:bg-slate-800"
+                      className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg hover:bg-slate-800 transition-colors text-sm shadow-md"
                     >
                       Ký & Chấp thuận
                     </button>
                   </div>
                 ) : (
-                  <p className="mt-8 italic text-slate-400">Đang chờ ký...</p>
+                  <p className="text-slate-400 italic mt-8 print:text-black">Đang chờ xác thực...</p>
                 )}
               </div>
 
               {/* CỘT CHỮ KÝ BÊN B */}
               <div>
-                <h4 className="text-lg font-bold uppercase text-slate-900">Đại diện Bên B</h4>
-                <p className="mb-8 text-sm text-slate-500">(Freelancer)</p>
+                <h4 className="font-bold text-lg uppercase text-slate-900">Đại diện Bên B</h4>
+                <p className="text-sm text-slate-500 mb-8">(Freelancer)</p>
 
                 {contract.freelancerAgreed ? (
-                  <div className="inline-block p-4 border-2 rounded-lg border-emerald-500 bg-emerald-50 text-emerald-700 animate-in zoom-in">
-                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
-                    <p className="font-bold uppercase">Đã xác nhận</p>
-                    <p className="mt-1 text-xs">{freelancerInfo?.fullName}</p>
+                  <div className="inline-block p-4 border-2 border-emerald-500 rounded-lg bg-emerald-50 text-emerald-700 animate-in zoom-in print:border-dashed print:bg-transparent print:border-slate-800 print:text-slate-800 w-full max-w-[280px]">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 print:hidden" />
+                    <p className="font-bold uppercase">Đã xác thực Ký số</p>
+                    <p className="text-sm font-bold mt-2">{freelancerInfo?.fullName}</p>
+                    <p className="text-[10px] text-emerald-600 mt-1 uppercase tracking-wider print:text-slate-600">
+                      Mã xác thực: ******
+                    </p>
                   </div>
                 ) : !isContractor && contract.status !== 'cancelled' ? (
-                  <div className="p-4 text-left border bg-slate-50 rounded-xl border-slate-200">
-                    <p className="mb-2 text-xs font-bold text-slate-500">Gõ tên bạn để ký điện tử:</p>
-                    <input
-                      type="text"
-                      value={signature}
-                      onChange={(e) => setSignature(e.target.value)}
-                      placeholder={user?.fullName}
-                      className="w-full px-3 py-2 mb-3 font-serif text-sm italic border rounded-lg outline-none border-slate-300 focus:border-indigo-500"
-                    />
+                  <div className="text-left bg-slate-50 p-4 rounded-xl border border-slate-200 print:hidden">
+                    <p className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                      Mã PIN bảo mật 6 số:
+                    </p>
+                    <div className="mb-4">
+                      <InputNumber
+                        value={signature}
+                        onChange={(e) => setSignature(e.target.value)}
+                        placeholder="● ● ● ● ● ●"
+                        maxLength={6}
+                        classNameInput="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-center tracking-[0.5em] font-mono text-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                        classNameError="hidden"
+                      />
+                    </div>
                     <button
                       onClick={handleAgree}
                       disabled={agreeMutation.isPending}
-                      className="w-full py-2 text-sm font-bold text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                      className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-700 transition-colors text-sm shadow-md shadow-indigo-200"
                     >
                       Ký & Chấp thuận
                     </button>
                   </div>
                 ) : (
-                  <p className="mt-8 italic text-slate-400">Đang chờ ký...</p>
+                  <p className="text-slate-400 italic mt-8 print:text-black">Đang chờ xác thực...</p>
                 )}
               </div>
             </div>
@@ -883,11 +798,11 @@ export default function ContractDetailPage() {
 
         {/* NÚT HUỶ HỢP ĐỒNG */}
         {!hasAgreed && contract.status !== 'cancelled' && contract.status !== 'waiting_payment' && (
-          <div className="flex justify-center mt-6">
+          <div className="mt-6 flex justify-center print:hidden">
             <button
               onClick={handleCancel}
               disabled={cancelMutation.isPending}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 transition-colors hover:text-red-700"
+              className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold text-sm px-4 py-2 transition-colors"
             >
               <AlertTriangle className="w-4 h-4" />
               Tôi không đồng ý với các điều khoản này (Huỷ Hợp đồng)
@@ -939,12 +854,6 @@ export default function ContractDetailPage() {
           }}
         />
       )}
-      <ReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        contractId={id as string}
-        freelancerName={freelancerInfo?.fullName || 'Freelancer'}
-      />
     </div>
   )
 }
