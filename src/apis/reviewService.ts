@@ -31,6 +31,10 @@ export const reviewService = {
     )
   },
 
+  getReviewByContractId: async (contractId: string) => {
+    return await axiosInstance.get<ApiResponse<Review>>(`/reviews/contract/${contractId}`)
+  },
+
   updateReview: async (id: string, body: { rating?: number; comment?: string }) => {
     return await axiosInstance.put<ApiResponse<Review>>(`/reviews/${id}`, body)
   },

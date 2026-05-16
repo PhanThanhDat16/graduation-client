@@ -20,6 +20,7 @@ export interface ChatGroup {
   } | null
   createdAt: string
   unreadCount: number
+  status?: 'active' | 'closed'
 }
 
 export type MessageResponse = {

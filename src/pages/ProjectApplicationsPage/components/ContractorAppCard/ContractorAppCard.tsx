@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, XCircle, DollarSign, FileText, Mail, MessageSquare, PenTool, ExternalLink } from 'lucide-react'
+import { CheckCircle2, XCircle, DollarSign, FileText, Mail, PenTool, ExternalLink } from 'lucide-react'
 import { formatBudget } from '@/utils/fomatters'
 import type { Application } from '@/types/application'
 
@@ -51,26 +51,26 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
       {/* Lớp phủ loading khi đang call API */}
       {isProcessing && (
         <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] rounded-2xl z-10 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-indigo-200 rounded-full border-t-indigo-600 animate-spin"></div>
         </div>
       )}
 
       {/* ── THÔNG TIN FREELANCER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 mb-6">
-        <div className="flex items-start gap-4 min-w-0">
+      <div className="flex flex-col justify-between gap-5 mb-6 sm:flex-row sm:items-start">
+        <div className="flex items-start min-w-0 gap-4">
           {' '}
           {/* min-w-0 chống tràn */}
           <img
             src={fAvatar}
             alt={fName}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-slate-100 shrink-0 shadow-sm"
+            className="object-cover border-2 rounded-full shadow-sm w-14 h-14 sm:w-16 sm:h-16 border-slate-100 shrink-0"
           />
-          <div className="min-w-0 flex-1">
+          <div className="flex-1 min-w-0">
             {' '}
             {/* Thêm flex-1 và min-w-0 */}
             <Link
               to={`/freelancers/${fId}`}
-              className="font-extrabold text-lg sm:text-xl text-slate-900 hover:text-indigo-600 transition-colors truncate block"
+              className="block text-lg font-extrabold truncate transition-colors sm:text-xl text-slate-900 hover:text-indigo-600"
               title={fName}
             >
               {fName}
@@ -86,13 +86,13 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
         </div>
 
         {/* Status Badge */}
-        <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto">
+        <div className="flex items-center justify-between w-full shrink-0 sm:flex-col sm:items-end sm:w-auto">
           <span
             className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${statusUI.class}`}
           >
             {statusUI.label}
           </span>
-          <span className="text-xs text-slate-400 font-medium sm:mt-2">
+          <span className="text-xs font-medium text-slate-400 sm:mt-2">
             Nộp: {new Date(app.appliedAt).toLocaleDateString('vi-VN')}
           </span>
         </div>
@@ -102,10 +102,10 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
       <div
         className={`rounded-xl p-5 mb-6 border ${isAccepted ? 'bg-emerald-50/30 border-emerald-100' : 'bg-slate-50/50 border-slate-100'}`}
       >
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-4 mb-4 pb-4 border-b border-slate-200/60">
+        <div className="flex flex-wrap items-center pb-4 mb-4 border-b gap-x-8 gap-y-4 border-slate-200/60">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mức giá đề xuất</p>
-            <p className="text-xl font-extrabold text-emerald-600 flex items-center gap-1">
+            <p className="flex items-center gap-1 text-xl font-extrabold text-emerald-600">
               <DollarSign className="w-5 h-5 text-emerald-500" />
               {formatBudget(app.proposedBudget)} <span className="text-sm">₫</span>
             </p>
@@ -117,8 +117,8 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
             <FileText className="w-3.5 h-3.5" /> Thư chào giá
           </p>
           {/* FIX TRÀN CHỮ NẰM Ở ĐÂY: break-words */}
-          <div className="p-4 bg-white border border-slate-200/60 rounded-lg rounded-tl-none relative">
-            <div className="absolute -top-3 left-0 w-3 h-3 bg-white border-t border-l border-slate-200/60"></div>
+          <div className="relative p-4 bg-white border rounded-lg rounded-tl-none border-slate-200/60">
+            <div className="absolute left-0 w-3 h-3 bg-white border-t border-l -top-3 border-slate-200/60"></div>
             <p className="text-[14px] text-slate-700 leading-relaxed italic whitespace-pre-line break-all">
               "{app.proposal}"
             </p>
@@ -127,14 +127,14 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
       </div>
 
       {/* ── HÀNH ĐỘNG ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+      <div className="flex flex-col items-center justify-end gap-3 pt-2 sm:flex-row">
         {isRejected ? (
           <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-xl">
             <XCircle className="w-4 h-4" /> Đã từ chối ứng viên này
           </span>
         ) : isAccepted ? (
           // NÚT XEM HỢP ĐỒNG KHI ĐÃ TRÚNG THẦU
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col items-center w-full gap-3 sm:flex-row sm:w-auto">
             <span className="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-100">
               <CheckCircle2 className="w-4 h-4" /> Trúng thầu
             </span>
@@ -154,13 +154,6 @@ export default function ContractorAppCard({ app, processingId, onUpdateStatus }:
               className="w-full sm:w-auto px-5 py-2.5 text-slate-500 text-sm font-bold rounded-xl hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <XCircle className="w-4 h-4" /> Từ chối
-            </button>
-
-            <button
-              onClick={() => (window.location.href = `mailto:${fEmail}`)}
-              className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-            >
-              <MessageSquare className="w-4 h-4" /> Liên hệ
             </button>
 
             <button

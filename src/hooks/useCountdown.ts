@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 export function useCountdown(targetDateStr?: string) {
-  const [timeLeft, setTimeLeft] = useState({ minutes: 0, seconds: 0 })
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [isExpired, setIsExpired] = useState(false)
 
   useEffect(() => {
@@ -15,14 +15,15 @@ export function useCountdown(targetDateStr?: string) {
 
       if (distance <= 0) {
         clearInterval(interval)
-        setTimeLeft({ minutes: 0, seconds: 0 })
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
         setIsExpired(true)
       } else {
-        // Tính toán phút và giây còn lại
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
         const seconds = Math.floor((distance % (1000 * 60)) / 1000)
 
-        setTimeLeft({ minutes, seconds })
+        setTimeLeft({ days, hours, minutes, seconds })
         setIsExpired(false)
       }
     }, 1000)
@@ -31,6 +32,8 @@ export function useCountdown(targetDateStr?: string) {
   }, [targetDateStr])
 
   return {
+    days: timeLeft.days,
+    hours: timeLeft.hours.toString().padStart(2, '0'),
     minutes: timeLeft.minutes.toString().padStart(2, '0'),
     seconds: timeLeft.seconds.toString().padStart(2, '0'),
     isExpired

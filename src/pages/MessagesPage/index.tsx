@@ -9,7 +9,8 @@ import {
   Loader,
   HeadphonesIcon,
   FileText,
-  Bot
+  Bot,
+  ShieldAlert
 } from 'lucide-react'
 import { chatService } from '@/apis/chatService'
 import { aiService } from '@/apis/aiService'
@@ -25,7 +26,7 @@ import dayjs from 'dayjs'
 import ReactMarkdown from 'react-markdown'
 import type { ChatGroup, MessageListResponse, MessageResponse } from '@/types/chat'
 
-type TabType = 'user_support' | 'contract_chat' | 'ai_chat'
+type TabType = 'user_support' | 'contract_chat' | 'ai_chat' | 'dispute_chat'
 
 /** Detect URLs in plain text and render them as clickable links (for user messages) */
 function renderPlainTextWithLinks(content: string, isMe: boolean) {
@@ -79,18 +80,18 @@ function renderMessageContent(content: string, isMe: boolean, senderType?: strin
           ),
           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
           strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-          ul: ({ children }) => <ul className="ml-4 mb-2 list-disc last:mb-0">{children}</ul>,
-          ol: ({ children }) => <ol className="ml-4 mb-2 list-decimal last:mb-0">{children}</ol>,
+          ul: ({ children }) => <ul className="mb-2 ml-4 list-disc last:mb-0">{children}</ul>,
+          ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal last:mb-0">{children}</ol>,
           li: ({ children }) => <li className="mb-0.5">{children}</li>,
-          h1: ({ children }) => <h1 className="text-base font-bold mb-1">{children}</h1>,
-          h2: ({ children }) => <h2 className="text-sm font-bold mb-1">{children}</h2>,
-          h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
+          h1: ({ children }) => <h1 className="mb-1 text-base font-bold">{children}</h1>,
+          h2: ({ children }) => <h2 className="mb-1 text-sm font-bold">{children}</h2>,
+          h3: ({ children }) => <h3 className="mb-1 text-sm font-semibold">{children}</h3>,
           hr: () => <hr className="my-2 border-slate-200" />,
           code: ({ children, className }) => {
             const isBlock = className?.includes('language-')
             if (isBlock) {
               return (
-                <code className="block bg-slate-100 text-slate-800 rounded-lg p-3 my-2 text-xs overflow-x-auto whitespace-pre">
+                <code className="block p-3 my-2 overflow-x-auto text-xs whitespace-pre rounded-lg bg-slate-100 text-slate-800">
                   {children}
                 </code>
               )
@@ -500,6 +501,17 @@ export default function MessagesPage() {
                 <Bot className="w-3.5 h-3.5" />
                 AI Chat
               </button>
+              <button
+                onClick={() => handleTabChange('dispute_chat')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'dispute_chat'
+                    ? 'bg-white text-red-600 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Tranh chấp
+              </button>
             </div>
           </div>
 
@@ -575,13 +587,17 @@ export default function MessagesPage() {
                           ? 'bg-amber-100'
                           : group.type === 'ai_chat'
                             ? 'bg-purple-100'
-                            : 'bg-indigo-100'
+                            : group.type === 'dispute_chat'
+                              ? 'bg-red-100'
+                              : 'bg-indigo-100'
                       }`}
                     >
                       {group.type === 'contract_chat' ? (
                         <FileText className="w-5 h-5 text-amber-600" />
                       ) : group.type === 'ai_chat' ? (
                         <Bot className="w-5 h-5 text-purple-600" />
+                      ) : group.type === 'dispute_chat' ? (
+                        <ShieldAlert className="w-5 h-5 text-red-600" />
                       ) : (
                         <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
                       )}
@@ -591,17 +607,26 @@ export default function MessagesPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-0.5">
-                      <h3
-                        className={`text-sm truncate pr-2 ${
-                          group.unreadCount > 0 ? 'font-extrabold text-slate-900' : 'font-bold text-slate-700'
-                        }`}
-                      >
-                        {group.type === 'contract_chat'
-                          ? `Hợp đồng #${group._id.slice(-6)}`
-                          : group.type === 'ai_chat'
-                            ? 'AI Assistant'
-                            : 'Hỗ trợ khách hàng'}
-                      </h3>
+                      <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                        <h3
+                          className={`text-sm truncate ${
+                            group.unreadCount > 0 ? 'font-extrabold text-slate-900' : 'font-bold text-slate-700'
+                          }`}
+                        >
+                          {group.type === 'contract_chat'
+                            ? `Hợp đồng #${group._id.slice(-6)}`
+                            : group.type === 'ai_chat'
+                              ? 'AI Assistant'
+                              : group.type === 'dispute_chat'
+                                ? `Tranh chấp #${group._id.slice(-6)}`
+                                : 'Hỗ trợ khách hàng'}
+                        </h3>
+                        {group.status === 'closed' && (
+                          <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-500 uppercase tracking-wide">
+                            Đã đóng
+                          </span>
+                        )}
+                      </div>
                       <span
                         className={`text-[10px] shrink-0 ${
                           group.unreadCount > 0 ? 'font-bold text-indigo-600' : 'text-slate-400'
@@ -651,31 +676,48 @@ export default function MessagesPage() {
                       ? 'bg-amber-100'
                       : activeGroup.type === 'ai_chat'
                         ? 'bg-purple-100'
-                        : 'bg-indigo-100'
+                        : activeGroup.type === 'dispute_chat'
+                          ? 'bg-red-100'
+                          : 'bg-indigo-100'
                   }`}
                 >
                   {activeGroup.type === 'contract_chat' ? (
                     <FileText className="w-5 h-5 text-amber-600" />
                   ) : activeGroup.type === 'ai_chat' ? (
                     <Bot className="w-5 h-5 text-purple-600" />
+                  ) : activeGroup.type === 'dispute_chat' ? (
+                    <ShieldAlert className="w-5 h-5 text-red-600" />
                   ) : (
                     <HeadphonesIcon className="w-5 h-5 text-indigo-600" />
                   )}
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    {activeGroup.type === 'contract_chat'
-                      ? `Hợp đồng #${activeGroup._id.slice(-6)}`
-                      : activeGroup.type === 'ai_chat'
-                        ? 'AI Assistant'
-                        : 'Hỗ trợ khách hàng'}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900">
+                      {activeGroup.type === 'contract_chat'
+                        ? `Hợp đồng #${activeGroup._id.slice(-6)}`
+                        : activeGroup.type === 'ai_chat'
+                          ? 'AI Assistant'
+                          : activeGroup.type === 'dispute_chat'
+                            ? `Tranh chấp #${activeGroup._id.slice(-6)}`
+                            : 'Hỗ trợ khách hàng'}
+                    </h2>
+                    {activeGroup.status === 'closed' && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 uppercase">
+                        Đã đóng
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500">
-                    {activeGroup.type === 'contract_chat'
-                      ? 'Thảo luận hợp đồng'
-                      : activeGroup.type === 'ai_chat'
-                        ? 'Trợ lý AI thông minh'
-                        : 'Yêu cầu hỗ trợ'}
+                    {activeGroup.status === 'closed'
+                      ? 'Hợp đồng đã kết thúc'
+                      : activeGroup.type === 'contract_chat'
+                        ? 'Thảo luận hợp đồng'
+                        : activeGroup.type === 'ai_chat'
+                          ? 'Trợ lý AI thông minh'
+                          : activeGroup.type === 'dispute_chat'
+                            ? 'Thảo luận tranh chấp'
+                            : 'Yêu cầu hỗ trợ'}
                   </p>
                 </div>
               </div>
@@ -754,7 +796,7 @@ export default function MessagesPage() {
                 <div className="flex flex-col items-start">
                   <span className="text-[10px] text-slate-400 mb-1 ml-1">AI Assistant</span>
                   <div className="max-w-[85%] sm:max-w-[70%] flex flex-col items-start">
-                    <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-white border border-slate-200 shadow-sm">
+                    <div className="px-4 py-3 bg-white border rounded-bl-sm shadow-sm rounded-2xl border-slate-200">
                       <div className="flex items-center gap-1.5">
                         <div
                           className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
@@ -778,36 +820,57 @@ export default function MessagesPage() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-              <div className="flex items-end gap-2 p-2 transition-all border bg-slate-50 border-slate-200 rounded-2xl focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
-                <textarea
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSendMessage()
-                    }
-                  }}
-                  placeholder="Nhập tin nhắn..."
-                  className="flex-1 bg-transparent border-none text-sm px-3 py-3 outline-none resize-none max-h-32 min-h-[44px]"
-                  rows={1}
-                />
-                <div className="flex items-center gap-2 px-1 pb-1 shrink-0">
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!messageInput.trim() || sendingMessage}
-                    className={`p-2.5 rounded-xl transition-all ${
-                      messageInput.trim()
-                        ? 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700'
-                        : 'bg-slate-200 text-slate-400'
-                    }`}
+            {activeGroup.status === 'closed' ? (
+              <div className="p-4 border-t bg-slate-50 border-slate-200 shrink-0">
+                <div className="flex items-center justify-center gap-2 py-3 text-sm text-slate-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <Send className="w-5 h-5 ml-0.5" />
-                  </button>
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  <span>Hợp đồng đã hoàn thành — không thể gửi tin nhắn mới</span>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-4 bg-white border-t border-slate-200 shrink-0">
+                <div className="flex items-end gap-2 p-2 transition-all border bg-slate-50 border-slate-200 rounded-2xl focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                  <textarea
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 bg-transparent border-none text-sm px-3 py-3 outline-none resize-none max-h-32 min-h-[44px]"
+                    rows={1}
+                  />
+                  <div className="flex items-center gap-2 px-1 pb-1 shrink-0">
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!messageInput.trim() || sendingMessage}
+                      className={`p-2.5 rounded-xl transition-all ${
+                        messageInput.trim()
+                          ? 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700'
+                          : 'bg-slate-200 text-slate-400'
+                      }`}
+                    >
+                      <Send className="w-5 h-5 ml-0.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* Empty State */

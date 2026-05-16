@@ -57,9 +57,13 @@ export interface Contract {
   refundedToContractor: number
   refundedToFreelancer: number
   adminFeeCollected: number
+  githubLink?: string
+  webLink?: string
 
   paymentInfo: PaymentInfo
 
+  expandCount: number
+  expandDeadline?: string
   createdAt: string
   updatedAt: string
 }
