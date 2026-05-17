@@ -61,8 +61,32 @@ function renderPlainTextWithLinks(content: string, isMe: boolean) {
   return result.length > 0 ? result : content
 }
 
+function isImageUrl(content: string) {
+  const url = content.trim()
+
+  return (
+    /^https?:\/\/.+/i.test(url) &&
+    (/\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url) || url.includes('res.cloudinary.com'))
+  )
+}
+
 /** Render message content — markdown for AI messages, plain text with links for others */
 function renderMessageContent(content: string, isMe: boolean, senderType?: string) {
+  if (isImageUrl(content)) {
+    const imageUrl = content.trim()
+
+    return (
+      <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+        <img
+          src={imageUrl}
+          alt="chat image"
+          className="max-w-[260px] sm:max-w-[320px] max-h-[360px] rounded-xl object-cover"
+          loading="lazy"
+        />
+      </a>
+    )
+  }
+
   // Use markdown rendering for AI messages
   if (senderType === 'ai') {
     return (

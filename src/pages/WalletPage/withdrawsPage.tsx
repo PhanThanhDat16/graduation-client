@@ -42,7 +42,9 @@ function WithdrawPage() {
     fetchAccounts().then(() => {
       // Auto-select first account after load
       const { accounts } = useBankAccountStore.getState()
-      if (accounts.length > 0) setBank(accounts[0]._id)
+
+      const activeAccounts = accounts.filter((acc) => acc.status === 'active')
+      if (activeAccounts.length > 0) setBank(activeAccounts[0]._id)
     })
   }, [])
 
@@ -200,8 +202,9 @@ function WithdrawPage() {
                     {accounts.map((acc) => (
                       <button
                         key={acc._id}
+                        disabled={acc.status === 'inactive'}
                         onClick={() => setBank(acc._id)}
-                        className={`group relative w-full text-left rounded-2xl p-4 flex items-center gap-4 transition-all duration-300 ${
+                        className={`group ${acc.status === 'inactive' ? 'cursor-not-allowed opacity-50' : ''} relative w-full text-left rounded-2xl p-4 flex items-center gap-4 transition-all duration-300 ${
                           bank === acc._id
                             ? 'bg-white border-2 border-indigo-500 shadow-[0_4px_20px_rgb(99,102,241,0.15)]'
                             : 'bg-white border-2 border-transparent shadow-sm hover:shadow-md hover:border-slate-200'
