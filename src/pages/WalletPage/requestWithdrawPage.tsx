@@ -217,7 +217,10 @@ export default function RequestWithdrawPage() {
                     Số tài khoản
                   </th>
                   <th className="px-5 py-3.5 text-sm font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">
-                    Số tiền
+                    Số tiền yêu cầu
+                  </th>
+                  <th className="px-5 py-3.5 text-sm font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">
+                    Số tiền thực nhận
                   </th>
                   <th className="px-5 py-3.5 text-sm font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap text-center">
                     Trạng thái
@@ -305,6 +308,13 @@ export default function RequestWithdrawPage() {
                           </span>
                         </td>
 
+                        {/* Số tiền thực nhận */}
+                        <td className="px-5 py-4">
+                          <span className="font-bold text-slate-900 whitespace-nowrap">
+                            {formatCurrency(req.amountReceived)} ₫
+                          </span>
+                        </td>
+
                         {/* Trạng thái */}
                         <td className="px-5 py-4 text-center">
                           <StatusBadge status={req.status} />
@@ -376,9 +386,7 @@ export default function RequestWithdrawPage() {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold leading-snug">Chi tiết yêu cầu rút tiền</h3>
-                        <p className="text-sm text-indigo-300 mt-0.5 font-mono">
-                          #WD-{selectedRequest._id.slice(-6).toUpperCase()}
-                        </p>
+                        <p className="text-sm text-indigo-300 mt-0.5 font-mono">#WD-{selectedRequest._id}</p>
                       </div>
                     </div>
                     <button
@@ -478,7 +486,7 @@ export default function RequestWithdrawPage() {
                               value={
                                 <span className="flex items-center gap-3">
                                   {account?.logo && (
-                                    <span className="w-8 h-8 rounded border border-slate-200 bg-white flex items-center justify-center overflow-hidden p-1 shrink-0">
+                                    <span className="w-24 h-14 rounded-lg border border-slate-200 bg-white flex items-center justify-center overflow-hidden p-1 shrink-0">
                                       <img
                                         src={account.logo}
                                         alt={account.bankShortName}
