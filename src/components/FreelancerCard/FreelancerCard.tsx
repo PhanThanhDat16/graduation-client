@@ -14,7 +14,7 @@ export default function FreelancerCard({ freelancer }: FreelancerCardProps) {
   const { data: profileRes, isLoading: isProfileLoading } = useQuery({
     queryKey: ['freelancer-profile', freelancer._id],
     queryFn: () => userService.getUserById(freelancer._id),
-    staleTime: 1000 * 60 * 5 // Cache 5 phút
+    staleTime: 0
   })
 
   const profileData = profileRes?.data?.data || {}
@@ -28,7 +28,8 @@ export default function FreelancerCard({ freelancer }: FreelancerCardProps) {
   const location = fullData.address || 'Việt Nam'
 
   const title = fullData.title || fullData.category || 'Freelancer'
-  const desc = fullData.desc || 'Chuyên gia này chưa cập nhật thông tin giới thiệu chi tiết trên hệ thống.'
+  const desc = fullData.description || 'Chuyên gia này chưa cập nhật thông tin giới thiệu chi tiết trên hệ thống.'
+  console.log(fullData)
   const hourlyRate = fullData.hourlyRate || 0
 
   const joinYear = fullData.createdAt ? new Date(fullData.createdAt).getFullYear() : ''

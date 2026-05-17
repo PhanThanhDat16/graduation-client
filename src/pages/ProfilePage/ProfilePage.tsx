@@ -14,6 +14,7 @@ import ProfileProjects from './components/ProfileProjects'
 import ProfileReviews from './components/ProfileReviews'
 import EditProfileModal from './components/EditProfileModal'
 import ChangePasswordModal from './components/ChangePasswordModal/ChangePasswordModal'
+import { toast } from 'react-toastify'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -42,6 +43,7 @@ export default function ProfilePage() {
     enabled: !!targetProfileId,
     staleTime: 1000 * 60 * 5
   })
+  console.log(profileRes)
 
   const profileData = profileRes?.data?.data
 
@@ -77,7 +79,7 @@ export default function ProfilePage() {
     if (!file) return
 
     if (file.size > 1 * 1024 * 1024) {
-      console.error('Kích thước ảnh tối đa là 1MB (Quy định từ hệ thống)')
+      toast.error('Kích thước ảnh tối đa là 1MB (Quy định từ hệ thống)')
       return
     }
 

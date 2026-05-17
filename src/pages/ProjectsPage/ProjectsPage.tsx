@@ -39,6 +39,7 @@ export default function ProjectsPage() {
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['projects', queryConfig],
     queryFn: () => projectService.getProjects(queryConfig),
+    staleTime: 0,
     placeholderData: keepPreviousData
   })
   const toggleLikeMutation = useMutation({
