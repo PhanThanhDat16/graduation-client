@@ -102,6 +102,8 @@ export default function RequestWithdrawPage() {
     { key: 'rejected', label: 'Từ chối' }
   ] as const
 
+  const fee = selectedRequest?.amount ? selectedRequest?.amount * 0.02 : 0
+
   return (
     <div className="flex-1 overflow-auto bg-slate-50 text-slate-900">
       <div className="space-y-8">
@@ -415,20 +417,54 @@ export default function RequestWithdrawPage() {
                     )}
 
                     {/* ── Amount hero ── */}
-                    <div className="mx-8 mt-7 mb-2 bg-gradient-to-br from-slate-50 to-indigo-50 border border-indigo-100 rounded-2xl p-8 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                        Số tiền yêu cầu rút
-                      </p>
-                      <p className="text-6xl font-black text-indigo-700 leading-none">
-                        {formatCurrency(selectedRequest.amount)}
-                        <span className="text-3xl font-semibold text-indigo-400 ml-2">đ</span>
-                      </p>
-                      <div className="mt-5">
-                        <span
-                          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${statusMeta.cls}`}
-                        >
-                          {statusMeta.text}
-                        </span>
+                    <div className="mx-8 mt-7 mb-2 bg-gradient-to-br from-slate-50 to-indigo-50 border border-indigo-100 rounded-3xl p-8">
+                      {/* Requested Amount */}
+                      <div className="text-center">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                          Số tiền yêu cầu rút
+                        </p>
+
+                        <p className="text-6xl font-black text-indigo-700 leading-none">
+                          {formatCurrency(selectedRequest.amount)}
+                          <span className="text-3xl font-semibold text-indigo-400 ml-2">đ</span>
+                        </p>
+
+                        <div className="mt-5">
+                          <span
+                            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${statusMeta.cls}`}
+                          >
+                            {statusMeta.text}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="my-7 border-t border-dashed border-indigo-200" />
+
+                      {/* Amount details */}
+                      <div className="space-y-4">
+                        {/* Fee */}
+                        <div className="flex items-center justify-between bg-white/70 rounded-2xl px-5 py-4 border border-slate-100">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-500">Phí giao dịch</p>
+                            <p className="text-xs text-slate-400">Phí xử lý rút tiền</p>
+                          </div>
+
+                          <p className="text-lg font-bold text-rose-500">- {formatCurrency(fee)} đ</p>
+                        </div>
+
+                        {/* Amount received */}
+                        <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl px-5 py-5 border border-emerald-200 shadow-sm">
+                          <div>
+                            <p className="text-sm font-semibold text-emerald-700">Số tiền thực nhận</p>
+                            <p className="text-xs text-emerald-500">Sau khi trừ phí giao dịch</p>
+                          </div>
+
+                          <p className="text-3xl font-black text-emerald-600">
+                            {formatCurrency(selectedRequest.amountReceived)}
+                            <span className="text-lg ml-1">đ</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
 

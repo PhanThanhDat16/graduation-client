@@ -7,6 +7,7 @@ import path from '@/constants/path'
 export default function VerifyOtpPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [isOtpLocked, setIsOtpLocked] = useState(false)
   const emailFromState = location.state?.email || ''
   const purpose = location.state.purpose || 'register'
   const { loading, verifyOTP, resendOTP, verifyOTPPassword } = useAuthStore()
@@ -16,6 +17,8 @@ export default function VerifyOtpPage() {
 
   const [countdown, setCountdown] = useState(60)
   const canResend = countdown === 0
+
+  const isOtpDisabled = loading || countdown <= 0 || isOtpLocked
 
   useEffect(() => {
     if (!emailFromState) {
@@ -62,36 +65,56 @@ export default function VerifyOtpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (countdown <= 0) {
+      return message.warning('Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.')
+    }
+
+    if (isOtpLocked) {
+      return message.warning('Bạn đã nhập sai quá 5 lần. Vui lòng gửi lại mã mới.')
+    }
+
     const otpCode = otp.join('')
 
     if (otpCode.length < 6) {
       return message.warning('Vui lòng nhập đủ 6 số xác thực!')
     }
-    if (purpose === 'register') {
-      const isSuccess = await verifyOTP({
-        email: emailFromState,
-        otp: otpCode,
-        purpose: 'register'
-      })
-      if (isSuccess) {
+
+    const result =
+      purpose === 'register'
+        ? await verifyOTP({
+            email: emailFromState,
+            otp: otpCode,
+            purpose: 'register'
+          })
+        : await verifyOTPPassword(emailFromState, otpCode)
+
+    if (result.success) {
+      if (purpose === 'register') {
         navigate(path.LOGIN, { state: { email: emailFromState } })
-      }
-    } else {
-      const isSuccess = await verifyOTPPassword(emailFromState, otpCode)
-      if (isSuccess) {
+      } else {
         navigate(path.PASSWORD_SEND, { state: { email: emailFromState } })
       }
+
+      return
+    }
+
+    if (result.message?.includes('Too many failed attempts')) {
+      setIsOtpLocked(true)
+      setOtp(['', '', '', '', '', ''])
+      message.error('Bạn đã nhập sai 5 lần. Vui lòng gửi lại mã mới.')
     }
   }
 
   const handleResend = async () => {
-    const isSuccess = await resendOTP({
+    const result = await resendOTP({
       email: emailFromState,
-      purpose: 'register'
+      purpose: purpose === 'register' ? 'register' : 'forgot_password'
     })
-    if (isSuccess) {
-      // message.success(`Đã gửi lại mã tới ${emailFromState}`)
+
+    if (result.success) {
       setCountdown(60)
+      setIsOtpLocked(false)
       setOtp(['', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
     }
@@ -140,6 +163,7 @@ export default function VerifyOtpPage() {
             {otp.map((digit, index) => (
               <input
                 key={index}
+                disabled={isOtpDisabled}
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 ref={(el) => (inputRefs.current[index] = el)}
@@ -161,9 +185,9 @@ export default function VerifyOtpPage() {
 
           <button
             type="submit"
-            disabled={loading || otp.join('').length < 6}
+            disabled={isOtpDisabled || otp.join('').length < 6}
             className={`w-full py-4 rounded-xl font-bold text-white transition-all duration-300 ${
-              loading || otp.join('').length < 6
+              isOtpDisabled || otp.join('').length < 6
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-indigo-950 hover:bg-indigo-900 shadow-xl shadow-indigo-950/20 hover:-translate-y-1'
             }`}
