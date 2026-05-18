@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet, ChevronDown, User, Settings, LogOut, Shield, MessageSquare, ArrowLeft } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/store/useAuthStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useStoreSocketIO } from '@/store/useStoreSocketIO'
-import { chatService } from '@/apis/chatService'
 import { listenNewMessage } from '@/services/socketConversation'
 
 import NotificationDropdown from '../Header/NotificationDropdown'
@@ -35,13 +34,13 @@ export default function DashboardHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 1. Fetch TỔNG số lượng TIN NHẮN chưa đọc
-  const { data: chatUnreadCount = 0 } = useQuery({
-    queryKey: ['chat-total-unread-count'],
-    queryFn: () => chatService.getTotalUnreadCount(),
-    // Tự động load lại mỗi 1 phút (60000ms) để sync data
-    refetchInterval: 60000
-  })
+  // // 1. Fetch TỔNG số lượng TIN NHẮN chưa đọc
+  // const { data: chatUnreadCount = 0 } = useQuery({
+  //   queryKey: ['chat-total-unread-count'],
+  //   queryFn: () => chatService.getTotalUnreadCount(),
+  //   // Tự động load lại mỗi 1 phút (60000ms) để sync data
+  //   refetchInterval: 60000
+  // })
 
   // 2. Lắng nghe socket để cập nhật số tin nhắn realtime
   useEffect(() => {
@@ -95,12 +94,12 @@ export default function DashboardHeader() {
           >
             <MessageSquare className="w-5 h-5" />
 
-            {/* Chấm đỏ đếm số tin nhắn hoạt động dựa trên logic tính tổng */}
+            {/* Chấm đỏ đếm số tin nhắn hoạt động dựa trên logic tính tổng
             {chatUnreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
                 {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
               </span>
-            )}
+            )} */}
           </Link>
 
           {/* NÚT THÔNG BÁO (BELL) - Component tự xử lý UI bên trong */}
