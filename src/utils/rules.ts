@@ -115,7 +115,16 @@ export const contractSchema = yup
       .string()
       .required('Vui lòng nhập điều khoản hợp đồng')
       .min(50, 'Điều khoản cần chi tiết hơn (ít nhất 50 ký tự)'),
-    deadline: yup.string().required('Vui lòng chọn ngày nghiệm thu dự kiến'),
+    deadline: yup
+      .string()
+      .required('Vui lòng chọn ngày dự kiến hoàn thành công việc')
+      .test('date-not-in-past', 'Ngày dự kiến hoàn thành phải sau ngày hiện tại', function (value) {
+        if (!value) return true
+        const selectedDate = new Date(value)
+        const now = new Date()
+        now.setHours(0, 0, 0, 0)
+        return selectedDate >= now
+      }),
     agreeToTerms: yup
       .boolean()
       .required('Bạn phải đồng ý với chính sách của hệ thống')

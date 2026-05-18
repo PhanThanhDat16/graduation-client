@@ -31,6 +31,7 @@ export default function FreelancersPage() {
   // --- API CALL ---
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['freelancers', queryConfig],
+    staleTime: 0,
     queryFn: () => userService.getFreelancers(queryConfig),
     placeholderData: keepPreviousData
   })
