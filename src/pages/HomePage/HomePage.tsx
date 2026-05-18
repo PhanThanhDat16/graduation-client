@@ -504,7 +504,6 @@ export default function HomePage() {
                       className="object-cover w-24 h-24 mx-auto mb-4 border-4 rounded-full shadow-sm border-page"
                     />
                     <h3 className="text-lg font-bold text-text-main">{freelancer.fullName}</h3>
-                    <p className="mb-3 text-sm font-medium text-text-sub">{freelancer.description || 'Freelancer'}</p>
                     <div className="flex items-center justify-center gap-1 mb-6 text-sm font-bold text-amber-500">
                       <Star className="w-4 h-4 fill-current" />
                       <span className="text-text-main">{(freelancer.ratingAvg || 0).toFixed(1)}</span>

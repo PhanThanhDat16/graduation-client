@@ -1,12 +1,26 @@
 import type { UserProfile } from './user'
 
 export type BodyRegister = Omit<UserProfile, '_id' | 'createdAt' | 'updatedAt' | 'isVerified'>
+
+export type OtpPurpose = 'register' | 'forgot_password'
+
 export type BodyVerifyOtpRegister = {
   email: string
   otp: string
-  purpose: 'register' | 'resetPassword'
+  purpose: OtpPurpose
 }
+
 export type BodyResendOTP = Pick<BodyVerifyOtpRegister, 'email' | 'purpose'>
+
+export type AuthActionResult = {
+  success: boolean
+  message?: string
+}
+
+export type ResendOtpResult = AuthActionResult & {
+  expiresAt?: string
+}
+
 export interface AuthState {
   accessToken: string | null
   user: UserProfile | null
@@ -20,11 +34,13 @@ export interface AuthState {
   logOut: () => Promise<void>
   fetchMe: () => Promise<void>
   refresh: () => Promise<void>
+
   register: (body: BodyRegister) => Promise<boolean>
-  verifyOTP: (body: BodyVerifyOtpRegister) => Promise<boolean>
-  resendOTP: (body: BodyResendOTP) => Promise<boolean>
+  verifyOTP: (body: BodyVerifyOtpRegister) => Promise<AuthActionResult>
+  resendOTP: (body: BodyResendOTP) => Promise<ResendOtpResult>
   forgotPassword: (email: string) => Promise<boolean>
-  verifyOTPPassword: (email: string, otp: string) => Promise<boolean>
+  verifyOTPPassword: (email: string, otp: string) => Promise<AuthActionResult>
+
   updateProfile: (data: Partial<UserProfile>) => Promise<boolean>
   uploadAvatar: (file: File) => Promise<boolean>
 }

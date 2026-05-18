@@ -43,13 +43,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.verifyOTP(body)
-      message.success('Xác thực OTP thành công.')
-      console.log(res)
-      return true
-    } catch (error) {
-      console.log(error)
-      message.error('Mã OTP không chính xác.')
-      return false
+
+      const msg = res.data?.message || 'Xác thực OTP thành công.'
+      message.success(msg)
+
+      return {
+        success: true,
+        message: msg
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Mã OTP không chính xác.'
+      message.error(msg)
+
+      return {
+        success: false,
+        message: msg
+      }
     } finally {
       set({ loading: false })
     }
@@ -58,13 +67,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.resendOTP(body)
-      message.success('Đã gửi lại mã xác thực.')
-      console.log(res)
-      return true
-    } catch (error) {
-      console.log(error)
-      message.error('Vui lòng thử lại sau.')
-      return false
+
+      const msg = res.data?.message || 'Đã gửi lại mã xác thực.'
+      message.success(msg)
+
+      return {
+        success: true,
+        message: msg,
+        expiresAt: res.data?.expiresAt
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Vui lòng thử lại sau.'
+      message.error(msg)
+
+      return {
+        success: false,
+        message: msg
+      }
     } finally {
       set({ loading: false })
     }
@@ -102,17 +121,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false })
     }
   },
-  verifyOTPPassword: async (email: string, password: string) => {
+  verifyOTPPassword: async (email: string, otp: string) => {
     try {
       set({ loading: true })
-      const res = await authService.verifyOTPPassword(email, password)
-      message.success('Xác thực OTP thành công.')
-      console.log(res)
-      return true
-    } catch (error) {
-      console.log(error)
-      message.error('Mã OTP không chính xác.')
-      return false
+      const res = await authService.verifyOTPPassword(email, otp)
+
+      const msg = res.data?.message || 'Xác thực OTP thành công.'
+      message.success(msg)
+
+      return {
+        success: true,
+        message: msg
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Mã OTP không chính xác.'
+      message.error(msg)
+
+      return {
+        success: false,
+        message: msg
+      }
     } finally {
       set({ loading: false })
     }

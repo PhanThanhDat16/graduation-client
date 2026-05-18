@@ -22,7 +22,7 @@ import { formatBudget } from '@/utils/fomatters'
 import { proposalSchema, type ProposalSchema } from '@/utils/rules'
 import { toast } from 'react-toastify'
 
-const SERVICE_FEE_PERCENT = 0.05
+// const SERVICE_FEE_PERCENT = 0.05
 
 const DURATION_OPTIONS = [
   { value: 'less than 1 month', label: 'Dưới 1 tháng', sub: '< 4 tuần' },
@@ -52,9 +52,6 @@ export default function SubmitProposalPage() {
 
   const watchedBudget = useWatch({ control, name: 'proposedBudget' }) || 0
   const watchedProposal = useWatch({ control, name: 'proposal' }) || ''
-
-  const serviceFee = watchedBudget * SERVICE_FEE_PERCENT
-  const receiveAmount = watchedBudget - serviceFee
 
   // 1. LẤY THÔNG TIN DỰ ÁN
   const { data: projectRes, isLoading: isLoadingProject } = useQuery({
@@ -220,11 +217,11 @@ export default function SubmitProposalPage() {
                       <span className="flex items-center gap-2 text-slate-600 font-medium">
                         <BadgePercent className="w-4 h-4" /> Phí nền tảng (5%)
                       </span>
-                      <span className="font-bold text-red-500">– {formatBudget(serviceFee)} ₫</span>
+                      <span className="font-bold text-red-500">– {formatBudget(0)} ₫</span>
                     </div>
                     <div className="flex items-center justify-between px-5 py-4">
                       <span className="text-base font-bold text-slate-800">Bạn thực nhận</span>
-                      <span className="text-xl font-extrabold text-emerald-600">{formatBudget(receiveAmount)} ₫</span>
+                      <span className="text-xl font-extrabold text-emerald-600">{formatBudget(watchedBudget)} ₫</span>
                     </div>
                   </div>
                 </div>

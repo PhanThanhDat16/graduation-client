@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Printer,
+  Star,
   ShieldCheck,
   AlertTriangle,
   XCircle,
@@ -22,6 +23,7 @@ import { toast } from 'react-toastify'
 import { contractService } from '@/apis/contractService'
 import { disputeService } from '@/apis/disputeService'
 import { projectService } from '@/apis/projectService'
+import { reviewService } from '@/apis/reviewService'
 import { useAuthStore } from '@/store/useAuthStore'
 import { formatBudget } from '@/utils/fomatters'
 import { useCountdown } from '@/hooks/useCountdown'
@@ -34,6 +36,7 @@ import SubmitWorkModal from './components/SubmitWorkModal'
 import DisputeDossier from './components/DisputeDossier'
 import NegotiationModal from './components/NegotiationModal'
 import SignatureConfirmModal from '@/components/SignatureConfirmModal/SignatureConfirmModal'
+import ReviewModal from './components/ReviewModal/ReviewModal'
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,6 +51,7 @@ export default function ContractDetailPage() {
   const [showDisputeModal, setShowDisputeModal] = useState(false)
   const [showNegotiationModal, setShowNegotiationModal] = useState(false)
   const [showConfirmSignature, setShowConfirmSignature] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   // ĐẾM NGƯỢC 24H CHO TRẠNG THÁI DRAFT
   const [timeLeft24h, setTimeLeft24h] = useState<{ hours: string; minutes: string; seconds: string } | null>(null)
@@ -63,12 +67,20 @@ export default function ContractDetailPage() {
 
   const { data: disputeRes } = useQuery({
     queryKey: ['dispute-contract', id],
+    staleTime: 0,
     queryFn: () => disputeService.getDisputeByContract(id as string),
+    enabled: !!id
+  })
+
+  const { data: reviewRes } = useQuery({
+    queryKey: ['review-contract', id],
+    queryFn: () => reviewService.getReviewByContractId(id as string),
     enabled: !!id
   })
 
   const contract = axiosResponse?.data?.data
   const currentDispute = disputeRes?.data?.data
+  const existingReview = reviewRes?.data?.data
 
   // 2. ROLE CHECK
   const contractorIdStr =
@@ -660,10 +672,29 @@ export default function ContractDetailPage() {
         {!isDisputeActive && contract.status === 'completed' && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-start gap-3 mb-6">
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <p className="font-bold">Hợp đồng hoàn tất</p>
               <p className="text-sm mt-1">Dự án đã được nghiệm thu và tiền đã được giải ngân thành công.</p>
             </div>
+            {contract.status === 'completed' && existingReview?.length === 0 ? (
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 rounded-xl shadow-md shadow-indigo-200 transition-all shrink-0"
+              >
+                <Star className="w-4 h-4" /> Đánh giá
+              </button>
+            ) : (
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white 
+                bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500
+                
+                rounded-xl shadow-md shadow-yellow-200 border border-yellow-300/50
+                transition-all duration-300 shrink-0"
+              >
+                <Star className="w-4 h-4 fill-white" /> Đã Đánh giá
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -965,6 +996,15 @@ export default function ContractDetailPage() {
         onClose={() => setShowConfirmSignature(false)}
         onConfirm={executeSignature}
       />
+
+      {showReviewModal && (
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          contractId={contract._id}
+          freelancerName={isContractor ? freelancerInfo?.fullName : contractorInfo?.fullName}
+        />
+      )}
     </div>
   )
 }
