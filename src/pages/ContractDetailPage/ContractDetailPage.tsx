@@ -33,6 +33,7 @@ import DisputeModal from './components/DisputeModal'
 import SubmitWorkModal from './components/SubmitWorkModal'
 import DisputeDossier from './components/DisputeDossier'
 import NegotiationModal from './components/NegotiationModal'
+import SignatureConfirmModal from '@/components/SignatureConfirmModal/SignatureConfirmModal'
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -46,6 +47,7 @@ export default function ContractDetailPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [showDisputeModal, setShowDisputeModal] = useState(false)
   const [showNegotiationModal, setShowNegotiationModal] = useState(false)
+  const [showConfirmSignature, setShowConfirmSignature] = useState(false)
 
   // ĐẾM NGƯỢC 24H CHO TRẠNG THÁI DRAFT
   const [timeLeft24h, setTimeLeft24h] = useState<{ hours: string; minutes: string; seconds: string } | null>(null)
@@ -164,6 +166,8 @@ export default function ContractDetailPage() {
     mutationFn: () => contractService.agreeToContract(id as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      setShowConfirmSignature(false)
+      setSignature('')
       toast.success('Đã ký xác nhận hợp đồng thành công!')
     },
     onError: () => toast.error('Có lỗi xảy ra, vui lòng thử lại.')
@@ -202,14 +206,16 @@ export default function ContractDetailPage() {
     window.print()
   }
 
-  const handleAgree = () => {
+  const handleAgreeClick = () => {
     if (signature.trim().length !== 6) {
       toast.warning('Vui lòng nhập đúng mã PIN bảo mật 6 số để ký điện tử.')
       return
     }
-    if (window.confirm('Xác nhận ký điện tử? Lệnh này mang giá trị pháp lý tương đương chữ ký tay.')) {
-      agreeMutation.mutate()
-    }
+    setShowConfirmSignature(true)
+  }
+
+  const executeSignature = () => {
+    agreeMutation.mutate()
   }
 
   const handleCancel = () => {
@@ -270,12 +276,19 @@ export default function ContractDetailPage() {
         </button>
       )
     }
-
     if (contract?.status === 'waiting_payment') {
       const needToPay = isContractor
         ? contract.paymentInfo?.contractorMustPay > 0
         : contract.paymentInfo?.freelancerMustPay > 0
-      if (needToPay) {
+
+      let checkPaid = false
+      if (user?.role === 'contractor') {
+        checkPaid = contract?.contractorPaid
+      } else {
+        checkPaid = contract?.freelancerPaid
+      }
+
+      if (!checkPaid && needToPay) {
         return (
           <button
             onClick={() => setShowPaymentModal(true)}
@@ -284,8 +297,36 @@ export default function ContractDetailPage() {
             <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
           </button>
         )
+      } else {
+        return (
+          <button
+            disabled
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-slate-500 bg-slate-200 rounded-xl cursor-not-allowed"
+          >
+            <Wallet className="w-4 h-4" /> Đang chờ đối tác thanh toán...
+          </button>
+        )
       }
     }
+    // if (contract?.status === 'waiting_payment') {
+    //   let needToPay = false
+    //   if (user?.role === 'contractor') {
+    //     needToPay = isContractor && contract.paymentInfo?.contractorMustPay > 0
+    //   } else {
+    //     needToPay = isContractor && contract.paymentInfo?.contractorMustPay > 0
+    //   }
+
+    //   if (needToPay) {
+    //     return (
+    //       <button
+    //         onClick={() => setShowPaymentModal(true)}
+    //         className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors"
+    //       >
+    //         <Wallet className="w-4 h-4" /> Thanh toán cọc ngay
+    //       </button>
+    //     )
+    //   }
+    // }
 
     if (contract?.status === 'running') {
       return (
@@ -802,7 +843,7 @@ export default function ContractDetailPage() {
                       />
                     </div>
                     <button
-                      onClick={handleAgree}
+                      onClick={handleAgreeClick}
                       disabled={agreeMutation.isPending}
                       className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg hover:bg-slate-800 transition-colors text-sm shadow-md"
                     >
@@ -845,7 +886,7 @@ export default function ContractDetailPage() {
                       />
                     </div>
                     <button
-                      onClick={handleAgree}
+                      onClick={handleAgreeClick}
                       disabled={agreeMutation.isPending}
                       className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-700 transition-colors text-sm shadow-md shadow-indigo-200"
                     >
@@ -918,6 +959,12 @@ export default function ContractDetailPage() {
           }}
         />
       )}
+      <SignatureConfirmModal
+        isOpen={showConfirmSignature}
+        isLoading={agreeMutation.isPending}
+        onClose={() => setShowConfirmSignature(false)}
+        onConfirm={executeSignature}
+      />
     </div>
   )
 }
