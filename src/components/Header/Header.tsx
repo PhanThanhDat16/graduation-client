@@ -26,8 +26,8 @@ import { useAuthStore } from '@/store/useAuthStore'
 import path from '@/constants/path'
 import { useWalletStore } from '@/store/useWalletStore'
 import NotificationDropdown from './NotificationDropdown'
-import { chatService } from '@/apis/chatService'
-import { useQuery } from '@tanstack/react-query'
+// import { chatService } from '@/apis/chatService'
+// import { useQuery } from '@tanstack/react-query'
 
 export default function Header() {
   const location = useLocation()
@@ -83,12 +83,12 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const { data: chatUnreadCount = 0 } = useQuery({
-    queryKey: ['chat-total-unread-count'],
-    queryFn: () => chatService.getTotalUnreadCount(),
-    // Tự động load lại mỗi 1 phút (60000ms) để sync data
-    refetchInterval: 60000
-  })
+  // const { data: chatUnreadCount = 0 } = useQuery({
+  //   queryKey: ['chat-total-unread-count'],
+  //   queryFn: () => chatService.getTotalUnreadCount(),
+  //   // Tự động load lại mỗi 1 phút (60000ms) để sync data
+  //   refetchInterval: 5 * 1000
+  // })
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-200 font-body ${
@@ -232,12 +232,12 @@ export default function Header() {
                 >
                   <MessageSquare className="w-5 h-5" />
 
-                  {/* Chấm đỏ đếm số tin nhắn hoạt động dựa trên logic tính tổng */}
+                  {/* Chấm đỏ đếm số tin nhắn hoạt động dựa trên logic tính tổng
                   {chatUnreadCount > 0 && (
                     <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white animate-in zoom-in">
                       {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
                     </span>
-                  )}
+                  )} */}
                 </Link>
 
                 <NotificationDropdown />
