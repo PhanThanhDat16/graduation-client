@@ -887,7 +887,7 @@ export default function MessagesPage() {
                   <div className="flex items-center gap-2 px-1 pb-1 shrink-0">
                     <button
                       onClick={handleSendMessage}
-                      disabled={!messageInput.trim() || sendingMessage}
+                      disabled={!messageInput.trim() || sendingMessage || messageInput.length > 500}
                       className={`p-2.5 rounded-xl transition-all ${
                         messageInput.trim()
                           ? 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700'
