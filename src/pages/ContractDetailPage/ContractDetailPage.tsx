@@ -656,15 +656,82 @@ export default function ContractDetailPage() {
         )}
 
         {!isDisputeActive && contract.status === 'submitted' && (
-          <div className="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-xl flex items-start gap-3 mb-6">
-            <Send className="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">Đã nộp sản phẩm</p>
-              <p className="text-sm mt-1">
-                {isContractor
-                  ? 'Freelancer đã nộp sản phẩm. Vui lòng kiểm tra và tiến hành nghiệm thu để giải ngân.'
-                  : 'Sản phẩm đã được gửi thành công. Đang chờ khách hàng nghiệm thu.'}
-              </p>
+          <div className="bg-white border border-purple-200 text-purple-800 p-4 rounded-xl flex items-start gap-3 mb-6">
+            <Send className="w-5 h-5 shrink-0 mt-0.5 text-blue-950" />
+            <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-5 shadow-sm flex items-start gap-4 transition-all hover:shadow-md">
+              {/* Icon thành công */}
+              <div className="mt-0.5 shrink-0">
+                <svg className="w-6 h-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              {/* Nội dung */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-emerald-800 text-base">Đã nộp sản phẩm</h3>
+
+                <div className="text-sm mt-1.5 text-gray-600 leading-relaxed">
+                  {isContractor ? (
+                    <div className="space-y-3">
+                      <p>Freelancer đã nộp sản phẩm. Vui lòng kiểm tra và tiến hành nghiệm thu để giải ngân.</p>
+
+                      {/* Link được style dạng thẻ đính kèm */}
+                      {contract?.webLink && (
+                        <a
+                          href={contract.webLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 rounded-lg text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors w-fit max-w-full shadow-sm group"
+                        >
+                          <svg
+                            className="w-4 h-4 text-emerald-500 group-hover:text-emerald-600 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                            />
+                          </svg>
+                          <span className="font-medium truncate">{contract.webLink}</span>
+                        </a>
+                      )}
+                      {contract?.githubLink && (
+                        <a
+                          href={contract.githubLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 rounded-lg text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors w-fit max-w-full shadow-sm group"
+                        >
+                          <svg
+                            className="w-4 h-4 text-emerald-500 group-hover:text-emerald-600 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                            />
+                          </svg>
+                          <span className="font-medium truncate">{contract.githubLink}</span>
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <p>Sản phẩm đã được gửi thành công. Đang chờ khách hàng nghiệm thu.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -818,13 +885,17 @@ export default function ContractDetailPage() {
               <h3 className="font-bold text-lg mb-3 text-slate-900">Điều 4: Phí nền tảng & Bảo lãnh thực hiện</h3>
               <ul className="list-disc list-inside space-y-2.5 text-slate-700 text-[15px] leading-relaxed print:text-black">
                 <li>
-                  <strong className="text-indigo-700 print:text-black">Phí duy trì nền tảng (Bên A):</strong> Bên A có
-                  trách nhiệm thanh toán khoản phí dịch vụ tương đương <strong>5%</strong> giá trị hợp đồng, tương ứng
-                  với{' '}
                   <strong className="text-indigo-700 print:text-black">
-                    {formatBudget(contract.totalAmount * 0.05)} VNĐ
-                  </strong>
-                  .
+                    Nghĩa vụ thanh toán & Phí nền tảng (Bên A):
+                  </strong>{' '}
+                  Bên A có trách nhiệm nộp trước <strong>100%</strong> giá trị hợp đồng cùng với khoản phí dịch vụ nền
+                  tảng tương đương <strong>5%</strong>. Tổng số tiền Bên A cần thanh toán vào Ví Escrow để dự án bắt đầu
+                  là{' '}
+                  <strong className="text-indigo-700 print:text-black">
+                    {formatBudget(contract.totalAmount + contract.totalAmount * 0.05)} VNĐ
+                  </strong>{' '}
+                  (Bao gồm {formatBudget(contract.totalAmount)} VNĐ thù lao dự án và{' '}
+                  {formatBudget(contract.totalAmount * 0.05)} VNĐ phí nền tảng).
                 </li>
                 <li>
                   <strong className="text-emerald-700 print:text-black">Bảo lãnh thực hiện (Bên B):</strong> Để đảm bảo
@@ -838,6 +909,30 @@ export default function ContractDetailPage() {
                 <li>
                   Khoản tiền cọc của Bên B sẽ được hệ thống khóa tại Ví Escrow và <strong>tự động hoàn trả 100%</strong>{' '}
                   vào ví khả dụng cùng với tiền thù lao khi dự án kết thúc tốt đẹp.
+                </li>
+              </ul>
+            </div>
+
+            {/* ĐIỀU 5: GIAO NHẬN SẢN PHẨM */}
+            <div className="mb-6">
+              <h3 className="font-bold text-lg mb-3 text-slate-900">Điều 5: Quy định về Bàn giao sản phẩm</h3>
+              <ul className="list-disc list-inside space-y-2.5 text-slate-700 text-[15px] leading-relaxed print:text-black">
+                <li>
+                  Bên B có thể thực hiện bàn giao sản phẩm trực tiếp trên nền tảng FreeWork hoặc thông qua các kênh lưu
+                  trữ bên ngoài (Google Drive, hệ thống máy chủ riêng, v.v.) theo sự thống nhất trước với Bên A.
+                </li>
+                <li>
+                  <strong className="text-slate-900 print:text-black">Đối với mã nguồn (Source Code):</strong> Nếu việc
+                  bàn giao được thực hiện thông qua kho lưu trữ mã nguồn (như GitHub, GitLab, Bitbucket), Bên B có nghĩa
+                  vụ thiết lập kho lưu trữ ở chế độ <strong>Riêng tư (Private)</strong> và chỉ cấp quyền truy cập
+                  (Invite Collaborator) cho tài khoản mà Bên A chỉ định.
+                </li>
+                <li>
+                  <strong className="text-red-600 print:text-black">Miễn trừ trách nhiệm:</strong> Nền tảng FreeWork
+                  đóng vai trò là đơn vị trung gian bảo chứng thanh toán (Escrow). Trong trường hợp hai bên quyết định
+                  bàn giao sản phẩm hoặc chia sẻ dữ liệu bên ngoài hệ thống của FreeWork, Bên A và Bên B phải{' '}
+                  <strong className="underline">tự chịu hoàn toàn trách nhiệm</strong> về tính bảo mật, bản quyền và rủi
+                  ro thất thoát dữ liệu.
                 </li>
               </ul>
             </div>

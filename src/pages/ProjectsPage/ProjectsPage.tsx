@@ -76,7 +76,7 @@ export default function ProjectsPage() {
     })
   }
 
-  // ĐÃ SỬA: Nhận trực tiếp chuỗi value từ SortDropdown
+  // Nhận trực tiếp chuỗi value từ SortDropdown
   const handleSortChange = (value: string) => {
     const [sortField, sortOrder] = value.split('_')
     navigate({

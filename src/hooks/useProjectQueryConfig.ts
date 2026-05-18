@@ -18,7 +18,7 @@ export type QueryConfig = {
 export default function useProjectQueryConfig() {
   const queryParams: QueryConfig = useQueryParams()
 
-  // Đọc dữ liệu từ URL xuống và parse đúng kiểu dữ liệu
+  // Đọc dữ liệu từ URL xuống
   const queryConfig: QueryConfig = omitBy(
     {
       page: queryParams.page || '1',
