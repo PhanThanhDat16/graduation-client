@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { X, Send, Code, Globe } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 
 import { contractService } from '@/apis/contractService'
@@ -19,6 +19,7 @@ interface SubmitWorkModalProps {
 }
 
 export default function SubmitWorkModal({ isOpen, onClose, contractId, onSuccess }: SubmitWorkModalProps) {
+  const queryClient = useQueryClient()
   const {
     register,
     handleSubmit,
@@ -44,6 +45,7 @@ export default function SubmitWorkModal({ isOpen, onClose, contractId, onSuccess
     },
     onSuccess: () => {
       toast.success('Đã nộp sản phẩm thành công!')
+      queryClient.invalidateQueries({ queryKey: ['contract', contractId] })
       onSuccess()
       onClose()
     },
