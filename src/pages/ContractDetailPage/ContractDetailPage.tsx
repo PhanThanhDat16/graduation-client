@@ -47,6 +47,10 @@ export default function ContractDetailPage() {
   const [showDisputeModal, setShowDisputeModal] = useState(false)
   const [showNegotiationModal, setShowNegotiationModal] = useState(false)
 
+  // ĐẾM NGƯỢC 24H CHO TRẠNG THÁI DRAFT
+  const [timeLeft24h, setTimeLeft24h] = useState<{ hours: string; minutes: string; seconds: string } | null>(null)
+  const [is24hExpired, setIs24hExpired] = useState(false)
+
   // 1. FETCH DATA
   const { data: axiosResponse, isLoading: isContractLoading } = useQuery({
     queryKey: ['contract', id],
@@ -64,7 +68,7 @@ export default function ContractDetailPage() {
   const contract = axiosResponse?.data?.data
   const currentDispute = disputeRes?.data?.data
 
-  // 2. ROLE CHECK (Nhận diện Khách hàng / Freelancer bằng ID)
+  // 2. ROLE CHECK
   const contractorIdStr =
     typeof contract?.contractorId === 'string' ? contract?.contractorId : contract?.contractorId?._id
 
@@ -74,7 +78,7 @@ export default function ContractDetailPage() {
   const hasAgreed = isContractor ? contract?.contractorAgreed : contract?.freelancerAgreed
   const partnerAgreed = isContractor ? contract?.freelancerAgreed : contract?.contractorAgreed
 
-  // 3. COUNTDOWN LOGIC
+  // 3. COUNTDOWN LOGIC (DISPUTE)
   const { minutes, seconds, isExpired } = useCountdown(currentDispute?.reasonDeadline)
 
   const checkDeadlineMutation = useMutation({
@@ -90,16 +94,47 @@ export default function ContractDetailPage() {
     }
   }, [isExpired, currentDispute?.status])
 
-  // 4. MUTATIONS (Các hành động cập nhật trạng thái)
-  const agreeMutation = useMutation({
-    mutationFn: () => contractService.agreeToContract(id as string),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contract', id] })
-      toast.success('Đã ký xác nhận hợp đồng thành công!')
-    },
-    onError: () => toast.error('Có lỗi xảy ra, vui lòng thử lại.')
-  })
+  // --- LOGIC ĐẾM NGƯỢC 24H (Cho trạng thái draft) ---
+  useEffect(() => {
+    // Không gọi setState trực tiếp ở đây để tránh Cascading Renders
+    if (!contract || contract.status !== 'draft') {
+      return
+    }
 
+    const calculateTimeLeft = () => {
+      const expiryTime = new Date(contract.createdAt).getTime() + 24 * 60 * 60 * 1000
+      const now = new Date().getTime()
+      const difference = expiryTime - now
+
+      if (difference <= 0) {
+        setIs24hExpired(true)
+        setTimeLeft24h({ hours: '00', minutes: '00', seconds: '00' })
+        return
+      }
+
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000)
+
+      setTimeLeft24h({
+        hours: hours.toString().padStart(2, '0'),
+        minutes: minutes.toString().padStart(2, '0'),
+        seconds: seconds.toString().padStart(2, '0')
+      })
+    }
+
+    calculateTimeLeft()
+    const timer = setInterval(calculateTimeLeft, 1000)
+
+    // CHUYỂN LOGIC RESET STATE VÀO HÀM CLEANUP Ở ĐÂY 👇
+    return () => {
+      clearInterval(timer)
+      setTimeLeft24h(null)
+      setIs24hExpired(false)
+    }
+  }, [contract?.createdAt, contract?.status])
+
+  // 4. MUTATIONS
   const cancelMutation = useMutation({
     mutationFn: async () => {
       await contractService.cancelContract(id as string)
@@ -113,6 +148,25 @@ export default function ContractDetailPage() {
       toast.success('Hợp đồng đã được huỷ. Dự án mở tuyển trở lại!')
     },
     onError: () => toast.error('Không thể huỷ hợp đồng lúc này.')
+  })
+
+  // Tự động hủy khi quá 24h
+  useEffect(() => {
+    if (is24hExpired && contract?.status === 'draft') {
+      if (!cancelMutation.isPending) {
+        toast.error('Hợp đồng đã quá hạn 24h và sẽ bị tự động hủy.')
+        cancelMutation.mutate()
+      }
+    }
+  }, [is24hExpired, contract?.status])
+
+  const agreeMutation = useMutation({
+    mutationFn: () => contractService.agreeToContract(id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract', id] })
+      toast.success('Đã ký xác nhận hợp đồng thành công!')
+    },
+    onError: () => toast.error('Có lỗi xảy ra, vui lòng thử lại.')
   })
 
   const completeMutation = useMutation({
@@ -169,7 +223,6 @@ export default function ContractDetailPage() {
     const isDisputeActive =
       currentDispute && !['resolved', 'auto_closed', 'staff_cancelled'].includes(currentDispute.status)
 
-    // --- A. LUỒNG TRANH CHẤP ---
     if (isDisputeActive) {
       const myReason = isContractor ? currentDispute.contractorReason : currentDispute.freelancerReason
       const iHaveSubmittedReason = myReason && myReason.trim().length > 0
@@ -218,7 +271,6 @@ export default function ContractDetailPage() {
       )
     }
 
-    // --- B. LUỒNG BÌNH THƯỜNG ---
     if (contract?.status === 'waiting_payment') {
       const needToPay = isContractor
         ? contract.paymentInfo?.contractorMustPay > 0
@@ -495,18 +547,30 @@ export default function ContractDetailPage() {
         )}
 
         {!isDisputeActive && (contract.status === 'draft' || contract.status === 'pending_agreement') && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 mb-6">
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">Đang chờ chữ ký xác nhận</p>
-              <p className="text-sm mt-1">
-                {!hasAgreed
-                  ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy nhập mã PIN xác thực ở cuối trang để ký.'
-                  : !partnerAgreed
-                    ? 'Bạn đã ký. Đang chờ đối tác kiểm tra và chấp thuận hợp đồng này.'
-                    : 'Đang xử lý...'}
-              </p>
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-5 rounded-2xl flex flex-col md:flex-row items-center md:items-start gap-5 mb-6 shadow-sm">
+            <div className="flex items-start gap-3 flex-1 w-full">
+              <AlertTriangle className="w-6 h-6 shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-black text-lg">Đang chờ chữ ký xác nhận</p>
+                <p className="text-sm mt-1 font-medium leading-relaxed">
+                  {!hasAgreed
+                    ? 'Vui lòng đọc kỹ các điều khoản bên dưới. Nếu đồng ý, hãy nhập mã PIN xác thực ở cuối trang để ký.'
+                    : !partnerAgreed
+                      ? 'Bạn đã ký. Đang chờ đối tác kiểm tra và chấp thuận hợp đồng này.'
+                      : 'Đang xử lý...'}
+                </p>
+              </div>
             </div>
+
+            {/* ĐỒNG HỒ ĐẾM NGƯỢC 24H */}
+            {timeLeft24h && (
+              <div className="bg-white border-2 border-amber-200 rounded-xl px-4 py-2 text-center shadow-sm min-w-[140px] shrink-0 w-full md:w-auto">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tự động hủy sau</p>
+                <div className="font-mono text-xl font-black text-amber-600 flex justify-center items-center gap-1 animate-pulse">
+                  {timeLeft24h.hours}:{timeLeft24h.minutes}:{timeLeft24h.seconds}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
