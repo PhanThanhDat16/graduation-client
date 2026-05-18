@@ -676,25 +676,27 @@ export default function ContractDetailPage() {
               <p className="font-bold">Hợp đồng hoàn tất</p>
               <p className="text-sm mt-1">Dự án đã được nghiệm thu và tiền đã được giải ngân thành công.</p>
             </div>
-            {contract.status === 'completed' && existingReview?.length === 0 ? (
-              <button
-                onClick={() => setShowReviewModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 rounded-xl shadow-md shadow-indigo-200 transition-all shrink-0"
-              >
-                <Star className="w-4 h-4" /> Đánh giá
-              </button>
-            ) : (
-              <button
-                disabled
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white 
-                bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500
-                
-                rounded-xl shadow-md shadow-yellow-200 border border-yellow-300/50
-                transition-all duration-300 shrink-0"
-              >
-                <Star className="w-4 h-4 fill-white" /> Đã Đánh giá
-              </button>
-            )}
+            {user?.role === 'contractor' &&
+              (contract.status === 'completed' && existingReview?.length === 0 ? (
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 rounded-xl shadow-md shadow-indigo-200 transition-all shrink-0"
+                >
+                  <Star className="w-4 h-4" />
+                  Đánh giá
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white
+      bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500
+      rounded-xl shadow-md shadow-yellow-200 border border-yellow-300/50
+      transition-all duration-300 shrink-0"
+                >
+                  <Star className="w-4 h-4 fill-white" />
+                  Đã Đánh giá
+                </button>
+              ))}
           </div>
         )}
       </div>
