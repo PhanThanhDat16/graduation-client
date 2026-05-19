@@ -650,7 +650,7 @@ export default function MessagesPage() {
                                 ? `Tranh chấp #${group._id.slice(-6)}`
                                 : 'Hỗ trợ khách hàng'}
                         </h3>
-                        {group.status === 'closed' && (
+                        {group.status === 'closed' && group.type !== 'dispute_chat' && (
                           <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-500 uppercase tracking-wide">
                             Đã đóng
                           </span>
@@ -731,7 +731,7 @@ export default function MessagesPage() {
                             ? `Tranh chấp #${activeGroup._id.slice(-6)}`
                             : 'Hỗ trợ khách hàng'}
                     </h2>
-                    {activeGroup.status === 'closed' && (
+                    {activeGroup.status === 'closed' && activeGroup.type !== 'dispute_chat' && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 uppercase">
                         Đã đóng
                       </span>
@@ -849,7 +849,7 @@ export default function MessagesPage() {
             </div>
 
             {/* Input Area */}
-            {activeGroup.status === 'closed' ? (
+            {activeGroup.status === 'closed' && activeGroup.type !== 'dispute_chat' ? (
               <div className="p-4 border-t bg-slate-50 border-slate-200 shrink-0">
                 <div className="flex items-center justify-center gap-2 py-3 text-sm text-slate-400">
                   <svg

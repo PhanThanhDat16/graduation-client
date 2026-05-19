@@ -28,6 +28,7 @@ export default function ProjectApplicationsPage() {
   // FETCH API
   const { data: axiosResponse, isLoading } = useQuery({
     queryKey: ['project-applications', projectId],
+    staleTime: 0,
     queryFn: () => applicationService.getApplicationsByProject(projectId as string),
     enabled: !!projectId
   })

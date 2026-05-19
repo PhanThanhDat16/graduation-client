@@ -25,10 +25,23 @@ interface DisputeModalProps {
   contractId: string
   disputeId?: string | null // Nếu null = Giai đoạn 1 (Mở kiện). Nếu có ID = Giai đoạn 2 (Điền lời khai)
   onSuccess: () => void
+  disputeStatus?: string | null
 }
 
-export default function DisputeModal({ isOpen, onClose, contractId, disputeId, onSuccess }: DisputeModalProps) {
-  const isCreating = !disputeId // Trạng thái 1: Mở Dispute mới
+export default function DisputeModal({
+  isOpen,
+  onClose,
+  contractId,
+  disputeId,
+  onSuccess,
+  disputeStatus
+}: DisputeModalProps) {
+  const isCreating = !disputeId || disputeStatus === 'staff_cancelled' || disputeStatus === 'resolved'
+  // disputeStatus === 'pending_reasons' ||
+  // disputeStatus === 'waiting_escalation' ||
+  // disputeStatus === 'open' ||
+  // disputeStatus === 'negotiating' ||
+  // disputeStatus === 'admin_review'
 
   const {
     register,
