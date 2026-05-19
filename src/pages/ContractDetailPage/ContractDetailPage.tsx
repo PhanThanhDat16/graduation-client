@@ -1068,6 +1068,7 @@ export default function ContractDetailPage() {
           onClose={() => setShowDisputeModal(false)}
           contractId={contract._id}
           disputeId={currentDispute?._id || null}
+          disputeStatus={currentDispute?.status || null}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ['dispute-contract', id] })
             queryClient.invalidateQueries({ queryKey: ['contract', id] })
